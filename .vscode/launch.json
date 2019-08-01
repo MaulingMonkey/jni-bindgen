@@ -1,0 +1,43 @@
+{
+    "version": "0.2.0",
+    "inputs": [
+        {
+            "id": "example",
+            "type": "pickString",
+            "description": "Pick an example",
+            "options": [
+                "dump-android-sdk",
+            ]
+        }
+    ],
+    "configurations": [
+        {
+            "name": "Debug x86_64-pc-windows-msvc", "type": "cppvsdbg", "request": "launch",
+            "preLaunchTask": "cargo build --example=${input:example} --target=x86_64-pc-windows-msvc",
+            "cwd": "${workspaceRoot}", "program": "",
+            "windows": { "program": "${workspaceRoot}/target/x86_64-pc-windows-msvc/debug/examples/${input:example}.exe" },
+            "internalConsoleOptions": "openOnSessionStart", "externalConsole": false,
+        },
+        {
+            "name": "Debug i686-pc-windows-msvc", "type": "cppvsdbg", "request": "launch",
+            "preLaunchTask": "cargo build --example=${input:example} --target=i686-pc-windows-msvc",
+            "cwd": "${workspaceRoot}", "program": "",
+            "windows": { "program": "${workspaceRoot}/target/i686-pc-windows-msvc/debug/examples/${input:example}.exe" },
+            "internalConsoleOptions": "openOnSessionStart", "externalConsole": false,
+        },
+        {
+            "name": "Release x86_64-pc-windows-msvc", "type": "cppvsdbg", "request": "launch",
+            "preLaunchTask": "cargo build --example=${input:example} --target=x86_64-pc-windows-msvc --release",
+            "cwd": "${workspaceRoot}", "program": "",
+            "windows": { "program": "${workspaceRoot}/target/x86_64-pc-windows-msvc/release/examples/${input:example}.exe" },
+            "internalConsoleOptions": "openOnSessionStart", "externalConsole": false,
+        },
+        {
+            "name": "Release i686-pc-windows-msvc", "type": "cppvsdbg", "request": "launch",
+            "preLaunchTask": "cargo build --example=${input:example} --target=i686-pc-windows-msvc --release",
+            "cwd": "${workspaceRoot}", "program": "",
+            "windows": { "program": "${workspaceRoot}/target/i686-pc-windows-msvc/release/examples/${input:example}.exe" },
+            "internalConsoleOptions": "openOnSessionStart", "externalConsole": false,
+        },
+    ]
+}
