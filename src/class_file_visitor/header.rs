@@ -1,7 +1,7 @@
 use super::*;
 use std::io;
 
-/// The first part of the file, as described in https://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html#jvms-4.1
+/// [Java SE 7 &sect; 4.1](https://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html#jvms-4.1):  The first few fields of a given ClassFile.
 #[repr(C)]
 #[derive(Clone, Copy, Debug, Default)]
 pub struct Header {

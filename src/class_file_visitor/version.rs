@@ -1,5 +1,7 @@
 use std::fmt::{Display, Formatter, Result};
 
+/// [Java SE 7 &sect; 4.1](https://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html#jvms-4.1):  ClassFile::major_version.
+/// See also [Wikipedia](https://en.wikipedia.org/wiki/Java_class_file#General_layout) which lists versions.
 #[repr(transparent)]
 #[derive(Clone, Copy, Debug, PartialOrd, Ord, PartialEq, Eq, Hash)]
 pub struct MajorVersion(u16);

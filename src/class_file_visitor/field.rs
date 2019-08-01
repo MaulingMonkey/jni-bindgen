@@ -1,8 +1,11 @@
+//! [Java SE 7 &sect; 4.5](https://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html#jvms-4.5):  Parsing APIs and structures for class fields.
+
 use super::*;
 
 
 
 bitflags! {
+    /// [Java SE 7 &sect; 4.5](https://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html#jvms-4.5):  field_info::access_flags
     pub struct FieldAccessFlags : u16 {
         /// Declared `public`; may be accessed from outside its package.
         const PUBLIC        = 0x0001;
@@ -33,6 +36,7 @@ impl FieldAccessFlags {
 
 
 
+/// [Java SE 7 &sect; 4.5](https://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html#jvms-4.5):  field_info, minus the attributes array
 #[derive(Clone, Copy, Debug)]
 pub struct Field {
     pub access_flags:       FieldAccessFlags,
@@ -64,6 +68,7 @@ impl Field {
 
 
 
+/// [Java SE 7 &sect; 4.5](https://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html#jvms-4.5):  Visit a field_info
 pub trait Visitor {
     fn on_field(&mut self, _index: u16, _field: Field) {}
     fn on_field_attribute(&mut self, _field_index: u16, _attribute_index: u16, _attribute: Attribute) {}

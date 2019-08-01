@@ -1,4 +1,4 @@
-//! Lower level I/O for parsing `.class` files
+//! [Java SE 7 &sect; 4](https://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html):  Lower level I/O for parsing .class files
 
 use bitflags::bitflags;
 
@@ -31,6 +31,7 @@ use std::io::{self, *};
 // https://en.wikipedia.org/wiki/Java_class_file
 // https://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html
 
+/// [Java SE 7 &sect; 4.1](https://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html#jvms-4.1):  Visitor for ClassFile fields as read straight from I/O.
 pub trait Visitor : constant::Visitor + field::Visitor + method::Visitor {
     // Methods + comments are organized by invoke order
 
@@ -46,6 +47,7 @@ pub trait Visitor : constant::Visitor + field::Visitor + method::Visitor {
 }
 
 bitflags! {
+    /// [Java SE 7 &sect; 4.1](https://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html#jvms-4.1):  ClassFile::access_flags values.
     pub struct ClassAccessFlags : u16 {
         /// Declared `public`; may be accessed from outside its package.
         const PUBLIC        = 0x0001;
@@ -74,6 +76,7 @@ impl ClassAccessFlags {
     }
 }
 
+/// [Java SE 7 &sect; 4](https://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html):  Read a class File.
 pub fn read(read: &mut impl Read, visitor: &mut impl Visitor) -> io::Result<()> {
     visitor.on_header(Header::read(read)?);
     constant::read_pool_visitor(read, visitor)?;

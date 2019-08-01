@@ -1,4 +1,4 @@
-//! The constant pool, as defined in https://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html#jvms-4.4
+//! [Java SE 7 &sect; 4.4](https://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html#jvms-4.4):  Parsing APIs and structures for the constants pool.
 
 use super::*;
 
@@ -34,7 +34,7 @@ pub(crate) fn read_pool_visitor(read: &mut impl Read, visitor: &mut impl Visitor
 
 
 
-/// https://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html#jvms-4.4
+/// [Java SE 7 &sect; 4.4](https://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html#jvms-4.4):  Constant pool tag types.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[repr(transparent)] pub struct Type(u8);
 
@@ -46,6 +46,7 @@ impl From<u8> for Type {
 
 
 
+/// [Java SE 7 &sect; 4.4](https://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html#jvms-4.4.1):  Visits possible CONSTANT_* values in the constants table.
 pub trait Visitor {
     fn on_zero_index_placeholder    (&mut self, _index: u16, _zero_index_placeholder: ZeroIndexPlaceholder) {}
     fn on_class                     (&mut self, _index: u16, _class: Class) {}
@@ -66,21 +67,36 @@ pub trait Visitor {
 
 
 
+/// The constants table (and *only* the constants table) is 1-indexed.  That's just confusing, so I emit a fake 0-index which is this.
 #[derive(Clone, Debug)] pub struct ZeroIndexPlaceholder { pub count: u16 }
+/// [Java SE 7 &sect; 4.4.1](https://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html#jvms-4.4.1):  A CONSTANT_Class_info, minus the tag.
 #[derive(Clone, Debug)] pub struct Class                { pub name_index: u16 }
+/// [Java SE 7 &sect; 4.4.2](https://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html#jvms-4.4.2):  A CONSTANT_Fieldref_info, minus the tag.
 #[derive(Clone, Debug)] pub struct Fieldref             { pub class_index: u16, pub name_and_type_index: u16 }
+/// [Java SE 7 &sect; 4.4.2](https://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html#jvms-4.4.2):  A CONSTANT_Methodref_info, minus the tag.
 #[derive(Clone, Debug)] pub struct Methodref            { pub class_index: u16, pub name_and_type_index: u16 }
+/// [Java SE 7 &sect; 4.4.2](https://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html#jvms-4.4.2):  A CONSTANT_InstanceMethodref_info, minus the tag.
 #[derive(Clone, Debug)] pub struct InterfaceMethodref   { pub class_index: u16, pub name_and_type_index: u16 }
+/// [Java SE 7 &sect; 4.4.3](https://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html#jvms-4.4.3):  A CONSTANT_String_info, minus the tag.
 #[derive(Clone, Debug)] pub struct String               { pub string_index: u16 }
+/// [Java SE 7 &sect; 4.4.4](https://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html#jvms-4.4.4):  A CONSTANT_Integer_info, minus the tag.
 #[derive(Clone, Debug)] pub struct Integer              ( pub i32 );
+/// [Java SE 7 &sect; 4.4.4](https://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html#jvms-4.4.4):  A CONSTANT_Float_info, minus the tag.
 #[derive(Clone, Debug)] pub struct Float                ( pub f32 );
+/// [Java SE 7 &sect; 4.4.5](https://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html#jvms-4.4.5):  A CONSTANT_Long_info, minus the tag.
 #[derive(Clone, Debug)] pub struct Long                 ( pub i64 ); // Note: Requires two constant pool entries
+/// [Java SE 7 &sect; 4.4.5](https://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html#jvms-4.4.5):  A CONSTANT_Double_info, minus the tag.
 #[derive(Clone, Debug)] pub struct Double               ( pub f64 ); // Note: Requires two constant pool entries
-#[derive(Clone, Debug)] pub struct NameAndType          { /* tag: 12u8 */ pub name_index: u16, pub descriptor_index: u16 }
-#[derive(Clone, Debug)] pub struct Utf8                 ( /* tag:  1u8 */ pub std::string::String ); // NOTE:  Not really UTF8, actually some kind of hybrid monstrosity between UTF8 and UTF16.
-#[derive(Clone, Debug)] pub struct MethodHandle         { /* tag: 15u8 */ pub reference_kind: u8, pub reference_index: u16 }
-#[derive(Clone, Debug)] pub struct MethodType           { /* tag: 16u8 */ pub descriptor_index: u16 }
-#[derive(Clone, Debug)] pub struct InvokeDynamic        { /* tag: 18u8 */ pub bootstrap_method_attr_index: u16, pub name_and_type_index: u16 }
+/// [Java SE 7 &sect; 4.4.6](https://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html#jvms-4.4.6):  A CONSTANT_NameAndType_info, minus the tag.
+#[derive(Clone, Debug)] pub struct NameAndType          { pub name_index: u16, pub descriptor_index: u16 }
+/// [Java SE 7 &sect; 4.4.7](https://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html#jvms-4.4.7):  A CONSTANT_Utf8_info, minus the tag.
+#[derive(Clone, Debug)] pub struct Utf8                 ( pub std::string::String ); // NOTE:  Not really UTF8, actually some kind of hybrid monstrosity between UTF8 and UTF16.
+/// [Java SE 7 &sect; 4.4.8](https://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html#jvms-4.4.8):  A CONSTANT_MethodHandle_info, minus the tag.
+#[derive(Clone, Debug)] pub struct MethodHandle         { pub reference_kind: u8, pub reference_index: u16 }
+/// [Java SE 7 &sect; 4.4.9](https://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html#jvms-4.4.9):  A CONSTANT_MethodType_info, minus the tag.
+#[derive(Clone, Debug)] pub struct MethodType           { pub descriptor_index: u16 }
+/// [Java SE 7 &sect; 4.4.10](https://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html#jvms-4.4.10):  A CONSTANT_InvokeDynamic_info, minus the tag.
+#[derive(Clone, Debug)] pub struct InvokeDynamic        { pub bootstrap_method_attr_index: u16, pub name_and_type_index: u16 }
 
 impl Class                      { pub const TAG : Type = Type( 7); pub const ENTRIES : u8 = 1; pub fn read_after_tag(r: &mut impl Read) -> io::Result<Self> {Ok(Self{ name_index: read_u2(r)? })} }
 impl Fieldref                   { pub const TAG : Type = Type( 9); pub const ENTRIES : u8 = 1; pub fn read_after_tag(r: &mut impl Read) -> io::Result<Self> {Ok(Self{ class_index: read_u2(r)?, name_and_type_index: read_u2(r)? })} }
@@ -169,22 +185,38 @@ impl Utf8 {
 
 
 
+/// [Java SE 7 &sect; 4.4](https://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html#jvms-4.4.1):  A CONSTANT_* value.  Not ABI compatible with the raw C ABIs but that's fine.
 #[derive(Clone, Debug)]
 pub enum Constant {
+    /// The constants table (and *only* the constants table) is 1-indexed.  That's just confusing, so I emit a fake 0-index which is this.
     ZeroIndexPlaceholder(ZeroIndexPlaceholder),
+    /// [Java SE 7 &sect; 4.4.1](https://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html#jvms-4.4.1):  A CONSTANT_Class_info, minus the tag.
     Class(Class),
+    /// [Java SE 7 &sect; 4.4.2](https://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html#jvms-4.4.2):  A CONSTANT_Fieldref_info, minus the tag.
     Fieldref(Fieldref),
+    /// [Java SE 7 &sect; 4.4.2](https://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html#jvms-4.4.2):  A CONSTANT_Methodref_info, minus the tag.
     Methodref(Methodref),
+    /// [Java SE 7 &sect; 4.4.2](https://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html#jvms-4.4.2):  A CONSTANT_InstanceMethodref_info, minus the tag.
     InterfaceMethodref(InterfaceMethodref),
+    /// [Java SE 7 &sect; 4.4.3](https://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html#jvms-4.4.3):  A CONSTANT_String_info, minus the tag.
     String(String),
+    /// [Java SE 7 &sect; 4.4.4](https://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html#jvms-4.4.4):  A CONSTANT_Integer_info, minus the tag.
     Integer(Integer),
+    /// [Java SE 7 &sect; 4.4.4](https://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html#jvms-4.4.4):  A CONSTANT_Float_info, minus the tag.
     Float(Float),
+    /// [Java SE 7 &sect; 4.4.5](https://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html#jvms-4.4.5):  A CONSTANT_Long_info, minus the tag.
     Long(Long),
+    /// [Java SE 7 &sect; 4.4.5](https://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html#jvms-4.4.5):  A CONSTANT_Double_info, minus the tag.
     Double(Double),
+    /// [Java SE 7 &sect; 4.4.6](https://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html#jvms-4.4.6):  A CONSTANT_NameAndType_info, minus the tag.
     NameAndType(NameAndType),
+    /// [Java SE 7 &sect; 4.4.7](https://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html#jvms-4.4.7):  A CONSTANT_Utf8_info, minus the tag.
     Utf8(Utf8),
+    /// [Java SE 7 &sect; 4.4.8](https://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html#jvms-4.4.8):  A CONSTANT_MethodHandle_info, minus the tag.
     MethodHandle(MethodHandle),
+    /// [Java SE 7 &sect; 4.4.9](https://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html#jvms-4.4.9):  A CONSTANT_MethodType_info, minus the tag.
     MethodType(MethodType),
+    /// [Java SE 7 &sect; 4.4.10](https://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html#jvms-4.4.10):  A CONSTANT_InvokeDynamic_info, minus the tag.
     InvokeDynamic(InvokeDynamic),
 }
 

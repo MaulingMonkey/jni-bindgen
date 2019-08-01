@@ -2,6 +2,7 @@ use super::*;
 
 use std::ops::*;
 
+/// [Java SE 7 &sect; 4.7](https://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html#jvms-4.7):  A class, method, or field attribute.
 #[derive(Clone, Debug)]
 pub struct Attribute {
     pub attribute_name_index:   u16,

@@ -1,8 +1,11 @@
+//! [Java SE 7 &sect; 4.6](https://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html#jvms-4.6):  Parsing APIs and structures for class methods.
+
 use super::*;
 
 
 
 bitflags! {
+    /// [Java SE 7 &sect; 4.6](https://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html#jvms-4.6):  method_info::access_flags values.
     pub struct MethodAccessFlags : u16 {
         /// Declared `public`; may be accessed from outside its package.
         const PUBLIC        = 0x0001;
@@ -39,6 +42,7 @@ impl MethodAccessFlags {
 
 
 
+/// [Java SE 7 &sect; 4.6](https://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html#jvms-4.6):  method_info, minus the trailing attributes
 #[derive(Clone, Copy, Debug)]
 pub struct Method {
     pub access_flags:       MethodAccessFlags,
@@ -70,6 +74,7 @@ impl Method {
 
 
 
+/// [Java SE 7 &sect; 4.6](https://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html#jvms-4.6):  Visit a method_info
 pub trait Visitor {
     fn on_method(&mut self, _index: u16, _method: Method) {}
     fn on_method_attribute(&mut self, _method_index: u16, _attribute_index: u16, _attribute: Attribute) {}
