@@ -1,13 +1,4 @@
 use super::*;
-use class_file_visitor::*;
-
-use std::collections::*;
-use std::io;
-
-mod class_constants;
-pub use class_constants::*;
-
-
 
 #[derive(Clone, Debug, Default)]
 pub struct Class {
