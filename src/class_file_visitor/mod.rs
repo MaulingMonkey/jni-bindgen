@@ -47,6 +47,7 @@ pub trait Visitor : constant::Visitor + field::Visitor + method::Visitor {
 }
 
 bitflags! {
+    #[derive(Default)]
     /// [Java SE 7 &sect; 4.1](https://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html#jvms-4.1):  ClassFile::access_flags values.
     pub struct ClassAccessFlags : u16 {
         /// Declared `public`; may be accessed from outside its package.

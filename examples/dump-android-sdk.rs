@@ -1,3 +1,5 @@
+use bugsalot::*;
+
 use bindjava::class_file_visitor::{self, *};
 
 use std::env;
@@ -8,7 +10,7 @@ use std::path::{PathBuf};
 struct DisplayConstants;
 
 impl constant::Visitor for DisplayConstants {
-    fn on_zero_index_placeholder    (&mut self, index: u16, value: constant::ZeroIndexPlaceholder   ) { println!("  const {:3} = {:?}", index, &value); }
+    fn on_unused                    (&mut self, index: u16, value: constant::UnusedPlaceholder   ) { println!("  const {:3} = {:?}", index, &value); }
     fn on_class                     (&mut self, index: u16, value: constant::Class                  ) { println!("  const {:3} = {:?}", index, &value); }
     fn on_field                     (&mut self, index: u16, value: constant::Fieldref               ) { println!("  const {:3} = {:?}", index, &value); }
     fn on_method                    (&mut self, index: u16, value: constant::Methodref              ) { println!("  const {:3} = {:?}", index, &value); }
@@ -72,7 +74,7 @@ impl class_file_visitor::Visitor for DisplayConstants {
 struct Noop;
 
 impl constant::Visitor for Noop {
-    fn on_zero_index_placeholder    (&mut self, _index: u16, _value: constant::ZeroIndexPlaceholder   ) {}
+    fn on_unused                    (&mut self, _index: u16, _value: constant::UnusedPlaceholder   ) {}
     fn on_class                     (&mut self, _index: u16, _value: constant::Class                  ) {}
     fn on_field                     (&mut self, _index: u16, _value: constant::Fieldref               ) {}
     fn on_method                    (&mut self, _index: u16, _value: constant::Methodref              ) {}
@@ -114,6 +116,8 @@ impl class_file_visitor::Visitor for Noop {
 
 
 fn main() {
+    std::panic::set_hook(Box::new(|panic|{ bug!("{:?}", panic); }));
+
     let local_app_data = env::var("LOCALAPPDATA").unwrap();
     let android_jar : PathBuf = [local_app_data.as_str(), "Android/Sdk/platforms/android-28/android.jar"].iter().collect();
     let mut android_jar = File::open(&android_jar).unwrap();

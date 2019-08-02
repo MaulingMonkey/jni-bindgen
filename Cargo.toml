@@ -9,3 +9,7 @@ edition = "2018"
 [dependencies]
 bitflags = "1.1.0"
 zip = "0.5.2"
+
+[dev-dependencies]
+bugsalot = "0.1.4"
+jni-sys = "0.3.0"

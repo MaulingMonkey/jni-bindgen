@@ -5,6 +5,7 @@ use super::*;
 
 
 bitflags! {
+    #[derive(Default)]
     /// [Java SE 7 &sect; 4.6](https://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html#jvms-4.6):  method_info::access_flags values.
     pub struct MethodAccessFlags : u16 {
         /// Declared `public`; may be accessed from outside its package.

@@ -55,5 +55,10 @@
         { "label": "cargo build --example=dump-android-sdk --target=x86_64-pc-windows-msvc --release",   "windows": { "command": "cargo +stable-pc-windows-msvc build --example=dump-android-sdk --target=x86_64-pc-windows-msvc --release" } },
         { "label": "cargo build --example=dump-android-sdk --target=i686-pc-windows-msvc",               "windows": { "command": "cargo +stable-pc-windows-msvc build --example=dump-android-sdk --target=i686-pc-windows-msvc            " } },
         { "label": "cargo build --example=dump-android-sdk --target=i686-pc-windows-msvc --release",     "windows": { "command": "cargo +stable-pc-windows-msvc build --example=dump-android-sdk --target=i686-pc-windows-msvc   --release" } },
+
+        { "label": "cargo build --example=emit-android-sdk --target=x86_64-pc-windows-msvc",             "windows": { "command": "cargo +stable-pc-windows-msvc build --example=emit-android-sdk --target=x86_64-pc-windows-msvc          " } },
+        { "label": "cargo build --example=emit-android-sdk --target=x86_64-pc-windows-msvc --release",   "windows": { "command": "cargo +stable-pc-windows-msvc build --example=emit-android-sdk --target=x86_64-pc-windows-msvc --release" } },
+        { "label": "cargo build --example=emit-android-sdk --target=i686-pc-windows-msvc",               "windows": { "command": "cargo +stable-pc-windows-msvc build --example=emit-android-sdk --target=i686-pc-windows-msvc            " } },
+        { "label": "cargo build --example=emit-android-sdk --target=i686-pc-windows-msvc --release",     "windows": { "command": "cargo +stable-pc-windows-msvc build --example=emit-android-sdk --target=i686-pc-windows-msvc   --release" } },
     ],
 }

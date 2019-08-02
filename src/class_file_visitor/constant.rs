@@ -1,10 +1,11 @@
 //! [Java SE 7 &sect; 4.4](https://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html#jvms-4.4):  Parsing APIs and structures for the constants pool.
 
 use super::*;
+use std::convert::*;
 
 pub(crate) fn read_pool_visitor(read: &mut impl Read, visitor: &mut impl Visitor) -> io::Result<()> {
     let count = read_u2(read)?;
-    visitor.on_zero_index_placeholder(0, ZeroIndexPlaceholder { count });
+    visitor.on_unused(0, UnusedPlaceholder {});
     let mut index = 1; // "The constant_pool table is indexed from 1 to constant_pool_count-1."
     while index < count {
         let tag = Type::from(read_u1(read)?);
@@ -16,8 +17,16 @@ pub(crate) fn read_pool_visitor(read: &mut impl Read, visitor: &mut impl Visitor
             String::TAG             => visitor.on_string(index, String::read_after_tag(read)?),
             Integer::TAG            => visitor.on_integer(index, Integer::read_after_tag(read)?),
             Float::TAG              => visitor.on_float(index, Float::read_after_tag(read)?),
-            Long::TAG               => { visitor.on_long(index, Long::read_after_tag(read)?); index += 1 },
-            Double::TAG             => { visitor.on_double(index, Double::read_after_tag(read)?); index += 1 },
+            Long::TAG               => {
+                visitor.on_long(index, Long::read_after_tag(read)?);
+                index += 1;
+                visitor.on_unused(index, UnusedPlaceholder {});
+            },
+            Double::TAG             => {
+                visitor.on_double(index, Double::read_after_tag(read)?);
+                index += 1;
+                visitor.on_unused(index, UnusedPlaceholder {});
+            },
             NameAndType::TAG        => visitor.on_name_and_tag(index, NameAndType::read_after_tag(read)?),
             Utf8::TAG               => visitor.on_utf8(index, Utf8::read_after_tag(read)?),
             MethodHandle::TAG       => visitor.on_method_handle(index, MethodHandle::read_after_tag(read)?),
@@ -48,7 +57,7 @@ impl From<u8> for Type {
 
 /// [Java SE 7 &sect; 4.4](https://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html#jvms-4.4.1):  Visits possible CONSTANT_* values in the constants table.
 pub trait Visitor {
-    fn on_zero_index_placeholder    (&mut self, _index: u16, _zero_index_placeholder: ZeroIndexPlaceholder) {}
+    fn on_unused                    (&mut self, _index: u16, _unused: UnusedPlaceholder) {}
     fn on_class                     (&mut self, _index: u16, _class: Class) {}
     fn on_field                     (&mut self, _index: u16, _field: Fieldref) {}
     fn on_method                    (&mut self, _index: u16, _method: Methodref) {}
@@ -67,8 +76,8 @@ pub trait Visitor {
 
 
 
-/// The constants table (and *only* the constants table) is 1-indexed.  That's just confusing, so I emit a fake 0-index which is this.
-#[derive(Clone, Debug)] pub struct ZeroIndexPlaceholder { pub count: u16 }
+/// The constants table (and *only* the constants table) is 1-indexed.  That's just confusing.  Even worse, `Long` and `Double` take up two slots.  So I emit this as a placeholder for those slots.
+#[derive(Clone, Debug)] pub struct UnusedPlaceholder {}
 /// [Java SE 7 &sect; 4.4.1](https://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html#jvms-4.4.1):  A CONSTANT_Class_info, minus the tag.
 #[derive(Clone, Debug)] pub struct Class                { pub name_index: u16 }
 /// [Java SE 7 &sect; 4.4.2](https://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html#jvms-4.4.2):  A CONSTANT_Fieldref_info, minus the tag.
@@ -128,8 +137,6 @@ impl Utf8 {
     }
 
     fn read_char(remaining: &mut &[u8]) -> io::Result<char> {
-        use std::convert::TryFrom;
-
         if let Some(&b0) = remaining.get(0) {
             if b0 & 0b10000000 == 0b00000000 {
                 // Standard 1-byte UTF8: 0b0xxxxxxx = 1 byte 0x00..=7F
@@ -188,8 +195,8 @@ impl Utf8 {
 /// [Java SE 7 &sect; 4.4](https://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html#jvms-4.4.1):  A CONSTANT_* value.  Not ABI compatible with the raw C ABIs but that's fine.
 #[derive(Clone, Debug)]
 pub enum Constant {
-    /// The constants table (and *only* the constants table) is 1-indexed.  That's just confusing, so I emit a fake 0-index which is this.
-    ZeroIndexPlaceholder(ZeroIndexPlaceholder),
+    /// The constants table (and *only* the constants table) is 1-indexed.  That's just confusing.  Even worse, `Long` and `Double` take up two slots.  So I emit this as a placeholder for those slots.
+    UnusedPlaceholder(UnusedPlaceholder),
     /// [Java SE 7 &sect; 4.4.1](https://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html#jvms-4.4.1):  A CONSTANT_Class_info, minus the tag.
     Class(Class),
     /// [Java SE 7 &sect; 4.4.2](https://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html#jvms-4.4.2):  A CONSTANT_Fieldref_info, minus the tag.
@@ -220,7 +227,7 @@ pub enum Constant {
     InvokeDynamic(InvokeDynamic),
 }
 
-impl From<ZeroIndexPlaceholder> for Constant { fn from(value: ZeroIndexPlaceholder  ) -> Self { Constant::ZeroIndexPlaceholder(value) } }
+impl From<UnusedPlaceholder>    for Constant { fn from(value: UnusedPlaceholder  ) -> Self { Constant::UnusedPlaceholder(value) } }
 impl From<Class>                for Constant { fn from(value: Class                 ) -> Self { Constant::Class(value) } }
 impl From<Fieldref>             for Constant { fn from(value: Fieldref              ) -> Self { Constant::Fieldref(value) } }
 impl From<Methodref>            for Constant { fn from(value: Methodref             ) -> Self { Constant::Methodref(value) } }

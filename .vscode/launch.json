@@ -7,7 +7,9 @@
             "description": "Pick an example",
             "options": [
                 "dump-android-sdk",
-            ]
+                "emit-android-sdk",
+            ],
+            "default": "emit-android-sdk"
         }
     ],
     "configurations": [

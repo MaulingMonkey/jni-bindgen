@@ -5,6 +5,7 @@ use super::*;
 
 
 bitflags! {
+    #[derive(Default)]
     /// [Java SE 7 &sect; 4.5](https://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html#jvms-4.5):  field_info::access_flags
     pub struct FieldAccessFlags : u16 {
         /// Declared `public`; may be accessed from outside its package.
