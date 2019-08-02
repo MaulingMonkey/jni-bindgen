@@ -1,7 +1,7 @@
 use bugsalot::*;
 
-use bindjava::emit_rust::*;
-use bindjava::gather_java::*;
+use bindgen_jni::emit_rust::*;
+use bindgen_jni::gather_java::*;
 
 use std::env;
 use std::error::Error;

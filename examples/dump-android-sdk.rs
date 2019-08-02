@@ -1,6 +1,6 @@
 use bugsalot::*;
 
-use bindjava::class_file_visitor::{self, *};
+use bindgen_jni::class_file_visitor::{self, *};
 
 use std::env;
 use std::fs::{File};

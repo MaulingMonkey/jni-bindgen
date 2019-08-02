@@ -1,8 +1,16 @@
 [package]
-name = "bindjava"
-version = "0.1.0"
+name = "bindgen-jni"
+version = "0.0.0"
 authors = ["MaulingMonkey <git@maulingmonkey.com>"]
 edition = "2018"
+description = "Code generator for binding to JVM APIs from Rust"
+# documentation = "https://docs.rs/bindgen-jni/"
+repository = "https://github.com/MaulingMonkey/bindgen-jni"
+readme = "README.md"
+keywords = ["jvm", "jni", "bindgen", "android"]
+categories = ["development-tools::ffi"]
+license = "MIT OR Apache-2.0"
+include = ["/src/**/*", "/Cargo.toml", "/LICENSE-MIT", "/LICENSE-APACHE", "/Readme.md"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 

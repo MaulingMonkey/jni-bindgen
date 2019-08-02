@@ -1,6 +1,18 @@
-# bindjava
+# bindgen-jni
 
-TODO
+**Work in progress, not yet usable**
+
+Vaguely inspired by, but otherwise unrelated to, [bindgen](https://github.com/rust-lang/rust-bindgen) and
+[wasm-bindgen](https://github.com/rustwasm/wasm-bindgen)'s WebIDL stuff.
+
+Generate Rust JVM FFI wrappers around APIs defined by `.jar` or `.class` files, because maintaining your own
+hand-written bindings is an exercise in boredom, soundness bugs, and pain.
+
+Goals:
+* Provide a means of using Android system APIs specifically.
+* Provide a means of using Java, Kotlin, Scala, or other JVM based APIs.
+* Automatically link API documentation, so people might actually read it.
+* Eliminate the need to manually write unsound, unreviewed, and [unaudited](https://github.com/dpc/crev) APIs using `unsafe { ... }`
 
 ## License
 
