@@ -12,7 +12,7 @@ Goals:
 * Provide a means of using Android system APIs specifically.
 * Provide a means of using Java, Kotlin, Scala, or other JVM based APIs.
 * Automatically link API documentation, so people might actually read it.
-* Eliminate the need to manually write unsound, unreviewed, and [unaudited](https://github.com/dpc/crev) APIs using `unsafe { ... }`
+* Eliminate the need to manually write unsound, unreviewed, and [unaudited](https://github.com/dpc/crev) `unsafe { ... }` APIs
 
 ## License
 
