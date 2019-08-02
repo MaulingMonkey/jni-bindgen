@@ -66,13 +66,12 @@ impl Struct {
         let struct_body = if self.java_class.access_flags().contains(ClassAccessFlags::STATIC) {
             ""
         } else {
-            "(::jni_sys::jobject)"
+            "(__bindgen_jni_jni_sys::jobject)"
         };
 
         writeln!(out, "{}#[repr(transparent)] {}struct {}{};", indent, struct_access, &self.rust_struct_name, struct_body)?;
         if let Some(super_class) = self.java_class.super_class() {
             let rust_super_class_name = context.jni_type_to_rust_type.get(super_class.name()).unwrap();
-            //let rust_super_name = "::java::lang::Object"; // XXX
             writeln!(out, "{}impl ::std::ops::Deref for {} {{ type Target = {}; {} }}", indent, &self.rust_struct_name, rust_super_class_name, DEREF_FN)?;
         }
         writeln!(out, "{}impl {} {{", indent, &self.rust_struct_name)?;

@@ -1,17 +1,19 @@
-//! XXX
+//! Parse .jar s and  .class es to generate Rust FFI bindings using JNI.
 
 #![allow(dead_code)] // XXX
 
 pub mod class_file_visitor;
 
-/// Part of the actual official API of this crate.
-pub mod config {
+/// Configuration formats for invoking bindgen_jni
+pub mod config { // Part of the actual official API of this crate.
     #[allow(unused_imports)] use super::*;
 
+    pub mod runtime;
     pub mod toml;
 }
 
-pub mod emit_rust { // XXX: To be made private
+/// Rust generation logic
+pub(crate) mod emit_rust {
     #[allow(unused_imports)] use super::*;
     use class_file_visitor::*;
     use gather_java::*;
@@ -27,7 +29,8 @@ pub mod emit_rust { // XXX: To be made private
     use structs::*;
 }
 
-pub mod gather_java { // XXX: To be made private
+/// Java enumeration/collection logic
+pub(crate) mod gather_java {
     #[allow(unused_imports)] use super::*;
     use class_file_visitor::*;
 
@@ -40,6 +43,7 @@ pub mod gather_java { // XXX: To be made private
     pub use class_constants::*;
 }
 
+/// JNI and Rust identifier parsing and categorizing utilities
 mod identifiers {
     #[allow(unused_imports)] use super::*;
     use std::iter::*;
@@ -53,4 +57,23 @@ mod identifiers {
     pub use rust_identifier::*;
 }
 
-pub use identifiers::*; // XXX: To be made private
+/// Core generation logic
+mod run {
+    #[allow(unused_imports)] use super::*;
+
+    mod run;
+
+    pub use run::run;
+}
+
+/// Visitors for use with class_file_visitor
+#[allow(dead_code)]
+mod visitors {
+    #[allow(unused_imports)] use super::*;
+
+    mod noop;
+    mod print;
+}
+
+pub(crate) use identifiers::*;
+pub use run::run;

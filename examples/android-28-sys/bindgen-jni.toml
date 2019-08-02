@@ -1,0 +1,11 @@
+[[documentation.patterns]]
+url_pattern = "https://developer.android.com/reference/kotlin/{PATH}.html"
+
+[input]
+files = ["%LOCALAPPDATA%/Android/Sdk/platforms/android-28/android.jar"]
+
+[output]
+path = "lib.rs"
+
+[logging]
+# verbose = true

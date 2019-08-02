@@ -1,8 +1,6 @@
-//use super::*;
+//! bindgen-jni.toml configuration file structures and parsing APIs.
 
 use serde_derive::*;
-//use serde::Deserialize;
-//use toml;
 
 use std::fs;
 use std::io;
@@ -38,13 +36,14 @@ pub struct DocumentationPattern {
 }
 
 /// The \[documentation\] section.
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, Default)]
 pub struct Documentation {
+    /// Documentation sources.  Processed from top to bottom.
     pub patterns: Vec<DocumentationPattern>,
 }
 
 /// The \[input\] section.
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, Default)]
 pub struct Input {
     /// `.jar` or `.class` files to scan for JVM class info.
     /// 
@@ -55,11 +54,12 @@ pub struct Input {
 /// The \[output\] section.
 #[derive(Debug, Clone, Deserialize)]
 pub struct Output {
+    /// Target `.rs` file to generate.
     pub path: PathBuf,
 }
 
 /// The \[logging\] section.
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, Default)]
 pub struct Logging {
     pub verbose: Option<bool>,
 }
@@ -73,6 +73,9 @@ pub struct Logging {
 /// # overridden java.* to use the Oracle Java SE 7 docs instead of the android docs.  More useful if you have a
 /// # slew of .jar s from different sources you want to bind all at once, or if the platform documentation is broken
 /// # up by top level modules in strange ways.
+/// 
+/// [logging]
+/// verbose = true
 /// 
 /// [[documentation.patterns]]
 /// url_pattern             = "https://docs.oracle.com/javase/7/docs/api/index.html?java/{PATH}.html"
@@ -102,8 +105,44 @@ pub struct File {
     /// Input(s) into the bindgen-jni process.
     pub input: Input,
 
+    /// Logging settings
+    pub logging: Option<Logging>,
+
     /// Output(s) from the bindgen-jni process.
     pub output: Output,
+}
+
+impl File {
+    /// Read from I/O, under the assumption that it's in the "bindgen-jni.toml" file format.
+    pub fn read(file: &mut impl io::Read) -> io::Result<Self> {
+        let mut buffer = String::new();
+        file.read_to_string(&mut buffer)?; // Apparently toml can't stream.
+        Self::read_str(&buffer[..])
+    }
+
+    /// Read from a memory buffer, under the assumption that it's in the "bindgen-jni.toml" file format.
+    pub fn read_str(buffer: &str) -> io::Result<Self> {
+        let file : File = toml::from_str(buffer).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+        Ok(file)
+    }
+
+    /// Search the current directory - or failing that, it's ancestors - until we find "bindgen-jni.toml" or reach the
+    /// filesystem and cannot continue.
+    pub fn from_current_directory() -> io::Result<FileWithContext> {
+        let cwd = std::env::current_dir()?;
+        let mut path = cwd.clone();
+        loop {
+            path.push("bindgen-jni.toml");
+            if path.exists() {
+                let file = File::read(&mut fs::File::open(&path)?)?;
+                path.pop();
+                return Ok(FileWithContext { file, directory: path });
+            }
+            if !path.pop() || !path.pop() {
+                Err(io::Error::new(io::ErrorKind::NotFound, format!("Failed to find bindgen-jni.toml in \"{}\" or any of it's parent directories.", cwd.display())))?;
+            }
+        }
+    }
 }
 
 #[test] fn load_well_configured_toml() {
@@ -112,6 +151,9 @@ pub struct File {
         # overridden java.* to use the Oracle Java SE 7 docs instead of the android docs.  More useful if you have a
         # slew of .jar s from different sources you want to bind all at once, or if the platform documentation is broken
         # up by top level modules in strange ways.
+
+        [logging]
+        verbose = true
 
         [[documentation.patterns]]
         url_pattern             = "https://docs.oracle.com/javase/7/docs/api/index.html?java/{PATH}.html"
@@ -131,6 +173,9 @@ pub struct File {
         path = "android28.rs"
     "#;
     let file = File::read_str(well_configured_toml).unwrap();
+
+    assert!(file.logging.is_some());
+    assert_eq!(file.logging.as_ref().unwrap().verbose, Some(true));
 
     assert!(file.documentation.is_some());
     assert_eq!(file.documentation.as_ref().unwrap().patterns.len(), 2);
@@ -158,38 +203,14 @@ pub struct File {
         path = "android28.rs"
     "#;
     let file = File::read_str(minimal_toml).unwrap();
+    assert!(file.logging.is_none());
     assert!(file.documentation.is_none());
     assert_eq!(file.input.files, &[Path::new("%LOCALAPPDATA%/Android/Sdk/platforms/android-28/android.jar")]);
     assert_eq!(file.output.path, Path::new("android28.rs"));
 }
 
-impl File {
-    /// Read from I/O, under the assumption that it's in the "bindgen-jni.toml" file format.
-    pub fn read(file: &mut impl io::Read) -> io::Result<Self> {
-        let mut buffer = String::new();
-        file.read_to_string(&mut buffer)?; // Apparently toml can't stream.
-        Self::read_str(&buffer[..])
-    }
-
-    /// Read from a memory buffer, under the assumption that it's in the "bindgen-jni.toml" file format.
-    pub fn read_str(buffer: &str) -> io::Result<Self> {
-        let file : File = toml::from_str(buffer).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
-        Ok(file)
-    }
-
-    /// Search the current directory - or failing that, it's ancestors - until we find "bindgen-jni.toml" or reach the
-    /// filesystem and cannot continue.
-    pub fn from_current_directory() -> io::Result<Self> {
-        let cwd = std::env::current_dir()?;
-        let mut path = cwd.clone();
-        loop {
-            path.push("bindgen-jni.toml");
-            if path.exists() {
-                return File::read(&mut fs::File::open(path)?);
-            }
-            if !path.pop() || !path.pop() {
-                Err(io::Error::new(io::ErrorKind::NotFound, format!("Failed to find bindgen-jni.toml in \"{}\" or any of it's parent directories.", cwd.display())))?;
-            }
-        }
-    }
+#[derive(Debug, Clone)]
+pub struct FileWithContext {
+    pub file:       File,
+    pub directory:  PathBuf,
 }

@@ -6,39 +6,38 @@
             "type": "pickString",
             "description": "Pick an example",
             "options": [
-                "dump-android-sdk",
-                "emit-android-sdk",
+                "android-28-sys",
             ],
-            "default": "emit-android-sdk"
+            "default": "android-28-sys"
         }
     ],
     "configurations": [
         {
             "name": "Debug x86_64-pc-windows-msvc", "type": "cppvsdbg", "request": "launch",
-            "preLaunchTask": "cargo build --example=${input:example} --target=x86_64-pc-windows-msvc",
-            "cwd": "${workspaceRoot}", "program": "",
-            "windows": { "program": "${workspaceRoot}/target/x86_64-pc-windows-msvc/debug/examples/${input:example}.exe" },
+            "preLaunchTask": "cargo build --target=x86_64-pc-windows-msvc",
+            "cwd": "${workspaceRoot}/examples/${input:example}", "program": "",
+            "windows": { "program": "${workspaceRoot}/target/x86_64-pc-windows-msvc/debug/bindgen-jni.exe" },
             "internalConsoleOptions": "openOnSessionStart", "externalConsole": false,
         },
         {
             "name": "Debug i686-pc-windows-msvc", "type": "cppvsdbg", "request": "launch",
-            "preLaunchTask": "cargo build --example=${input:example} --target=i686-pc-windows-msvc",
-            "cwd": "${workspaceRoot}", "program": "",
-            "windows": { "program": "${workspaceRoot}/target/i686-pc-windows-msvc/debug/examples/${input:example}.exe" },
+            "preLaunchTask": "cargo build --target=i686-pc-windows-msvc",
+            "cwd": "${workspaceRoot}/examples/${input:example}", "program": "",
+            "windows": { "program": "${workspaceRoot}/target/i686-pc-windows-msvc/debug/bindgen-jni.exe" },
             "internalConsoleOptions": "openOnSessionStart", "externalConsole": false,
         },
         {
             "name": "Release x86_64-pc-windows-msvc", "type": "cppvsdbg", "request": "launch",
-            "preLaunchTask": "cargo build --example=${input:example} --target=x86_64-pc-windows-msvc --release",
-            "cwd": "${workspaceRoot}", "program": "",
-            "windows": { "program": "${workspaceRoot}/target/x86_64-pc-windows-msvc/release/examples/${input:example}.exe" },
+            "preLaunchTask": "cargo build --target=x86_64-pc-windows-msvc --release",
+            "cwd": "${workspaceRoot}/examples/${input:example}", "program": "",
+            "windows": { "program": "${workspaceRoot}/target/x86_64-pc-windows-msvc/release/bindgen-jni.exe" },
             "internalConsoleOptions": "openOnSessionStart", "externalConsole": false,
         },
         {
             "name": "Release i686-pc-windows-msvc", "type": "cppvsdbg", "request": "launch",
-            "preLaunchTask": "cargo build --example=${input:example} --target=i686-pc-windows-msvc --release",
-            "cwd": "${workspaceRoot}", "program": "",
-            "windows": { "program": "${workspaceRoot}/target/i686-pc-windows-msvc/release/examples/${input:example}.exe" },
+            "preLaunchTask": "cargo build --target=i686-pc-windows-msvc --release",
+            "cwd": "${workspaceRoot}/examples/${input:example}", "program": "",
+            "windows": { "program": "${workspaceRoot}/target/i686-pc-windows-msvc/release/bindgen-jni.exe" },
             "internalConsoleOptions": "openOnSessionStart", "externalConsole": false,
         },
     ]
