@@ -42,12 +42,12 @@
         { "group": "build", "label": "cargo test --all --target=i686-pc-windows-msvc --release",     "windows": { "command": "cargo +stable-pc-windows-msvc test --all --target=i686-pc-windows-msvc   --release" } },
 
         // Links
-        { "label": "Open travis",                               "windows": { "command": "start \"\" https://travis-ci.org/MaulingMonkey/bindgen_jni" } },
-        { "label": "Open github",                               "windows": { "command": "start \"\" https://github.com/MaulingMonkey/bindgen_jni" } },
-        { "label": "Open issues",                               "windows": { "command": "start \"\" https://github.com/MaulingMonkey/bindgen_jni/issues" } },
-        { "label": "Open crates.io",                            "windows": { "command": "start \"\" https://crates.io/crates/bindgen_jni" } },
-        { "label": "Open docs.rs",                              "windows": { "command": "start \"\" https://docs.rs/bindgen_jni" } },
-        { "label": "Open local docs",                           "windows": { "command": "start \"\" target/doc/bindgen_jni/index.html" } },
+        { "label": "Open travis",                               "windows": { "command": "start \"\" https://travis-ci.org/MaulingMonkey/bindgen-jni" } },
+        { "label": "Open github",                               "windows": { "command": "start \"\" https://github.com/MaulingMonkey/bindgen-jni" } },
+        { "label": "Open issues",                               "windows": { "command": "start \"\" https://github.com/MaulingMonkey/bindgen-jni/issues" } },
+        { "label": "Open crates.io",                            "windows": { "command": "start \"\" https://crates.io/crates/bindgen-jni" } },
+        { "label": "Open docs.rs",                              "windows": { "command": "start \"\" https://docs.rs/bindgen-jni" } },
+        { "label": "Open local docs",                           "windows": { "command": "start \"\" target/doc/bindgen-jni/index.html" } },
 
         // launch.json pre-launch build targets (intentionally hidden from the "build" group)
 
