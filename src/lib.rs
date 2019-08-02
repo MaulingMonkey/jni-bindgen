@@ -4,8 +4,15 @@
 
 pub mod class_file_visitor;
 
-pub mod emit_rust {
-    use super::*;
+/// Part of the actual official API of this crate.
+pub mod config {
+    #[allow(unused_imports)] use super::*;
+
+    pub mod toml;
+}
+
+pub mod emit_rust { // XXX: To be made private
+    #[allow(unused_imports)] use super::*;
     use class_file_visitor::*;
     use gather_java::*;
 
@@ -20,8 +27,8 @@ pub mod emit_rust {
     use structs::*;
 }
 
-pub mod gather_java {
-    use super::*;
+pub mod gather_java { // XXX: To be made private
+    #[allow(unused_imports)] use super::*;
     use class_file_visitor::*;
 
     use std::collections::*;
@@ -34,6 +41,7 @@ pub mod gather_java {
 }
 
 mod identifiers {
+    #[allow(unused_imports)] use super::*;
     use std::iter::*;
 
     mod jni_field;
@@ -45,4 +53,4 @@ mod identifiers {
     pub use rust_identifier::*;
 }
 
-pub use identifiers::*;
+pub use identifiers::*; // XXX: To be made private

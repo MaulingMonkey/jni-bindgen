@@ -16,6 +16,9 @@ include = ["/src/**/*", "/Cargo.toml", "/LICENSE-MIT", "/LICENSE-APACHE", "/Read
 
 [dependencies]
 bitflags = "1.1.0"
+toml = "0.5.1"
+serde = "1.0.98"
+serde_derive = "1.0.98"
 zip = "0.5.2"
 
 [dev-dependencies]
