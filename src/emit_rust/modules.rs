@@ -21,7 +21,7 @@ impl Module {
                 writeln!(out, "#[allow(dead_code)] // We generate structs for private Java types too, just in case.")?;
             }
             writeln!(out, "{}pub mod {} {{", indent, name)?;
-            writeln!(out, "{}    use super::__bindgen_jni_jni_sys;", indent)?;
+            writeln!(out, "{}    use super::__bindgen_jni;", indent)?;
             module.write(context, &next_indent[..], out)?;
             writeln!(out, "{}}}", indent)?;
         }
