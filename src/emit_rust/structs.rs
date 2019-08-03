@@ -10,6 +10,7 @@ pub(crate) struct Struct {
 
 impl Struct {
     pub(crate) fn write(&self, context: &Context, indent: &str, out: &mut impl io::Write) -> io::Result<()> {
+        writeln!(out, "")?;
         if let Some(url) = KnownDocsUrl::from(&self.java_class) {
             writeln!(out, "{}/// [{}]({})", indent, url.label, url.url)?;
         }

@@ -15,14 +15,15 @@ impl Module {
         let next_indent = format!("{}    ", indent);
 
         for (name, module) in self.modules.iter() {
+            writeln!(out, "")?;
             if indent.is_empty() {
                 writeln!(out, "#[allow(non_camel_case_types)] // We map Java inner classes to Outer_Inner")?;
                 writeln!(out, "#[allow(dead_code)] // We generate structs for private Java types too, just in case.")?;
             }
             writeln!(out, "{}pub mod {} {{", indent, name)?;
+            writeln!(out, "{}    use super::__bindgen_jni_jni_sys;", indent)?;
             module.write(context, &next_indent[..], out)?;
             writeln!(out, "{}}}", indent)?;
-            writeln!(out, "")?;
         }
 
         for (name, structure) in self.structs.iter() {
@@ -31,7 +32,6 @@ impl Module {
                 if !structure.java_class.access_flags().contains(ClassAccessFlags::PUBLIC) { writeln!(out, "#[allow(dead_code)] // We generate structs for private Java types too, just in case.")?; }
             }
             structure.write(context, indent, out)?;
-            writeln!(out, "")?;
         }
 
         Ok(())

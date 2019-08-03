@@ -1,11 +1,16 @@
 [package]
-name = "android-sys"
+name = "android-28-sys"
 version = "0.0.0"
 authors = ["MaulingMonkey <git@maulingmonkey.com>"]
 edition = "2018"
+build = "build.rs"
 
 [dependencies]
 jni-sys = "0.3.0"
 
 [build-dependencies]
 bindgen-jni = { path = "../.." }
+
+[features]
+default = []
+gen = []

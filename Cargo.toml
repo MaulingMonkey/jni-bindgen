@@ -23,3 +23,9 @@ zip = "0.5.2"
 
 [dev-dependencies]
 jni-sys = "0.3.0"
+
+[workspace]
+members = [
+    ".",
+    "examples/android-28-sys",
+]

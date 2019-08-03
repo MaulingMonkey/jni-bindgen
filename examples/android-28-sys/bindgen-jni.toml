@@ -5,7 +5,7 @@ url_pattern = "https://developer.android.com/reference/kotlin/{PATH}.html"
 files = ["%LOCALAPPDATA%/Android/Sdk/platforms/android-28/android.jar"]
 
 [output]
-path = "lib.rs"
+path = "src/gen.rs"
 
 [logging]
 # verbose = true
