@@ -35,8 +35,8 @@ impl Class {
     pub fn this_class(&self)  -> ClassRef { self.constants.class(self.this_class) }
     pub fn super_class(&self) -> Option<ClassRef> { if self.super_class == 0 { None } else { Some(self.constants.class(self.super_class)) } }
     pub fn interfaces(&self) -> impl Iterator<Item = ClassRef> { self.interfaces.iter().map(move |i| self.constants.class(*i)) }
+    pub fn methods(&self) -> impl Iterator<Item = MethodRef> { self.methods.iter().map(move |method| MethodRef { constants: &self.constants, method }) }
     //pub fn fields(&self) -> impl Iterator<Item = FieldRef> { self.fields.iter().map(move |i| self.constants.field(i.field_index)) } // access_flags, name_index, descriptor_index, attributes_count
-    //pub fn methods(&self) -> impl Iterator<Item = MethodRef> { self.methods.iter().map(move |i| self.constants.method(i.method_index)) } // access_flags, name_index, descriptor_index, attributes_count
     //pub fn interface_methods(&self) -> impl Iterator<Item = MethodRef> { self.interface_methods.iter().map(move |i| self.constants.interface_method(*i)) } // ???
 
     pub fn clear(&mut self) {

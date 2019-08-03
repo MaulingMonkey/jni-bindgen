@@ -41,8 +41,11 @@ pub(crate) mod gather_java {
 
     mod class;
     mod class_constants;
+    mod method_ref;
+
     pub use class::*;
     pub use class_constants::*;
+    pub use method_ref::*;
 }
 
 /// JNI and Rust identifier parsing and categorizing utilities

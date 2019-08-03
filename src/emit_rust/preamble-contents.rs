@@ -254,16 +254,18 @@ macro_rules! __bindgen_jni {
 
 
 
-    ($(#[$attr:meta])* private static class $name:ident extends $parent:ty $(, implements $($interface:ty),+)* {} $($rest:tt)*) => {
+    ($(#[$attr:meta])* private static class $name:ident extends $parent:ty $(, implements $($interface:ty),+)* { $($body:tt)* } $($rest:tt)*) => {
         $(#[$attr])* #[repr(transparent)] struct $name;
+        impl $name { $($body:tt)* }
         __bindgen_jni! {
             // static
             $($rest)*
         }
     };
 
-    ($(#[$attr:meta])* private final class $name:ident extends $parent:ty $(, implements $($interface:ty),+)* {} $($rest:tt)*) => {
+    ($(#[$attr:meta])* private final class $name:ident extends $parent:ty $(, implements $($interface:ty),+)* { $($body:tt)* } $($rest:tt)*) => {
         $(#[$attr])* #[repr(transparent)] struct $name(__bindgen_jni::ObjectAndEnv);
+        impl $name { $($body:tt)* }
         unsafe impl __bindgen_jni::AsValidJObjectAndEnv for $name {}
         __bindgen_jni! {
             $($(@implements $name => $interface;)*)*
@@ -272,8 +274,9 @@ macro_rules! __bindgen_jni {
         }
     };
 
-    ($(#[$attr:meta])* private class $name:ident extends $parent:ty $(, implements $($interface:ty),+)* {} $($rest:tt)*) => {
+    ($(#[$attr:meta])* private class $name:ident extends $parent:ty $(, implements $($interface:ty),+)* { $($body:tt)* } $($rest:tt)*) => {
         $(#[$attr])* #[repr(transparent)] struct $name(__bindgen_jni::ObjectAndEnv);
+        impl $name { $($body:tt)* }
         unsafe impl __bindgen_jni::AsValidJObjectAndEnv for $name {}
         __bindgen_jni! {
             $($(@implements $name => $interface;)*)*
@@ -282,8 +285,9 @@ macro_rules! __bindgen_jni {
         }
     };
 
-    ($(#[$attr:meta])* private enum $name:ident extends $parent:ty $(, implements $($interface:ty),+)*{} $($rest:tt)*) => {
+    ($(#[$attr:meta])* private enum $name:ident extends $parent:ty $(, implements $($interface:ty),+)* { $($body:tt)* } $($rest:tt)*) => {
         $(#[$attr])* #[repr(transparent)] struct $name(__bindgen_jni::ObjectAndEnv);
+        impl $name { $($body:tt)* }
         unsafe impl __bindgen_jni::AsValidJObjectAndEnv for $name {}
         __bindgen_jni! {
             $($(@implements $name => $interface;)*)*
@@ -292,8 +296,9 @@ macro_rules! __bindgen_jni {
         }
     };
 
-    ($(#[$attr:meta])* private interface $name:ident extends $parent:ty $(, implements $($interface:ty),+)*{} $($rest:tt)*) => {
+    ($(#[$attr:meta])* private interface $name:ident extends $parent:ty $(, implements $($interface:ty),+)* { $($body:tt)* } $($rest:tt)*) => {
         $(#[$attr])* #[repr(transparent)] struct $name(__bindgen_jni::ObjectAndEnv);
+        impl $name { $($body:tt)* }
         unsafe impl __bindgen_jni::AsValidJObjectAndEnv for $name {}
         __bindgen_jni! {
             $($(@implements $name => $interface;)*)*
@@ -304,16 +309,18 @@ macro_rules! __bindgen_jni {
 
 
 
-    ($(#[$attr:meta])* public static class $name:ident extends $parent:ty $(, implements $($interface:ty),+)*{} $($rest:tt)*) => {
+    ($(#[$attr:meta])* public static class $name:ident extends $parent:ty $(, implements $($interface:ty),+)* { $($body:tt)* } $($rest:tt)*) => {
         $(#[$attr])* #[repr(transparent)] pub struct $name;
+        impl $name { $($body:tt)* }
         __bindgen_jni! {
             // static
             $($rest)*
         }
     };
 
-    ($(#[$attr:meta])* public final class $name:ident extends $parent:ty $(, implements $($interface:ty),+)*{} $($rest:tt)*) => {
+    ($(#[$attr:meta])* public final class $name:ident extends $parent:ty $(, implements $($interface:ty),+)* { $($body:tt)* } $($rest:tt)*) => {
         $(#[$attr])* #[repr(transparent)] pub struct $name(__bindgen_jni::ObjectAndEnv);
+        impl $name { $($body:tt)* }
         unsafe impl __bindgen_jni::AsValidJObjectAndEnv for $name {}
         __bindgen_jni! {
             $($(@implements $name => $interface;)*)*
@@ -322,8 +329,9 @@ macro_rules! __bindgen_jni {
         }
     };
 
-    ($(#[$attr:meta])* public class $name:ident extends $parent:ty $(, implements $($interface:ty),+)*{} $($rest:tt)*) => {
+    ($(#[$attr:meta])* public class $name:ident extends $parent:ty $(, implements $($interface:ty),+)* { $($body:tt)* } $($rest:tt)*) => {
         $(#[$attr])* #[repr(transparent)] pub struct $name(__bindgen_jni::ObjectAndEnv);
+        impl $name { $($body:tt)* }
         unsafe impl __bindgen_jni::AsValidJObjectAndEnv for $name {}
         __bindgen_jni! {
             $($(@implements $name => $interface;)*)*
@@ -332,8 +340,9 @@ macro_rules! __bindgen_jni {
         }
     };
 
-    ($(#[$attr:meta])* public enum $name:ident extends $parent:ty $(, implements $($interface:ty),+)*{} $($rest:tt)*) => {
+    ($(#[$attr:meta])* public enum $name:ident extends $parent:ty $(, implements $($interface:ty),+)* { $($body:tt)* } $($rest:tt)*) => {
         $(#[$attr])* #[repr(transparent)] pub struct $name(__bindgen_jni::ObjectAndEnv);
+        impl $name { $($body:tt)* }
         unsafe impl __bindgen_jni::AsValidJObjectAndEnv for $name {}
         __bindgen_jni! {
             $($(@implements $name => $interface;)*)*
@@ -342,8 +351,9 @@ macro_rules! __bindgen_jni {
         }
     };
 
-    ($(#[$attr:meta])* public interface $name:ident extends $parent:ty $(, implements $($interface:ty),+)*{} $($rest:tt)*) => {
+    ($(#[$attr:meta])* public interface $name:ident extends $parent:ty $(, implements $($interface:ty),+)* { $($body:tt)* } $($rest:tt)*) => {
         $(#[$attr])* #[repr(transparent)] pub struct $name(__bindgen_jni::ObjectAndEnv);
+        impl $name { $($body:tt)* }
         unsafe impl __bindgen_jni::AsValidJObjectAndEnv for $name {}
         __bindgen_jni! {
             $($(@implements $name => $interface;)*)*
