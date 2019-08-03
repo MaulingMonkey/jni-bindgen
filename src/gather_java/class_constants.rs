@@ -93,6 +93,7 @@ impl ClassConstants {
 
 
 
+#[derive(Clone, Copy)]
 pub struct ClassRef<'a> {
     constants:  &'a ClassConstants,
     class:      &'a constant::Class,
@@ -104,6 +105,7 @@ impl<'a> ClassRef<'a> {
 
 
 
+#[derive(Clone, Copy)]
 pub struct FieldRef<'a> {
     constants:  &'a ClassConstants,
     field:      &'a constant::Fieldref,
@@ -117,6 +119,7 @@ impl<'a> FieldRef<'a> {
 
 
 
+#[derive(Clone, Copy)]
 pub struct MethodRef<'a> {
     constants:  &'a ClassConstants,
     method:     &'a constant::Methodref,
@@ -130,6 +133,7 @@ impl<'a> MethodRef<'a> {
 
 
 
+#[derive(Clone, Copy)]
 pub struct InterfaceMethodRef<'a> {
     constants:  &'a ClassConstants,
     method:     &'a constant::InterfaceMethodref,
@@ -142,6 +146,7 @@ impl<'a> InterfaceMethodRef<'a> {
 }
 
 
+#[derive(Clone, Copy)]
 pub(crate) struct NameAndTypeRef<'a> {
     constants:      &'a ClassConstants,
     name_and_type:  &'a constant::NameAndType,

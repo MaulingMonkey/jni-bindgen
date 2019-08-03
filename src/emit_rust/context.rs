@@ -1,18 +1,59 @@
 use super::*;
 
-use std::collections::*;
 use std::error::Error;
 use std::fmt::Write;
 use std::io;
 
 #[derive(Debug, Default)]
 pub struct Context {
-    pub(crate) module:                 Module,
-    pub(crate) jni_type_to_rust_type:  HashMap<String, String>, // XXX
+    pub(crate) module: Module,
 }
 
 impl Context {
     pub fn new() -> Self { Default::default() }
+
+    pub fn java_to_rust_path(&self, java_class: ClassRef) -> Result<String, Box<dyn Error>> {
+        let mut rust_name = String::from("crate::");
+
+        for component in JniPathIter::new(java_class.name()) {
+            match component {
+                JniIdentifier::Namespace(id) => {
+                    let id = match RustIdentifier::from_str(id) {
+                        RustIdentifier::Identifier(id) => id,
+                        RustIdentifier::KeywordRawSafe(id) => id,
+                        RustIdentifier::KeywordUnderscorePostfix(id) => id,
+                        RustIdentifier::NonIdentifier(id) => Err(format!("Unable to add_struct(): parent java namespace name {:?} has no rust equivalent", id))?,
+                    };
+
+                    write!(&mut rust_name, "{}::", id)?;
+                },
+                JniIdentifier::ContainingClass(id) => {
+                    let id = match RustIdentifier::from_str(id) {
+                        RustIdentifier::Identifier(id) => id,
+                        RustIdentifier::KeywordRawSafe(id) => id,
+                        RustIdentifier::KeywordUnderscorePostfix(id) => id,
+                        RustIdentifier::NonIdentifier(id) => Err(format!("Unable to add_struct(): parent java class name {:?} has no rust equivalent", id))?,
+                    };
+
+                    write!(&mut rust_name, "{}_", id)?;
+                },
+                JniIdentifier::LeafClass(id) => {
+                    let id = match RustIdentifier::from_str(id) {
+                        RustIdentifier::Identifier(id) => id,
+                        RustIdentifier::KeywordRawSafe(id) => id,
+                        RustIdentifier::KeywordUnderscorePostfix(id) => id,
+                        RustIdentifier::NonIdentifier(id) => Err(format!("Unable to add_struct(): java class name {:?} has no rust equivalent", id))?,
+                    };
+
+                    write!(&mut rust_name, "{}", id)?;
+
+                    return Ok(rust_name);
+                },
+            }
+        }
+
+        Err(format!("Failed to find LeafClass in {:?}", java_class.name()))?
+    }
 
     pub fn add_struct(&mut self, java_class: Class) -> Result<(), Box<dyn Error>> {
         let mut rust_mod : &mut Module = &mut self.module;
@@ -56,8 +97,6 @@ impl Context {
                     if rust_mod.structs.contains_key(id) {
                         Err(format!("Unable to add_struct(): java class name {:?} was already added", id))?
                     }
-
-                    self.jni_type_to_rust_type.insert(java_class.this_class().name().clone(), format!("{}{}", rust_mod_prefix, &rust_struct_name));
 
                     rust_mod.structs.insert(rust_struct_name.clone(), Struct {
                         rust_mod_prefix,

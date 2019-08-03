@@ -262,6 +262,16 @@ macro_rules! __bindgen_jni {
         }
     };
 
+    ($(#[$attr:meta])* private final class $name:ident extends $parent:ty $(, implements $($interface:ty),+)* {} $($rest:tt)*) => {
+        $(#[$attr])* #[repr(transparent)] struct $name(__bindgen_jni::ObjectAndEnv);
+        unsafe impl __bindgen_jni::AsValidJObjectAndEnv for $name {}
+        __bindgen_jni! {
+            $($(@implements $name => $interface;)*)*
+            @deref $name => $parent;
+            $($rest)*
+        }
+    };
+
     ($(#[$attr:meta])* private class $name:ident extends $parent:ty $(, implements $($interface:ty),+)* {} $($rest:tt)*) => {
         $(#[$attr])* #[repr(transparent)] struct $name(__bindgen_jni::ObjectAndEnv);
         unsafe impl __bindgen_jni::AsValidJObjectAndEnv for $name {}
@@ -298,6 +308,16 @@ macro_rules! __bindgen_jni {
         $(#[$attr])* #[repr(transparent)] pub struct $name;
         __bindgen_jni! {
             // static
+            $($rest)*
+        }
+    };
+
+    ($(#[$attr:meta])* public final class $name:ident extends $parent:ty $(, implements $($interface:ty),+)*{} $($rest:tt)*) => {
+        $(#[$attr])* #[repr(transparent)] pub struct $name(__bindgen_jni::ObjectAndEnv);
+        unsafe impl __bindgen_jni::AsValidJObjectAndEnv for $name {}
+        __bindgen_jni! {
+            $($(@implements $name => $interface;)*)*
+            @deref $name => $parent;
             $($rest)*
         }
     };

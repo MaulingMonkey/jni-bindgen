@@ -16,12 +16,16 @@ impl Struct {
     }
 
     fn write_rust_struct(&self, context: &Context, indent: &str, out: &mut impl io::Write) -> io::Result<()> {
-        // Ignored access_flags: SUPER, SYNTHETIC, ANNOTATION, ABSTRACT, FINAL
+        // Ignored access_flags: SUPER, SYNTHETIC, ANNOTATION, ABSTRACT
 
         let keyword = if self.java_class.access_flags().contains(ClassAccessFlags::INTERFACE) {
             "interface"
         } else if self.java_class.access_flags().contains(ClassAccessFlags::ENUM) {
             "enum"
+        } else if self.java_class.access_flags().contains(ClassAccessFlags::STATIC) {
+            "static class"
+        } else if self.java_class.access_flags().contains(ClassAccessFlags::FINAL) {
+            "final class"
         } else {
             "class"
         };
@@ -32,23 +36,18 @@ impl Struct {
             "private"
         };
 
-        let _struct_body = if self.java_class.access_flags().contains(ClassAccessFlags::STATIC) {
-            ""
+        let super_class = if let Some(super_class) = self.java_class.super_class() {
+            context.java_to_rust_path(super_class).unwrap()
         } else {
-            "(__bindgen_jni_jni_sys::jobject)"
+            "()".to_owned() // This might only happen for java.lang.Object
         };
 
-        let _super_class = if let Some(super_class) = self.java_class.super_class() {
-            &context.jni_type_to_rust_type.get(super_class.name()).unwrap()[..]
-        } else {
-            "()"
-        };
-
+        // TODO:  Eventually move macro codegen into the mod so multiple classes can be collapsed.
         writeln!(out, "{}__bindgen_jni! {{", indent)?;
         if let Some(url) = KnownDocsUrl::from(&self.java_class) {
-            writeln!(out, "{}    /// [{}]({})", indent, url.label, url.url)?;
+            writeln!(out, "{}    /// {} {} [{}]({})", indent, visibility, keyword, url.label, url.url)?;
         }
-        write!(out, "{}    {} {} {} extends {}", indent, visibility, keyword, &self.rust_struct_name, _super_class)?;
+        write!(out, "{}    {} {} {} extends {}", indent, visibility, keyword, &self.rust_struct_name, super_class)?;
         let mut implements = false;
         for interface in self.java_class.interfaces() {
             write!(out, ", ")?;
@@ -56,7 +55,7 @@ impl Struct {
                 write!(out, "implements ")?;
                 implements = true;
             }
-            write!(out, "{}", &context.jni_type_to_rust_type.get(interface.name()).unwrap())?;
+            write!(out, "{}", &context.java_to_rust_path(interface).unwrap())?;
         }
         writeln!(out, " {{")?;
         writeln!(out, "{}    }}", indent)?;
@@ -64,5 +63,3 @@ impl Struct {
         Ok(())
     }
 }
-
-const DEREF_FN : &'static str = "fn deref(&self) -> &Self::Target { unsafe { &*(self as *const Self as *const Self::Target) } }";
