@@ -21,11 +21,13 @@ pub(crate) mod emit_rust {
     mod context;
     mod known_docs_url;
     mod modules;
+    mod preamble;
     mod structs;
 
     pub use context::Context;
     use known_docs_url::*;
     use modules::*;
+    use preamble::*;
     use structs::*;
 }
 

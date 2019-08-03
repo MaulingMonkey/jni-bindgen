@@ -5,7 +5,7 @@ use gather_java::*;
 use std::result::Result;
 use std::error::Error;
 use std::fs::*;
-use std::io::{self, *};
+use std::io;
 use std::path::*;
 use std::time::*;
 
@@ -27,7 +27,6 @@ pub fn run(config: impl Into<Config>) -> Result<(), Box<dyn Error>> {
     println!("writing: {}...", config.output_path.display());
 
     let mut out = File::create(&config.output_path).unwrap();
-    write_preamble(&mut out)?;
     context.write(&mut out)?;
 
     // let _ = Command::new("cargo").args(&["+nightly", "build", "--example", "generated-android-sdk"]).status().unwrap();
@@ -70,14 +69,5 @@ fn gather_file(context: &mut emit_rust::Context, config: &Config, path: &Path) -
             return Err(io::Error::new(io::ErrorKind::InvalidInput, format!("Input files must have a '.class' or '.jar' extension, not a '.{}' extension", unknown)))?;
         }
     }
-    Ok(())
-}
-
-fn write_preamble(out: &mut impl Write) -> io::Result<()> {
-    writeln!(out, "// GENERATED WITH bindgen-jni, I DO NOT RECOMMEND EDITNIG THIS BY HAND")?;
-    writeln!(out, "use jni_sys as __bindgen_jni_jni_sys;")?; // TODO: Make jni_sys configurable
-    writeln!(out, "")?;
-    writeln!(out, "")?;
-    writeln!(out, "")?;
     Ok(())
 }

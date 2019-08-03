@@ -11,24 +11,13 @@ pub(crate) struct Struct {
 impl Struct {
     pub(crate) fn write(&self, context: &Context, indent: &str, out: &mut impl io::Write) -> io::Result<()> {
         writeln!(out, "")?;
-        if let Some(url) = KnownDocsUrl::from(&self.java_class) {
-            writeln!(out, "{}/// [{}]({})", indent, url.label, url.url)?;
-        }
-        //self.write_java_doc_comment(context, indent, out)?;
-        //writeln!(out, "{}/// * access_flags: {:?}", indent, self.java_class.access_flags() )?;
         self.write_rust_struct(context, indent, out)?;
         Ok(())
     }
 
-    fn write_java_doc_comment(&self, _context: &Context, indent: &str, out: &mut impl io::Write) -> io::Result<()> {
-        // Emit an initial doc comment in the form of a proto-Java class definition.
-        writeln!(out, "{}/// ```java", indent)?;
-        write!(out, "{}/// ", indent)?;
-        // Ignored access_flags: SUPER, SYNTHETIC, ANNOTATION
-        if self.java_class.access_flags().contains(ClassAccessFlags::PUBLIC  ) { write!(out, "public ")? }
-        if self.java_class.access_flags().contains(ClassAccessFlags::STATIC  ) { write!(out, "static ")? }
-        if self.java_class.access_flags().contains(ClassAccessFlags::ABSTRACT) { write!(out, "abstract ")? }
-        if self.java_class.access_flags().contains(ClassAccessFlags::FINAL   ) { write!(out, "final ")? }
+    fn write_rust_struct(&self, context: &Context, indent: &str, out: &mut impl io::Write) -> io::Result<()> {
+        // Ignored access_flags: SUPER, SYNTHETIC, ANNOTATION, ABSTRACT, FINAL
+
         let keyword = if self.java_class.access_flags().contains(ClassAccessFlags::INTERFACE) {
             "interface"
         } else if self.java_class.access_flags().contains(ClassAccessFlags::ENUM) {
@@ -36,47 +25,41 @@ impl Struct {
         } else {
             "class"
         };
-        write!(out, "{} {}", keyword, self.java_class.this_class().name().replace("/", "."))?;
-        if let Some(super_class) = self.java_class.super_class() {
-            if super_class.name() != "java/lang/Object" {
-                write!(out, " extends {}", super_class.name().replace("/", "."))?;
-            }
-        }
-        let mut write_implements = false;
-        for interface in self.java_class.interfaces() {
-            if !write_implements {
-                write!(out, " implements ")?;
-                write_implements = true;
-            } else {
-                write!(out, ", ")?;
-            }
-            write!(out, "{}", interface.name().replace("/", "."))?;
-        }
-        writeln!(out, " {{ ... }}")?;
-        writeln!(out, "{}/// ```", indent)?;
-        Ok(())
-    }
 
-    fn write_rust_struct(&self, context: &Context, indent: &str, out: &mut impl io::Write) -> io::Result<()> {
-        let struct_access = if self.java_class.access_flags().contains(ClassAccessFlags::PUBLIC) {
-            "pub "
+        let visibility = if self.java_class.access_flags().contains(ClassAccessFlags::PUBLIC) {
+            "public"
         } else {
-            ""
+            "private"
         };
 
-        let struct_body = if self.java_class.access_flags().contains(ClassAccessFlags::STATIC) {
+        let _struct_body = if self.java_class.access_flags().contains(ClassAccessFlags::STATIC) {
             ""
         } else {
             "(__bindgen_jni_jni_sys::jobject)"
         };
 
-        writeln!(out, "{}#[repr(transparent)] {}struct {}{};", indent, struct_access, &self.rust_struct_name, struct_body)?;
-        if let Some(super_class) = self.java_class.super_class() {
-            let rust_super_class_name = context.jni_type_to_rust_type.get(super_class.name()).unwrap();
-            writeln!(out, "{}impl ::std::ops::Deref for {} {{ type Target = {}; {} }}", indent, &self.rust_struct_name, rust_super_class_name, DEREF_FN)?;
+        let _super_class = if let Some(super_class) = self.java_class.super_class() {
+            &context.jni_type_to_rust_type.get(super_class.name()).unwrap()[..]
+        } else {
+            "()"
+        };
+
+        writeln!(out, "{}__bindgen_jni! {{", indent)?;
+        if let Some(url) = KnownDocsUrl::from(&self.java_class) {
+            writeln!(out, "{}    /// [{}]({})", indent, url.label, url.url)?;
         }
-        writeln!(out, "{}impl {} {{", indent, &self.rust_struct_name)?;
-        writeln!(out, "{}    // ...", indent)?;
+        write!(out, "{}    {} {} {} extends {}", indent, visibility, keyword, &self.rust_struct_name, _super_class)?;
+        let mut implements = false;
+        for interface in self.java_class.interfaces() {
+            write!(out, ", ")?;
+            if !implements {
+                write!(out, "implements ")?;
+                implements = true;
+            }
+            write!(out, "{}", &context.jni_type_to_rust_type.get(interface.name()).unwrap())?;
+        }
+        writeln!(out, " {{")?;
+        writeln!(out, "{}    }}", indent)?;
         writeln!(out, "{}}}", indent)?;
         Ok(())
     }
