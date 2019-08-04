@@ -74,36 +74,41 @@ impl Struct {
         // TODO: fields
 
         for method in self.java_class.methods() {
-            let mut actually_emit = true;
+            let mut emit_reject_reason = None;
 
             let constructor = method.name() == "<init>";
+            let static_init = method.name() == "<clinit>";
             let public      = method.access_flags().contains(MethodAccessFlags::PUBLIC);
             let protected   = method.access_flags().contains(MethodAccessFlags::PROTECTED);
             let static_     = method.access_flags().contains(MethodAccessFlags::STATIC);
+            let varargs     = method.access_flags().contains(MethodAccessFlags::VARARGS);
+            // Ignored: FINAL | SYNCRONIZED | BRIDGE | NATIVE | ABSTRACT | STRICT | SYNTHETIC
             let _private    = !public && !protected;
             let _access     = if public { "public" } else if protected { "protected" } else { "private" };
 
             let descriptor = method.descriptor();
 
-            if !public { actually_emit = false; } // Skip private/protected methods
-
             let method_name = if let Ok(name) = mangle_method_name(method.name()) {
                 name
             } else {
-                writeln!(out, "{}        // {:?} fn ??? (could not mangle {:?}) = {:?}", indent, method.access_flags(), method.name(), method.descriptor())?;
-                continue;
+                emit_reject_reason = Some("Failed to mangle method name");
+                method.name().to_owned()
             };
 
             let repeats = *id_repeats.get(&method_name).unwrap_or(&0);
+            let overloaded = repeats > 1;
 
-            let method_name = if repeats <= 1 {
-                method_name
+            if !public      { emit_reject_reason = Some("Non-public method"); }
+            if varargs      { emit_reject_reason = Some("Marked as varargs - haven't decided on how I want to handle this."); }
+            if overloaded   { emit_reject_reason = Some("Overloaded - I haven't decided how I want to deconflict overloads."); }
+            if static_init  { emit_reject_reason = Some("Static class constructor - never needs to be called by Rust."); }
+
+            // Parameter names may or may not be available as extra debug information.  Example:
+            // https://docs.oracle.com/javase/tutorial/reflect/member/methodparameterreflection.html
+
+            if let Some(reason) = emit_reject_reason {
+                writeln!(out, "{}        // {:?} fn {} = {:?}; // {}", indent, method.access_flags(), method_name, method.descriptor(), reason)?;
             } else {
-                actually_emit = false; // NYI: Overload mangling
-                format!("{}_OVERLOADED", method_name)
-            };
-
-            if actually_emit {
                 let access = if public { "pub " } else { "" };
                 let self_param = if static_ || constructor { "" } else if descriptor.starts_with("()") { "&self" } else { "&self, " };
                 write!(out, "{}        // {}fn {}({}", indent, access, method_name, self_param)?;
@@ -111,8 +116,6 @@ impl Struct {
                 if !descriptor.starts_with("()") { write!(out, "???")?; }
                 // TODO: Return type
                 writeln!(out, ") -> ! {{ unimplemented!(); }}")?;
-            } else {
-                writeln!(out, "{}        // {:?} fn {} = {:?}", indent, method.access_flags(), method_name, method.descriptor())?;
             }
         }
 
