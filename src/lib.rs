@@ -53,10 +53,12 @@ mod identifiers {
     #[allow(unused_imports)] use super::*;
     use std::iter::*;
 
+    mod jni_descriptor;
     mod jni_field;
     mod jni_path_iter;
     mod rust_identifier;
 
+    pub use jni_descriptor::*;
     pub use jni_field::*;
     pub use jni_path_iter::*;
     pub use rust_identifier::*;

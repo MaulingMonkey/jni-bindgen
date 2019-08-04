@@ -10,7 +10,8 @@ pub enum JniBasicType<'a> {
     Long,
     Class(&'a str),
     Short,
-    Boolean
+    Boolean,
+    Void, // Only really crops up for method return types.
 }
 
 
@@ -47,6 +48,7 @@ impl<'a> JniField<'a> {
                 }
                 Some('S') => { *remaining = chars.as_str(); break JniBasicType::Short    }
                 Some('Z') => { *remaining = chars.as_str(); break JniBasicType::Boolean  }
+                Some('V') => { *remaining = chars.as_str(); break JniBasicType::Void     }
                 Some('[') => { array += 1; }
                 Some(_ch)  => return Err("Unexpected character in JNI type string"),
             }
