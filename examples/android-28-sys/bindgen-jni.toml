@@ -1,5 +1,5 @@
 [[documentation.patterns]]
-url_pattern = "https://developer.android.com/reference/kotlin/{PATH}.html"
+url_pattern = "https://developer.android.com/reference/{PATH}.html"
 
 [input]
 files = ["%LOCALAPPDATA%/Android/Sdk/platforms/android-28/android.jar"]
