@@ -26,9 +26,11 @@ impl<'a> Iterator for JniDescriptor<'a> {
         if self.remaining.starts_with(')') {
             let field = JniField::from_str(&self.remaining[1..]);
             self.remaining = "";
+            // XXX: Actually, failing silent here isn't just lame, it's kinda scary.  Fix it.
             field.ok().map(|f| JniDescriptorSegment::Return(f))
         } else {
             let field = JniField::read_next(&mut self.remaining);
+            // XXX: Actually, failing silent here isn't just lame, it's kinda scary.  Fix it.
             field.ok().map(|f| JniDescriptorSegment::Parameter(f))
         }
     }

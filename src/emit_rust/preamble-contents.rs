@@ -4,6 +4,7 @@
 mod jni {
     pub use ::std as std;
     pub use ::jni_sys as jni_sys;
+    pub use jni_sys::jchar; // XXX: Do we want a jchar (u16) newtype wrapper...?
 
     use jni_sys::*;
     use lazy_static::*;
@@ -148,9 +149,29 @@ mod jni {
 
 
 
+    /// By implementing this you assert that you're constructing a valid jvalue for the given argument type (e.g. valid
+    /// jobject pointer if the function is supposed to take a jobject)
+    pub unsafe trait AsJValue           { fn as_jvalue(&self) -> jvalue; }
+    unsafe impl AsJValue for bool       { fn as_jvalue(&self) -> jvalue { jvalue { z: if *self { JNI_TRUE } else { JNI_FALSE } } } }
+    unsafe impl AsJValue for jbyte      { fn as_jvalue(&self) -> jvalue { jvalue { b: *self } } }
+    unsafe impl AsJValue for jchar      { fn as_jvalue(&self) -> jvalue { jvalue { c: *self } } }
+    unsafe impl AsJValue for jshort     { fn as_jvalue(&self) -> jvalue { jvalue { s: *self } } }
+    unsafe impl AsJValue for jint       { fn as_jvalue(&self) -> jvalue { jvalue { i: *self } } }
+    unsafe impl AsJValue for jlong      { fn as_jvalue(&self) -> jvalue { jvalue { j: *self } } }
+    unsafe impl AsJValue for jfloat     { fn as_jvalue(&self) -> jvalue { jvalue { f: *self } } }
+    unsafe impl AsJValue for jdouble    { fn as_jvalue(&self) -> jvalue { jvalue { d: *self } } }
+    //unsafe impl AsJValue for jobject  { fn as_jvalue(&self) -> jvalue { jvalue { l: *self } } } // do NOT implement, no guarantee any given jobject is actually safe!
+
+
+
+    pub type Result<R> = std::result::Result<R, jni_sys::jthrowable>; // XXX: Wrap jthrowable better
+
+
+
+    #[repr(C)] // Given how frequently we transmute to/from this, we'd better keep a consistent layout.
     pub struct ObjectAndEnv {
-        object: jobject,
-        env:    *const JNIEnv,
+        pub object: jobject,
+        pub env:    *const JNIEnv,
     }
 
     /// This is hideously unsafe to implement:
@@ -206,6 +227,15 @@ mod jni {
         pd:     PhantomData<&'env Class>,
     }
 
+    impl<'env, Class: AsValidJObjectAndEnv> Local<'env, Class> {
+        pub unsafe fn from_object_lifetime_and_raw_env_obj(_: &'env impl AsValidJObjectAndEnv, env: *const JNIEnv, object: jobject) -> Self {
+            Self {
+                oae: ObjectAndEnv { object, env },
+                pd: PhantomData,
+            }
+        }
+    }
+
     impl<'env, Class: AsValidJObjectAndEnv> Deref for Local<'env, Class> {
         type Target = Class;
         fn deref(&self) -> &Self::Target {
@@ -256,7 +286,7 @@ macro_rules! __bindgen_jni {
 
     ($(#[$attr:meta])* private static class $name:ident extends $parent:ty $(, implements $($interface:ty),+)* { $($body:tt)* } $($rest:tt)*) => {
         $(#[$attr])* #[repr(transparent)] struct $name;
-        impl $name { $($body:tt)* }
+        impl $name { $($body)* }
         __bindgen_jni! {
             // static
             $($rest)*
@@ -265,8 +295,9 @@ macro_rules! __bindgen_jni {
 
     ($(#[$attr:meta])* private final class $name:ident extends $parent:ty $(, implements $($interface:ty),+)* { $($body:tt)* } $($rest:tt)*) => {
         $(#[$attr])* #[repr(transparent)] struct $name(__bindgen_jni::ObjectAndEnv);
-        impl $name { $($body:tt)* }
+        impl $name { $($body)* }
         unsafe impl __bindgen_jni::AsValidJObjectAndEnv for $name {}
+        unsafe impl __bindgen_jni::AsJValue for $name { fn as_jvalue(&self) -> __bindgen_jni::jni_sys::jvalue { __bindgen_jni::jni_sys::jvalue { l: self.0.object } } }
         __bindgen_jni! {
             $($(@implements $name => $interface;)*)*
             @deref $name => $parent;
@@ -276,8 +307,9 @@ macro_rules! __bindgen_jni {
 
     ($(#[$attr:meta])* private class $name:ident extends $parent:ty $(, implements $($interface:ty),+)* { $($body:tt)* } $($rest:tt)*) => {
         $(#[$attr])* #[repr(transparent)] struct $name(__bindgen_jni::ObjectAndEnv);
-        impl $name { $($body:tt)* }
+        impl $name { $($body)* }
         unsafe impl __bindgen_jni::AsValidJObjectAndEnv for $name {}
+        unsafe impl __bindgen_jni::AsJValue for $name { fn as_jvalue(&self) -> __bindgen_jni::jni_sys::jvalue { __bindgen_jni::jni_sys::jvalue { l: self.0.object } } }
         __bindgen_jni! {
             $($(@implements $name => $interface;)*)*
             @deref $name => $parent;
@@ -287,8 +319,9 @@ macro_rules! __bindgen_jni {
 
     ($(#[$attr:meta])* private enum $name:ident extends $parent:ty $(, implements $($interface:ty),+)* { $($body:tt)* } $($rest:tt)*) => {
         $(#[$attr])* #[repr(transparent)] struct $name(__bindgen_jni::ObjectAndEnv);
-        impl $name { $($body:tt)* }
+        impl $name { $($body)* }
         unsafe impl __bindgen_jni::AsValidJObjectAndEnv for $name {}
+        unsafe impl __bindgen_jni::AsJValue for $name { fn as_jvalue(&self) -> __bindgen_jni::jni_sys::jvalue { __bindgen_jni::jni_sys::jvalue { l: self.0.object } } }
         __bindgen_jni! {
             $($(@implements $name => $interface;)*)*
             @deref $name => $parent;
@@ -298,8 +331,9 @@ macro_rules! __bindgen_jni {
 
     ($(#[$attr:meta])* private interface $name:ident extends $parent:ty $(, implements $($interface:ty),+)* { $($body:tt)* } $($rest:tt)*) => {
         $(#[$attr])* #[repr(transparent)] struct $name(__bindgen_jni::ObjectAndEnv);
-        impl $name { $($body:tt)* }
+        impl $name { $($body)* }
         unsafe impl __bindgen_jni::AsValidJObjectAndEnv for $name {}
+        unsafe impl __bindgen_jni::AsJValue for $name { fn as_jvalue(&self) -> __bindgen_jni::jni_sys::jvalue { __bindgen_jni::jni_sys::jvalue { l: self.0.object } } }
         __bindgen_jni! {
             $($(@implements $name => $interface;)*)*
             @deref $name => $parent;
@@ -311,7 +345,7 @@ macro_rules! __bindgen_jni {
 
     ($(#[$attr:meta])* public static class $name:ident extends $parent:ty $(, implements $($interface:ty),+)* { $($body:tt)* } $($rest:tt)*) => {
         $(#[$attr])* #[repr(transparent)] pub struct $name;
-        impl $name { $($body:tt)* }
+        impl $name { $($body)* }
         __bindgen_jni! {
             // static
             $($rest)*
@@ -320,8 +354,9 @@ macro_rules! __bindgen_jni {
 
     ($(#[$attr:meta])* public final class $name:ident extends $parent:ty $(, implements $($interface:ty),+)* { $($body:tt)* } $($rest:tt)*) => {
         $(#[$attr])* #[repr(transparent)] pub struct $name(__bindgen_jni::ObjectAndEnv);
-        impl $name { $($body:tt)* }
+        impl $name { $($body)* }
         unsafe impl __bindgen_jni::AsValidJObjectAndEnv for $name {}
+        unsafe impl __bindgen_jni::AsJValue for $name { fn as_jvalue(&self) -> __bindgen_jni::jni_sys::jvalue { __bindgen_jni::jni_sys::jvalue { l: self.0.object } } }
         __bindgen_jni! {
             $($(@implements $name => $interface;)*)*
             @deref $name => $parent;
@@ -331,8 +366,9 @@ macro_rules! __bindgen_jni {
 
     ($(#[$attr:meta])* public class $name:ident extends $parent:ty $(, implements $($interface:ty),+)* { $($body:tt)* } $($rest:tt)*) => {
         $(#[$attr])* #[repr(transparent)] pub struct $name(__bindgen_jni::ObjectAndEnv);
-        impl $name { $($body:tt)* }
+        impl $name { $($body)* }
         unsafe impl __bindgen_jni::AsValidJObjectAndEnv for $name {}
+        unsafe impl __bindgen_jni::AsJValue for $name { fn as_jvalue(&self) -> __bindgen_jni::jni_sys::jvalue { __bindgen_jni::jni_sys::jvalue { l: self.0.object } } }
         __bindgen_jni! {
             $($(@implements $name => $interface;)*)*
             @deref $name => $parent;
@@ -342,8 +378,9 @@ macro_rules! __bindgen_jni {
 
     ($(#[$attr:meta])* public enum $name:ident extends $parent:ty $(, implements $($interface:ty),+)* { $($body:tt)* } $($rest:tt)*) => {
         $(#[$attr])* #[repr(transparent)] pub struct $name(__bindgen_jni::ObjectAndEnv);
-        impl $name { $($body:tt)* }
+        impl $name { $($body)* }
         unsafe impl __bindgen_jni::AsValidJObjectAndEnv for $name {}
+        unsafe impl __bindgen_jni::AsJValue for $name { fn as_jvalue(&self) -> __bindgen_jni::jni_sys::jvalue { __bindgen_jni::jni_sys::jvalue { l: self.0.object } } }
         __bindgen_jni! {
             $($(@implements $name => $interface;)*)*
             @deref $name => $parent;
@@ -353,8 +390,9 @@ macro_rules! __bindgen_jni {
 
     ($(#[$attr:meta])* public interface $name:ident extends $parent:ty $(, implements $($interface:ty),+)* { $($body:tt)* } $($rest:tt)*) => {
         $(#[$attr])* #[repr(transparent)] pub struct $name(__bindgen_jni::ObjectAndEnv);
-        impl $name { $($body:tt)* }
+        impl $name { $($body)* }
         unsafe impl __bindgen_jni::AsValidJObjectAndEnv for $name {}
+        unsafe impl __bindgen_jni::AsJValue for $name { fn as_jvalue(&self) -> __bindgen_jni::jni_sys::jvalue { __bindgen_jni::jni_sys::jvalue { l: self.0.object } } }
         __bindgen_jni! {
             $($(@implements $name => $interface;)*)*
             @deref $name => $parent;

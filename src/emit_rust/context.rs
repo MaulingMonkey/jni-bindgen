@@ -12,10 +12,10 @@ pub struct Context {
 impl Context {
     pub fn new() -> Self { Default::default() }
 
-    pub fn java_to_rust_path(&self, java_class: ClassRef) -> Result<String, Box<dyn Error>> {
+    pub fn java_to_rust_path(&self, java_class: &str) -> Result<String, Box<dyn Error>> {
         let mut rust_name = String::from("crate::");
 
-        for component in JniPathIter::new(java_class.name()) {
+        for component in JniPathIter::new(java_class) {
             match component {
                 JniIdentifier::Namespace(id) => {
                     let id = match RustIdentifier::from_str(id) {
@@ -52,7 +52,7 @@ impl Context {
             }
         }
 
-        Err(format!("Failed to find LeafClass in {:?}", java_class.name()))?
+        Err(format!("Failed to find LeafClass in {:?}", java_class))?
     }
 
     pub fn add_struct(&mut self, java_class: Class) -> Result<(), Box<dyn Error>> {
