@@ -68,6 +68,7 @@ fn expand_vars(string: String) -> String {
             if let Ok(replacement) = std::env::var(segment) {
                 buf.push_str(&replacement[..]);
             } else {
+                println!("cargo:rerun-if-env-changed={}", segment);
                 buf.push('%');
                 buf.push_str(segment);
                 buf.push('%');

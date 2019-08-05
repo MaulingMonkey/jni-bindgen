@@ -133,6 +133,7 @@ impl File {
         let mut path = cwd.clone();
         loop {
             path.push("bindgen-jni.toml");
+            println!("cargo:rerun-if-changed={}", path.display());
             if path.exists() {
                 let file = File::read(&mut fs::File::open(&path)?)?;
                 path.pop();
