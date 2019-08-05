@@ -108,7 +108,7 @@ impl Struct {
             // Parameter names may or may not be available as extra debug information.  Example:
             // https://docs.oracle.com/javase/tutorial/reflect/member/methodparameterreflection.html
 
-            let mut params_array = String::from(if static_ || constructor { "" } else { "__bindgen_jni::AsJValue::as_jvalue(self)" });
+            let mut params_array = String::new();
             let mut params_decl  = String::from(if static_ || constructor { "" } else { "&'env self" });
             let mut ret_is_object = false;
             let mut ret_decl = String::new();
@@ -124,10 +124,6 @@ impl Struct {
                 match segment {
                     JniDescriptorSegment::Parameter(parameter) => {
                         let arg_name = format!("arg{}", arg_idx);
-                        if !params_decl.is_empty() {
-                            params_array.push_str(", ");
-                            params_decl.push_str(", ");
-                        }
 
                         let mut param_is_object = false; // XXX
 
@@ -158,11 +154,19 @@ impl Struct {
                             },
                         };
 
+                        if !params_array.is_empty() {
+                            params_array.push_str(", ");
+                        }
+
                         params_array.push_str("__bindgen_jni::AsJValue::as_jvalue(");
                         if !param_is_object { params_array.push_str("&"); }
                         params_array.push_str(arg_name.as_str());
                         if param_is_object { params_array.push_str(".as_ref()"); }
                         params_array.push_str(")");
+
+                        if !params_decl.is_empty() {
+                            params_decl.push_str(", ");
+                        }
 
                         params_decl.push_str(arg_name.as_str());
                         params_decl.push_str(": ");
@@ -245,12 +249,13 @@ impl Struct {
                 writeln!(out, "{}    assert_ne!(__jni_method, __bindgen_jni::std::ptr::null_mut());", indent)?;
                 writeln!(out, "{}    let result = unsafe {{ (**__jni_env).CallStatic{}MethodA.unwrap()(__jni_env, __jni_class, __jni_method, __jni_args.as_ptr()) }};", indent, ret_method_fragment)?;
             } else {
+                writeln!(out, "{}    let __jni_this   = self.0.object;", indent)?;
                 writeln!(out, "{}    let __jni_env    = self.0.env as *mut __bindgen_jni::jni_sys::JNIEnv;", indent)?;
                 writeln!(out, "{}    let __jni_class  = unsafe {{ (**__jni_env).FindClass.unwrap()(__jni_env, {}) }};", indent, emit_cstr(self.java_class.this_class().name()))?;
                 writeln!(out, "{}    assert_ne!(__jni_class, __bindgen_jni::std::ptr::null_mut());", indent)?;
                 writeln!(out, "{}    let __jni_method = unsafe {{ (**__jni_env).GetMethodID.unwrap()(__jni_env, __jni_class, {}, {}) }};", indent, emit_cstr(method.name()), emit_cstr(method.descriptor()) )?;
                 writeln!(out, "{}    assert_ne!(__jni_method, __bindgen_jni::std::ptr::null_mut());", indent)?;
-                writeln!(out, "{}    let result = unsafe {{ (**__jni_env).Call{}MethodA.unwrap()(__jni_env, __jni_class, __jni_method, __jni_args.as_ptr()) }};", indent, ret_method_fragment)?;
+                writeln!(out, "{}    let result = unsafe {{ (**__jni_env).Call{}MethodA.unwrap()(__jni_env, __jni_this, __jni_method, __jni_args.as_ptr()) }};", indent, ret_method_fragment)?;
             }
 
             writeln!(out, "{}    let __jni_exception = unsafe {{ (**__jni_env).ExceptionOccurred.unwrap()(__jni_env) }};", indent)?;
