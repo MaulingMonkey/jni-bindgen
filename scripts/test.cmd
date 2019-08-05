@@ -118,14 +118,11 @@
 :: Build
 
 @if /i not "%PLATFORM%" == "windows" goto :skip-windows
-    @call :try-cargo +%CHANNEL% test  %CARGO_FLAGS% --lib --all-features || goto :build-one-error
-    @call :try-cargo +%CHANNEL% doc --all-features --no-deps             || goto :build-one-error
-    @call :try-cargo +%CHANNEL% build %CARGO_FLAGS% --all --all-features || goto :build-one-error
+    @call :try-cargo +%CHANNEL% test  -p bindgen-jni  %CARGO_FLAGS%  --all-features || goto :build-one-error
+    @call :try-cargo +%CHANNEL% test  -p jni-glue     %CARGO_FLAGS%  --all-features || goto :build-one-error
+    @call :try-cargo +%CHANNEL% doc   -p bindgen-jni --no-deps       --all-features || goto :build-one-error
+    @call :try-cargo +%CHANNEL% build %CARGO_FLAGS% --all            --all-features || goto :build-one-error
     @goto :build-one-successful
-    :: Notes on tested features:
-    ::  "unstable"              should only affect module visibility.  I use it for most builds, as we need to disable dead code warnings unless it's enabled.
-    ::  "unstable api"          ensures no hidden inter-dependencies exist
-    ::  "unstable gamepad1 api" ensures all the gamepad1 abstractions have no hidden inter-dependencies
 :skip-windows
 
 

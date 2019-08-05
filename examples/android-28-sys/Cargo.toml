@@ -10,7 +10,7 @@ jni-sys = "0.3.0"
 lazy_static = "1" # To be moved into JNI glue layer once able.
 
 [build-dependencies]
-bindgen-jni = { path = "../.." }
+bindgen-jni = { path = "../../bindgen-jni" }
 
 [features]
 default = []
