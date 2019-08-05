@@ -2,7 +2,7 @@
 
 #![allow(dead_code)] // XXX
 
-pub mod class_file_visitor;
+pub(crate) mod class_file_visitor;
 
 /// Configuration formats for invoking bindgen_jni
 pub mod config { // Part of the actual official API of this crate.
