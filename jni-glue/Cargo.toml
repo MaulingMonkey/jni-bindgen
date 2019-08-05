@@ -5,3 +5,5 @@ authors = ["MaulingMonkey <git@maulingmonkey.com>"]
 edition = "2018"
 
 [dependencies]
+jni-sys = "0.3.0"
+lazy_static = "1"

@@ -118,9 +118,8 @@
 :: Build
 
 @if /i not "%PLATFORM%" == "windows" goto :skip-windows
-    @call :try-cargo +%CHANNEL% test  -p bindgen-jni  %CARGO_FLAGS%  --all-features || goto :build-one-error
-    @call :try-cargo +%CHANNEL% test  -p jni-glue     %CARGO_FLAGS%  --all-features || goto :build-one-error
-    @call :try-cargo +%CHANNEL% doc   -p bindgen-jni --no-deps       --all-features || goto :build-one-error
+    @call :try-cargo +%CHANNEL% test -p bindgen-jni -p jni-glue  %CARGO_FLAGS%  --all-features || goto :build-one-error
+    @call :try-cargo +%CHANNEL% doc  -p bindgen-jni -p jni-glue --no-deps       --all-features || goto :build-one-error
     @call :try-cargo +%CHANNEL% build %CARGO_FLAGS% --all            --all-features || goto :build-one-error
     @goto :build-one-successful
 :skip-windows
