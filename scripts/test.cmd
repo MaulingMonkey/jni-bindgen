@@ -119,8 +119,8 @@
 
 @if /i not "%PLATFORM%" == "windows" goto :skip-windows
     @call :try-cargo +%CHANNEL% test  %CARGO_FLAGS% --lib --all-features || goto :build-one-error
-    @call :try-cargo +%CHANNEL% build %CARGO_FLAGS% --all --all-features || goto :build-one-error
     @call :try-cargo +%CHANNEL% doc --all-features --no-deps             || goto :build-one-error
+    @call :try-cargo +%CHANNEL% build %CARGO_FLAGS% --all --all-features || goto :build-one-error
     @goto :build-one-successful
     :: Notes on tested features:
     ::  "unstable"              should only affect module visibility.  I use it for most builds, as we need to disable dead code warnings unless it's enabled.
