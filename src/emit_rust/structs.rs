@@ -301,26 +301,35 @@ fn mangle_method_name(name: &String) -> Result<String, Box<dyn Error>> {
     } else {
         let mut chars = name.chars();
         let mut buffer = String::new();
+        let mut uppercase = 0;
 
         // First character
         if let Some(ch) = chars.next() {
             match ch {
                 'a'..='z'   => buffer.push(ch),
-                'A'..='Z'   => buffer.push(ch.to_ascii_lowercase()),
+                'A'..='Z'   => { buffer.push(ch.to_ascii_lowercase()); uppercase = 1; },
                 '_'         => buffer.push(ch),
                 _           => Err(format!("Unexpected first character in method name: {}", ch))?,
             }
         }
 
         // Subsequent characters
-        for ch in chars {
+        while let Some(ch) = chars.next() {
             if ch.is_ascii_uppercase() {
-                buffer.push('_');
+                if uppercase == 0 && !buffer.ends_with('_') {
+                    buffer.push('_');
+                }
                 buffer.push(ch.to_ascii_lowercase());
+                uppercase += 1;
             } else if ch.is_ascii_alphanumeric() {
+                if uppercase > 1 {
+                    buffer.insert(buffer.len()-1, '_');
+                }
                 buffer.push(ch);
+                uppercase = 0;
             } else if ch == '_' {
                 buffer.push(ch);
+                uppercase = 0;
             } else {
                 return Err(format!("Unexpected character in method name: {}", ch))?;
             }
@@ -335,4 +344,10 @@ fn mangle_method_name(name: &String) -> Result<String, Box<dyn Error>> {
             RustIdentifier::KeywordUnderscorePostfix(s) => Ok(s.to_owned()),
         }
     }
+}
+
+#[test] fn mangle_method_name_test() {
+    assert_eq!(mangle_method_name(&String::from("isFooBar")).unwrap(),         "is_foo_bar"         );
+    assert_eq!(mangle_method_name(&String::from("XMLHttpRequest")).unwrap(),   "xml_http_request"   );
+    assert_eq!(mangle_method_name(&String::from("getFieldID_Input")).unwrap(), "get_field_id_input" );
 }
