@@ -38,6 +38,7 @@
 
 :build
 @setlocal
+@for /f "" %%t in ('time /t') do @set BUILD_START_TIME=%%t
 
 :: Parameters
 
@@ -106,6 +107,8 @@
 
 @set CARGO_FLAGS= 
 @if /i "%CONFIG%" == "release"   set CARGO_FLAGS=%CARGO_FLAGS% --release
+::@if /i "%CHANNEL%" == "nightly"  set CARGO_FLAGS=%CARGO_FLAGS% -C -Ztime-passes
+::@if /i "%CHANNEL%" == "nightly"  set "RUSTFLAGS=-Z time"
 
 @set WEB_PACK_FLAGS= 
 @if /i "%CONFIG%" == "debug"     set WEB_PACK_FLAGS=%WEB_PACK_FLAGS% --dev
@@ -116,8 +119,8 @@
 
 @if /i not "%PLATFORM%" == "windows" goto :skip-windows
     @call :try-cargo +%CHANNEL% build %CARGO_FLAGS% --all --all-features || goto :build-one-error
-    @call :try-cargo +%CHANNEL% test  %CARGO_FLAGS%                      || goto :build-one-error
-    @call :try-cargo +%CHANNEL% doc --all-features --no-deps            || goto :build-one-error
+    @call :try-cargo +%CHANNEL% test  %CARGO_FLAGS% --all-features       || goto :build-one-error
+    @call :try-cargo +%CHANNEL% doc --all-features --no-deps             || goto :build-one-error
     @goto :build-one-successful
     :: Notes on tested features:
     ::  "unstable"              should only affect module visibility.  I use it for most builds, as we need to disable dead code warnings unless it's enabled.
@@ -184,7 +187,8 @@ adb -s %EMULATOR_DEVICE% shell /data/local/tmp/gamepads_unit_tests || set ANDROI
 @endlocal && set ERRORS=%ERRORS%&& exit /b 0
 
 :build-one-successful
-@echo %PAD_CHANNEL% %PAD_CONFIG% %PAD_PLATFORM% ok>>%BUILDS_LOG%
+@for /f "" %%t in ('time /t') do @set BUILD_END_TIME=%%t
+@echo %PAD_CHANNEL% %PAD_CONFIG% %PAD_PLATFORM% ok (took %BUILD_START_TIME% .. %BUILD_END_TIME%)>>%BUILDS_LOG%
 @cd "%~dp0.."
 @endlocal && set ERRORS=%ERRORS%&& exit /b 0
 

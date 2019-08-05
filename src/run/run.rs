@@ -14,9 +14,10 @@ pub fn run(config: impl Into<Config>) -> Result<(), Box<dyn Error>> {
     let config : Config = config.into();
     if config.logging_verbose {
         println!("output: {}", config.output_path.display());
-        for file in config.input_files.iter() {
-            println!("input:  {}", file.display());
-        }
+    }
+
+    for file in config.input_files.iter() {
+        println!("cargo:rerun-if-changed={}", file.display());
     }
 
     let mut context = emit_rust::Context::new();
@@ -28,8 +29,6 @@ pub fn run(config: impl Into<Config>) -> Result<(), Box<dyn Error>> {
 
     let mut out = File::create(&config.output_path).unwrap();
     context.write(&mut out)?;
-
-    // let _ = Command::new("cargo").args(&["+nightly", "build", "--example", "generated-android-sdk"]).status().unwrap();
 
     Ok(())
 }
