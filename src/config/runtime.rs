@@ -1,3 +1,5 @@
+//! Runtime configuration formats.  By design, this is mostly opaque - create these from tomls instead.
+
 use super::*;
 
 use std::ffi::*;
@@ -25,6 +27,7 @@ impl From<toml::DocumentationPattern> for DocPattern {
 
 
 
+/// Runtime configuration.  Create from a toml::File.
 pub struct Config {
     pub(crate) doc_patterns:       Vec<DocPattern>,
     pub(crate) input_files:        Vec<PathBuf>,
