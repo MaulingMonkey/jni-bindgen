@@ -1,3 +1,4 @@
+#[doc(hidden)] // You should generally not be interacting with this type directly, but it must be public for codegen.
 /// This is hideously unsafe to implement:
 /// 
 /// 1) You assert the type is a #[repr(transparent)] wrapper around ObjectAndEnv.

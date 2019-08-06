@@ -1,5 +1,6 @@
 // For easier review, codegen uses this macro, to ensure all output is consistent.
 
+#[doc(hidden)] // For codegen use only, not (yet?) an otherwise stable part of the glue interface.
 #[macro_export]
 macro_rules! __bindgen_jni {
     () => {};

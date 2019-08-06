@@ -1,8 +1,10 @@
 use super::*;
 
+#[doc(hidden)] // You should generally not be interacting with this type directly, but it must be public for codegen.
 /// By implementing this you assert that you're constructing a valid jvalue for the given argument type (e.g. valid
 /// jobject pointer if the function is supposed to take a jobject)
 pub unsafe trait AsJValue           { fn as_jvalue(&self) -> jvalue; }
+
 unsafe impl AsJValue for bool       { fn as_jvalue(&self) -> jvalue { jvalue { z: if *self { JNI_TRUE } else { JNI_FALSE } } } }
 unsafe impl AsJValue for jbyte      { fn as_jvalue(&self) -> jvalue { jvalue { b: *self } } }
 unsafe impl AsJValue for jchar      { fn as_jvalue(&self) -> jvalue { jvalue { c: *self } } }

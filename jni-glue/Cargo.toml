@@ -7,3 +7,12 @@ edition = "2018"
 [dependencies]
 jni-sys = "0.3.0"
 lazy_static = "1"
+
+[features]
+default = []
+
+# You should use this feature *only* if you need to define JNI_OnLoad / JNI_OnUnload yourself, for example because
+# you're using multiple conflicting versions of jni-glue.  In this case, you are responsible for manually defining
+# JNI_OnLoad / JNI_OnUnload, and calling jni_glue::on_load / jni_glue::on_unload yourself.  Failure to do so may
+# introduce soundness issues due to using dangling VM instances!
+unsafe-manual-jni-load-unload = []
