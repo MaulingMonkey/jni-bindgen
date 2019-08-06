@@ -40,11 +40,11 @@ pub(crate) mod gather_java {
     use std::io;
 
     mod class;
-    mod class_constants;
+    pub(crate) mod class_constants;
     mod method_ref;
 
     pub use class::*;
-    pub use class_constants::*;
+    pub(crate) use class_constants::{ClassConstants};
     pub use method_ref::*;
 }
 
