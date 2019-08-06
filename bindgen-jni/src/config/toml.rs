@@ -64,6 +64,23 @@ pub struct Logging {
     pub verbose: Option<bool>,
 }
 
+/// An \[[ignore\]] section.
+#[derive(Debug, Clone, Deserialize, Default)]
+pub struct Ignore {
+    pub class:     String,
+    pub method:    Option<String>,
+    pub signature: Option<String>,
+}
+
+/// A \[[rename\]] section.
+#[derive(Debug, Clone, Deserialize, Default)]
+pub struct Rename {
+    pub to:         String,
+    pub class:      String,
+    pub method:     Option<String>,
+    pub signature:  Option<String>,
+}
+
 /// Format for a `bindgen-jni.toml` file or in-memory settings.
 /// 
 /// # Example File
@@ -96,6 +113,37 @@ pub struct Logging {
 /// 
 /// [output]
 /// path = "android28.rs"
+/// 
+/// 
+/// 
+/// [[ignore]]
+/// class = "some/java/Class"
+/// 
+/// [[ignore]]
+/// class = "some/java/Class"
+/// method = "someMethod"
+/// 
+/// [[ignore]]
+/// class = "some/java/Class"
+/// method = "someOtherMethod"
+/// signature = "()V"
+///
+/// 
+/// 
+/// [[rename]]
+/// class = "some/java/Class"
+/// to    = "class"
+///
+/// [[rename]]
+/// class  = "some/java/Class"
+/// method = "someMethod"
+/// to     = "some_method"
+///
+/// [[rename]]
+/// class     = "some/java/Class"
+/// method    = "someOtherMethod"
+/// signature = "()V"
+/// to        = "some_other_method"
 /// ```
 #[derive(Debug, Clone, Deserialize)]
 pub struct File {
@@ -110,6 +158,12 @@ pub struct File {
 
     /// Output(s) from the bindgen-jni process.
     pub output: Output,
+
+    /// Classes and class methods to ignore.
+    pub ignore: Option<Vec<Ignore>>,
+
+    /// Classes and class methods to rename.
+    pub rename: Option<Vec<Rename>>,
 }
 
 impl File {
@@ -172,6 +226,37 @@ impl File {
 
         [output]
         path = "android28.rs"
+
+
+
+        [[ignore]]
+        class = "some/java/Class"
+
+        [[ignore]]
+        class  = "some/java/Class"
+        method = "someMethod"
+
+        [[ignore]]
+        class     = "some/java/Class"
+        method    = "someOtherMethod"
+        signature = "()V"
+
+
+
+        [[rename]]
+        class = "some/java/Class"
+        to    = "class"
+
+        [[rename]]
+        class  = "some/java/Class"
+        method = "someMethod"
+        to     = "some_method"
+
+        [[rename]]
+        class     = "some/java/Class"
+        method    = "someOtherMethod"
+        signature = "()V"
+        to        = "some_other_method"
     "#;
     let file = File::read_str(well_configured_toml).unwrap();
 
@@ -193,6 +278,39 @@ impl File {
 
     assert_eq!(file.input.files, &[Path::new("%LOCALAPPDATA%/Android/Sdk/platforms/android-28/android.jar")]);
     assert_eq!(file.output.path, Path::new("android28.rs"));
+
+    assert!(file.ignore.is_some());
+    assert_eq!(file.ignore.as_ref().unwrap().len(), 3);
+
+    assert_eq!(file.ignore.as_ref().unwrap()[0].class,      "some/java/Class");
+    assert_eq!(file.ignore.as_ref().unwrap()[0].method,     None);
+    assert_eq!(file.ignore.as_ref().unwrap()[0].signature,  None);
+
+    assert_eq!(file.ignore.as_ref().unwrap()[1].class,      "some/java/Class");
+    assert_eq!(file.ignore.as_ref().unwrap()[1].method,     Some("someMethod".to_owned()));
+    assert_eq!(file.ignore.as_ref().unwrap()[1].signature,  None);
+
+    assert_eq!(file.ignore.as_ref().unwrap()[2].class,      "some/java/Class");
+    assert_eq!(file.ignore.as_ref().unwrap()[2].method,     Some("someOtherMethod".to_owned()));
+    assert_eq!(file.ignore.as_ref().unwrap()[2].signature,  Some("()V".to_owned()));
+
+    assert!(file.rename.is_some());
+    assert_eq!(file.rename.as_ref().unwrap().len(), 3);
+
+    assert_eq!(file.rename.as_ref().unwrap()[0].class,      "some/java/Class");
+    assert_eq!(file.rename.as_ref().unwrap()[0].method,     None);
+    assert_eq!(file.rename.as_ref().unwrap()[0].signature,  None);
+    assert_eq!(file.rename.as_ref().unwrap()[0].to,         "class");
+
+    assert_eq!(file.rename.as_ref().unwrap()[1].class,      "some/java/Class");
+    assert_eq!(file.rename.as_ref().unwrap()[1].method,     Some("someMethod".to_owned()));
+    assert_eq!(file.rename.as_ref().unwrap()[1].signature,  None);
+    assert_eq!(file.rename.as_ref().unwrap()[1].to,         "some_method");
+
+    assert_eq!(file.rename.as_ref().unwrap()[2].class,      "some/java/Class");
+    assert_eq!(file.rename.as_ref().unwrap()[2].method,     Some("someOtherMethod".to_owned()));
+    assert_eq!(file.rename.as_ref().unwrap()[2].signature,  Some("()V".to_owned()));
+    assert_eq!(file.rename.as_ref().unwrap()[2].to,         "some_other_method");
 }
 
 #[test] fn load_minimal_toml() {
@@ -208,6 +326,8 @@ impl File {
     assert!(file.documentation.is_none());
     assert_eq!(file.input.files, &[Path::new("%LOCALAPPDATA%/Android/Sdk/platforms/android-28/android.jar")]);
     assert_eq!(file.output.path, Path::new("android28.rs"));
+    assert!(file.ignore.is_none());
+    assert!(file.rename.is_none());
 }
 
 #[derive(Debug, Clone)]

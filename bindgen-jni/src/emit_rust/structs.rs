@@ -81,9 +81,23 @@ impl Struct {
             let protected   = method.access_flags().contains(MethodAccessFlags::PROTECTED);
             let static_     = method.access_flags().contains(MethodAccessFlags::STATIC);
             let varargs     = method.access_flags().contains(MethodAccessFlags::VARARGS);
-            // Ignored: FINAL | SYNCRONIZED | BRIDGE | NATIVE | ABSTRACT | STRICT | SYNTHETIC
+            let bridge      = method.access_flags().contains(MethodAccessFlags::BRIDGE);
+            // Ignored: FINAL | SYNCRONIZED | NATIVE | ABSTRACT | STRICT | SYNTHETIC
             let _private    = !public && !protected;
             let _access     = if public { "public" } else if protected { "protected" } else { "private" };
+
+            let java_class              = self.java_class.this_class().name();
+            let java_class_method       = format!("{}\x1f{}", self.java_class.this_class().name(), method.name());
+            let java_class_method_sig   = format!("{}\x1f{}\x1f{}", self.java_class.this_class().name(), method.name(), method.descriptor());
+
+            let ignored =
+                context.config.ignore_classes          .contains( java_class) ||
+                context.config.ignore_class_methods    .contains(&java_class_method) ||
+                context.config.ignore_class_method_sigs.contains(&java_class_method_sig);
+
+            let renamed_to = context.config.rename_classes.get(java_class)
+                .or_else(||  context.config.rename_class_methods.get(&java_class_method))
+                .or_else(||  context.config.rename_class_method_sigs.get(&java_class_method_sig));
 
             let descriptor = method.descriptor();
 
@@ -97,12 +111,26 @@ impl Struct {
             let repeats = *id_repeats.get(&method_name).unwrap_or(&0);
             let overloaded = repeats > 1;
 
+            let method_name = if let Some(name) = renamed_to {
+                name.clone()
+            } else if overloaded {
+                if let Ok(name) = MethodManglingStyle::RustifyShortSignature.mangle(method.name(), method.descriptor()) {
+                    name
+                } else {
+                    method_name
+                }
+            } else {
+                method_name
+            };
+
             if !public      { emit_reject_reasons.push("Non-public method"); }
             if varargs      { emit_reject_reasons.push("Marked as varargs - haven't decided on how I want to handle this."); }
-            if overloaded   { emit_reject_reasons.push("Overloaded - I haven't decided how I want to deconflict overloads."); }
+            if bridge       { emit_reject_reasons.push("Bridge method - type erasure"); }
+            //if overloaded   { emit_reject_reasons.push("Overloaded - I haven't decided how I want to deconflict overloads."); }
             if static_init  { emit_reject_reasons.push("Static class constructor - never needs to be called by Rust."); }
             if constructor  { emit_reject_reasons.push("I haven't decided how to pass JNIEnv for constructors yet."); }
             if static_      { emit_reject_reasons.push("I haven't decided how to pass JNIEnv for static methods yet."); }
+            if ignored      { emit_reject_reasons.push("[[ignore]]d"); }
 
             // Parameter names may or may not be available as extra debug information.  Example:
             // https://docs.oracle.com/javase/tutorial/reflect/member/methodparameterreflection.html
@@ -230,8 +258,7 @@ impl Struct {
                 writeln!(out, "{}// Not emitting: {}", indent, reason)?;
             }
             writeln!(out, "{}{}fn {}<'env>({}) -> __bindgen_jni::Result<{}> {{", indent, access, method_name, params_decl, ret_decl)?;
-            writeln!(out, "{}    // method.access_flags() == {:?}", indent, method.access_flags())?;
-            writeln!(out, "{}    // method.descriptor() == {:?}", indent, method.descriptor())?;
+            writeln!(out, "{}    // class.name() == {:?}, method.access_flags() == {:?}, .name() == {:?}, .descriptor() == {:?}", indent, self.java_class.this_class().name(), method.access_flags(), method.name(), method.descriptor())?;
             writeln!(out, "{}    let __jni_args = [{}];", indent, params_array)?;
             if constructor {
                 writeln!(out, "{}    let __jni_env = ...?", indent)?; // XXX

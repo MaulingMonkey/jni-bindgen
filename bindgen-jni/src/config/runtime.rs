@@ -2,6 +2,7 @@
 
 use super::*;
 
+use std::collections::*;
 use std::ffi::*;
 use std::path::*;
 
@@ -29,10 +30,18 @@ impl From<toml::DocumentationPattern> for DocPattern {
 
 /// Runtime configuration.  Create from a toml::File.
 pub struct Config {
-    pub(crate) doc_patterns:       Vec<DocPattern>,
-    pub(crate) input_files:        Vec<PathBuf>,
-    pub(crate) output_path:        PathBuf,
-    pub(crate) logging_verbose:    bool,
+    pub(crate) doc_patterns:                Vec<DocPattern>,
+    pub(crate) input_files:                 Vec<PathBuf>,
+    pub(crate) output_path:                 PathBuf,
+    pub(crate) logging_verbose:             bool,
+
+    pub(crate) ignore_classes:              HashSet<String>,
+    pub(crate) ignore_class_methods:        HashSet<String>,
+    pub(crate) ignore_class_method_sigs:    HashSet<String>,
+
+    pub(crate) rename_classes:              HashMap<String, String>,
+    pub(crate) rename_class_methods:        HashMap<String, String>,
+    pub(crate) rename_class_method_sigs:    HashMap<String, String>,
 }
 
 impl From<toml::FileWithContext> for Config {
@@ -43,11 +52,51 @@ impl From<toml::FileWithContext> for Config {
         let documentation   = file.documentation.unwrap_or(Default::default());
         let logging         = file.logging.unwrap_or(Default::default());
 
+        let mut ignore_classes              = HashSet::new();
+        let mut ignore_class_methods        = HashSet::new();
+        let mut ignore_class_method_sigs    = HashSet::new();
+        if let Some(ignores) = file.ignore.as_ref() {
+            for ignore in ignores {
+                if let Some(method) = ignore.method.as_ref() {
+                    if let Some(sig) = ignore.signature.as_ref() {
+                        ignore_class_method_sigs.insert(format!("{}\x1f{}\x1f{}", ignore.class, method, sig));
+                    } else {
+                        ignore_class_methods.insert(format!("{}\x1f{}", ignore.class, method));
+                    }
+                } else {
+                    ignore_classes.insert(ignore.class.clone());
+                }
+            }
+        }
+
+        let mut rename_classes              = HashMap::new();
+        let mut rename_class_methods        = HashMap::new();
+        let mut rename_class_method_sigs    = HashMap::new();
+        if let Some(renames) = file.rename.as_ref() {
+            for rename in renames {
+                if let Some(method) = rename.method.as_ref() {
+                    if let Some(sig) = rename.signature.as_ref() {
+                        rename_class_method_sigs.insert(format!("{}\x1f{}\x1f{}", rename.class, method, sig), rename.to.clone());
+                    } else {
+                        rename_class_methods.insert(format!("{}\x1f{}", rename.class, method), rename.to.clone());
+                    }
+                } else {
+                    rename_classes.insert(rename.class.clone(), rename.to.clone());
+                }
+            }
+        }
+
         Self {
             doc_patterns:       documentation.patterns.into_iter().map(|pat| pat.into()).collect(),
             input_files:        file.input.files.into_iter().map(|file| resolve_file(file, &dir)).collect(),
             output_path:        resolve_file(file.output.path, &dir),
             logging_verbose:    logging.verbose.unwrap_or(false),
+            ignore_classes,
+            ignore_class_methods,
+            ignore_class_method_sigs,
+            rename_classes,
+            rename_class_methods,
+            rename_class_method_sigs,
         }
     }
 }
