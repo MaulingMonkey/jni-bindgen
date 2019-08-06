@@ -41,10 +41,12 @@ pub(crate) mod gather_java {
 
     mod class;
     pub(crate) mod class_constants;
+    mod field_ref;
     mod method_ref;
 
     pub use class::*;
     pub(crate) use class_constants::{ClassConstants};
+    pub use field_ref::*;
     pub use method_ref::*;
 }
 

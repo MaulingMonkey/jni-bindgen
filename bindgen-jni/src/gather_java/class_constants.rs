@@ -2,13 +2,15 @@ use super::*;
 
 mod class_ref;
 mod field_ref;
+mod method_ref;
 mod interface_method_ref;
 mod name_and_type_ref;
 
-pub use class_ref::*;
-pub use field_ref::*;
-pub use interface_method_ref::*;
-pub(crate) use name_and_type_ref::*;
+pub use class_ref::ClassRef;
+pub use field_ref::FieldRef;
+pub use method_ref::MethodRef;
+pub use interface_method_ref::InterfaceMethodRef;
+pub(crate) use name_and_type_ref::NameAndTypeRef;
 
 #[derive(Clone, Debug, Default)]
 pub(crate) struct ClassConstants(pub(crate) Vec<constant::Constant>);
@@ -42,20 +44,19 @@ impl ClassConstants {
         }
     }
 
-    // MethodRef -> MethodRefRef?
-    //pub fn method(&self, index: u16) -> MethodRef {
-    //    let index = index as usize;
-    //    if index == 0 || index >= self.0.len() {
-    //        panic!("Constant {} is not a MethodRef: Out of bounds", index);
-    //    }
-    //
-    //    let instance = &self.0[index];
-    //    if let constant::Constant::Methodref(ref method) = instance {
-    //        MethodRef { constants: &self, method }
-    //    } else {
-    //        panic!("Constant {} is not a MethodRef: {:?}", index, instance);
-    //    }
-    //}
+    pub fn method(&self, index: u16) -> MethodRef {
+        let index = index as usize;
+        if index == 0 || index >= self.0.len() {
+            panic!("Constant {} is not a MethodRef: Out of bounds", index);
+        }
+    
+        let instance = &self.0[index];
+        if let constant::Constant::Methodref(ref method) = instance {
+            MethodRef { constants: &self, method }
+        } else {
+            panic!("Constant {} is not a MethodRef: {:?}", index, instance);
+        }
+    }
 
     pub fn interface_method(&self, index: u16) -> InterfaceMethodRef {
         let index = index as usize;
