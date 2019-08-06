@@ -79,6 +79,14 @@ impl<'a> RustIdentifier<'a> {
             "unsized"   => RustIdentifier::KeywordRawSafe("r#unsized"),
             "virtual"   => RustIdentifier::KeywordRawSafe("r#virtual"),
             "yield"     => RustIdentifier::KeywordRawSafe("r#yield"),
+            // 2018 edition
+            "async"     => RustIdentifier::KeywordRawSafe("r#async"),
+            "await"     => RustIdentifier::KeywordRawSafe("r#await"),
+            "try"       => RustIdentifier::KeywordRawSafe("r#try"),
+
+            // [Weak keywords](https://doc.rust-lang.org/reference/keywords.html#weak-keywords) that *are* valid
+            // [RAW_IDENTIFIER](https://doc.rust-lang.org/reference/identifiers.html)s
+            "union"     => RustIdentifier::KeywordRawSafe("r#union"),
 
             // Not a keyword, but not a valid [IDENTIFIER](https://doc.rust-lang.org/reference/identifiers.html) either.
             ""                          => RustIdentifier::NonIdentifier(s),
