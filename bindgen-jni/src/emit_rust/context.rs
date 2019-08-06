@@ -4,13 +4,18 @@ use std::error::Error;
 use std::fmt::Write;
 use std::io;
 
-#[derive(Debug, Default)]
-pub struct Context {
+pub struct Context<'a> {
+    pub(crate) config: &'a config::runtime::Config,
     pub(crate) module: Module,
 }
 
-impl Context {
-    pub fn new() -> Self { Default::default() }
+impl<'a> Context<'a> {
+    pub fn new(config: &'a config::runtime::Config) -> Self {
+        Self {
+            config,
+            module: Default::default(),
+        }
+    }
 
     pub fn java_to_rust_path(&self, java_class: &str) -> Result<String, Box<dyn Error>> {
         let mut rust_name = String::from("crate::");

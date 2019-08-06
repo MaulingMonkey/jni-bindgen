@@ -20,9 +20,9 @@ pub fn run(config: impl Into<Config>) -> Result<(), Box<dyn Error>> {
         println!("cargo:rerun-if-changed={}", file.display());
     }
 
-    let mut context = emit_rust::Context::new();
+    let mut context = emit_rust::Context::new(&config);
     for file in config.input_files.iter() {
-        gather_file(&mut context, &config, file)?;
+        gather_file(&mut context, file)?;
     }
 
     println!("writing: {}...", config.output_path.display());
@@ -33,7 +33,7 @@ pub fn run(config: impl Into<Config>) -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-fn gather_file(context: &mut emit_rust::Context, config: &Config, path: &Path) -> Result<(), Box<dyn Error>> {
+fn gather_file(context: &mut emit_rust::Context,path: &Path) -> Result<(), Box<dyn Error>> {
     println!("reading {}...", path.display());
 
     let ext = if let Some(ext) = path.extension() {
@@ -56,7 +56,7 @@ fn gather_file(context: &mut emit_rust::Context, config: &Config, path: &Path) -
             for i in 0..n {
                 let mut file = jar.by_index(i)?;
                 if !file.name().ends_with(".class") { continue; }
-                if config.logging_verbose || Instant::now() > next_log {
+                if context.config.logging_verbose || Instant::now() > next_log {
                     println!("  reading {:3}/{}: {}...", i, n, file.name());
                     next_log = Instant::now() + Duration::from_secs(1);
                 }
