@@ -2,7 +2,6 @@ use super::*;
 use class_file_visitor::method::*;
 
 use std::collections::*;
-use std::error::Error;
 use std::io;
 
 #[derive(Debug, Default)]
@@ -67,7 +66,7 @@ impl Struct {
 
         for method in self.java_class.methods() {
             if !method.access_flags().contains(MethodAccessFlags::PUBLIC) { continue; } // Skip private/protected methods
-            let method_name = if let Ok(name) = mangle_method_name(method.name()) { name } else { continue };
+            let method_name = if let Ok(name) = MethodManglingStyle::Rustify.mangle(method.name(), method.descriptor()) { name } else { continue };
             *id_repeats.entry(method_name).or_insert(0) += 1;
         }
 
@@ -88,7 +87,7 @@ impl Struct {
 
             let descriptor = method.descriptor();
 
-            let method_name = if let Ok(name) = mangle_method_name(method.name()) {
+            let method_name = if let Ok(name) = MethodManglingStyle::Rustify.mangle(method.name(), method.descriptor()) {
                 name
             } else {
                 emit_reject_reasons.push("Failed to mangle method name");
@@ -294,65 +293,4 @@ fn emit_cstr(s: &str) -> String {
     s.insert_str(s.len() - 1, "\\0");
     s.push_str(".as_ptr() as *const __bindgen_jni::std::os::raw::c_char");
     s
-}
-
-fn mangle_method_name(name: &String) -> Result<String, Box<dyn Error>> {
-    if name == "<init>" { // Java Constructor
-        Ok("new".to_owned()) // Traditional rust method
-    } else if name == "<clinit>" {
-        return Err("Java static constructors are not mapped to rust names")?;
-    } else if name == "" {
-        return Err("Unexpected empty string for method name")?;
-    } else {
-        let mut chars = name.chars();
-        let mut buffer = String::new();
-        let mut uppercase = 0;
-
-        // First character
-        if let Some(ch) = chars.next() {
-            match ch {
-                'a'..='z'   => buffer.push(ch),
-                'A'..='Z'   => { buffer.push(ch.to_ascii_lowercase()); uppercase = 1; },
-                '_'         => buffer.push(ch),
-                _           => Err(format!("Unexpected first character in method name: {}", ch))?,
-            }
-        }
-
-        // Subsequent characters
-        while let Some(ch) = chars.next() {
-            if ch.is_ascii_uppercase() {
-                if uppercase == 0 && !buffer.ends_with('_') {
-                    buffer.push('_');
-                }
-                buffer.push(ch.to_ascii_lowercase());
-                uppercase += 1;
-            } else if ch.is_ascii_alphanumeric() {
-                if uppercase > 1 {
-                    buffer.insert(buffer.len()-1, '_');
-                }
-                buffer.push(ch);
-                uppercase = 0;
-            } else if ch == '_' {
-                buffer.push(ch);
-                uppercase = 0;
-            } else {
-                return Err(format!("Unexpected character in method name: {}", ch))?;
-            }
-        }
-
-        if buffer == "_" { return Ok("__".to_owned()); }
-
-        match RustIdentifier::from_str(&buffer) {
-            RustIdentifier::Identifier(_)               => Ok(buffer),
-            RustIdentifier::NonIdentifier(s)            => Err(format!("Not a safe rust identifier: {:?}", s))?,
-            RustIdentifier::KeywordRawSafe(s)           => Ok(s.to_owned()),
-            RustIdentifier::KeywordUnderscorePostfix(s) => Ok(s.to_owned()),
-        }
-    }
-}
-
-#[test] fn mangle_method_name_test() {
-    assert_eq!(mangle_method_name(&String::from("isFooBar")).unwrap(),         "is_foo_bar"         );
-    assert_eq!(mangle_method_name(&String::from("XMLHttpRequest")).unwrap(),   "xml_http_request"   );
-    assert_eq!(mangle_method_name(&String::from("getFieldID_Input")).unwrap(), "get_field_id_input" );
 }
