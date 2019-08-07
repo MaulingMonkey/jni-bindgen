@@ -2,13 +2,41 @@ use super::*;
 use std::marker::*;
 use std::ops::*;
 
-pub trait PrimitiveArray<T> where Self : Sized {
+pub trait PrimitiveArray<T> where Self : Sized, T : Clone + Default {
     fn new(env: &Env, size: usize) -> Self;
     fn from(env: &Env, elements: &[T]) -> Self;
     fn len(&self) -> usize;
-    fn get_region_as_vec(&self, range: Range<usize>) -> Vec<T>;
+    fn get_region(&self, start: usize, elements: &mut [T]);
+    fn set_region(&self, start: usize, elements: &[T]);
 
-    fn as_vec(&self) -> Vec<T> { self.get_region_as_vec(0..self.len()) }
+    fn get_region_as_vec(&self, range: impl RangeBounds<usize>) -> Vec<T> {
+        let len = self.len();
+
+        let start = match range.start_bound() {
+            Bound::Unbounded => 0,
+            Bound::Included(n) => *n,
+            Bound::Excluded(n) => *n+1,
+        };
+
+        let end = match range.end_bound() {
+            Bound::Unbounded => len,
+            Bound::Included(n) => *n+1,
+            Bound::Excluded(n) => *n,
+        };
+
+        assert!(start <= end);
+        assert!(end   <= len);
+        let vec_len = end - start;
+
+        let mut vec = Vec::new();
+        vec.resize(vec_len, Default::default());
+        self.get_region(start, &mut vec[..]);
+        vec
+    }
+
+    fn as_vec(&self) -> Vec<T> {
+        self.get_region_as_vec(0..self.len())
+    }
 }
 
 // I assume jboolean as used exclusively by JNI/JVM is compatible with bool.
@@ -62,16 +90,32 @@ macro_rules! primitive_array {
                 unsafe { (**self.0.env).GetArrayLength.unwrap()(self.0.env as *mut _, self.0.object) as usize }
             }
 
-            fn get_region_as_vec(&self, range: Range<usize>) -> Vec<$type> {
-                let len = self.len();
-                assert!(range.start <= range.end);
-                assert!(range.start <= len);
-                assert!(range.end   <= len);
+            fn get_region(&self, start: usize, elements: &mut [$type]) {
+                assert!(start          <= std::i32::MAX as usize); // jsize == jint == i32
+                assert!(elements.len() <= std::i32::MAX as usize); // jsize == jint == i32
+                let self_len     = self.len() as jsize;
+                let elements_len = elements.len() as jsize;
 
-                let mut vec = Vec::new();
-                vec.resize(len, Default::default());
-                unsafe { (**self.0.env).$get_region.unwrap()(self.0.env as *mut _, self.0.object, range.start as jsize, (range.end - range.start) as jsize, vec.as_mut_ptr() as *mut _) };
-                vec
+                let start = start as jsize;
+                let end   = start + elements_len;
+                assert!(start <= end);
+                assert!(end   <= self_len);
+
+                unsafe { (**self.0.env).$get_region.unwrap()(self.0.env as *mut _, self.0.object, start, elements_len, elements.as_mut_ptr() as *mut _) };
+            }
+
+            fn set_region(&self, start: usize, elements: &[$type]) {
+                assert!(start          <= std::i32::MAX as usize); // jsize == jint == i32
+                assert!(elements.len() <= std::i32::MAX as usize); // jsize == jint == i32
+                let self_len     = self.len() as jsize;
+                let elements_len = elements.len() as jsize;
+
+                let start = start as jsize;
+                let end   = start + elements_len;
+                assert!(start <= end);
+                assert!(end   <= self_len);
+
+                unsafe { (**self.0.env).$set_region.unwrap()(self.0.env as *mut _, self.0.object, start, elements_len, elements.as_ptr() as *const _) };
             }
         }
     };
