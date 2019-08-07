@@ -1,5 +1,7 @@
 //! jni-bindgen.toml configuration file structures and parsing APIs.
 
+use super::MethodManglingStyle;
+
 use serde_derive::*;
 
 use std::fs;
@@ -20,12 +22,33 @@ impl Default for StaticEnvStyle {
     fn default() -> Self { StaticEnvStyle::Explicit }
 }
 
+fn default_method_naming_style() -> MethodManglingStyle { MethodManglingStyle::Rustify }
+fn default_method_naming_style_collision() -> MethodManglingStyle { MethodManglingStyle::RustifyShortSignature }
+
 /// The \[codegen\] section.
-#[derive(Debug, Clone, Deserialize, Default)]
+#[derive(Debug, Clone, Deserialize)]
 pub struct CodeGen {
     /// How static methods should accept their &Env.
     #[serde(default = "Default::default")]
     pub static_env: StaticEnvStyle,
+
+    /// How methods should be named by default.
+    #[serde(default = "default_method_naming_style")]
+    pub method_naming_style: MethodManglingStyle,
+
+    /// How methods should be named on name collision.
+    #[serde(default = "default_method_naming_style_collision")]
+    pub method_naming_style_collision: MethodManglingStyle,
+}
+
+impl Default for CodeGen {
+    fn default() -> Self {
+        Self {
+            static_env:                     Default::default(),
+            method_naming_style:            default_method_naming_style(),
+            method_naming_style_collision:  default_method_naming_style_collision(),
+        }
+    }
 }
 
 /// A \[\[documentation.pattern\]\] section.
@@ -112,6 +135,11 @@ pub struct Rename {
 /// # overridden java.* to use the Oracle Java SE 7 docs instead of the android docs.  More useful if you have a
 /// # slew of .jar s from different sources you want to bind all at once, or if the platform documentation is broken
 /// # up by top level modules in strange ways.
+/// 
+/// [codegen]
+/// static_env                      = "implicit"
+/// method_naming_style             = "java"
+/// method_naming_style_collision   = "rustify_long_signature"
 /// 
 /// [logging]
 /// verbose = true
@@ -239,7 +267,9 @@ impl File {
         # up by top level modules in strange ways.
 
         [codegen]
-        static_env = "implicit"
+        static_env                      = "implicit"
+        method_naming_style             = "java"
+        method_naming_style_collision   = "rustify_long_signature"
 
         [logging]
         verbose = true
@@ -294,7 +324,9 @@ impl File {
     "#;
     let file = File::read_str(well_configured_toml).unwrap();
 
-    assert_eq!(file.codegen.static_env, StaticEnvStyle::Implicit);
+    assert_eq!(file.codegen.static_env,                     StaticEnvStyle::Implicit);
+    assert_eq!(file.codegen.method_naming_style,            MethodManglingStyle::Java);
+    assert_eq!(file.codegen.method_naming_style_collision,  MethodManglingStyle::RustifyLongSignature);
 
     assert_eq!(file.logging.verbose, true);
 
@@ -354,7 +386,11 @@ impl File {
         path = "android28.rs"
     "#;
     let file = File::read_str(minimal_toml).unwrap();
-    assert_eq!(file.codegen.static_env, StaticEnvStyle::Explicit);
+
+    assert_eq!(file.codegen.static_env,                     StaticEnvStyle::Explicit);
+    assert_eq!(file.codegen.method_naming_style,            MethodManglingStyle::Rustify);
+    assert_eq!(file.codegen.method_naming_style_collision,  MethodManglingStyle::RustifyShortSignature);
+
     assert_eq!(file.logging.verbose, false);
     assert_eq!(file.documentation.patterns.len(), 0);
     assert_eq!(file.input.files, &[Path::new("%LOCALAPPDATA%/Android/Sdk/platforms/android-28/android.jar")]);

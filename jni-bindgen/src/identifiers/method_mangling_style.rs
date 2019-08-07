@@ -1,6 +1,9 @@
 use super::*;
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+use serde_derive::*;
+
+#[serde(rename_all = "snake_case")]
+#[derive(Clone, Copy, Debug, Deserialize, PartialEq, Eq, Hash)]
 pub enum MethodManglingStyle {
     /// Leave the original method name alone as much as possible.
     /// Constructors will still be renamed from "<init>" to "new".

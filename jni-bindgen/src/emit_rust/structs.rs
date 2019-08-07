@@ -66,7 +66,7 @@ impl Struct {
 
         for method in self.java_class.methods() {
             if !method.access_flags().contains(MethodAccessFlags::PUBLIC) { continue; } // Skip private/protected methods
-            let method_name = if let Ok(name) = MethodManglingStyle::Rustify.mangle(method.name(), method.descriptor()) { name } else { continue };
+            let method_name = if let Ok(name) = context.config.codegen.method_naming_style.mangle(method.name(), method.descriptor()) { name } else { continue };
             *id_repeats.entry(method_name).or_insert(0) += 1;
         }
 
@@ -101,7 +101,7 @@ impl Struct {
 
             let descriptor = method.descriptor();
 
-            let method_name = if let Ok(name) = MethodManglingStyle::Rustify.mangle(method.name(), method.descriptor()) {
+            let method_name = if let Ok(name) = context.config.codegen.method_naming_style.mangle(method.name(), method.descriptor()) {
                 name
             } else {
                 emit_reject_reasons.push("Failed to mangle method name");
@@ -114,7 +114,7 @@ impl Struct {
             let method_name = if let Some(name) = renamed_to {
                 name.clone()
             } else if overloaded {
-                if let Ok(name) = MethodManglingStyle::RustifyShortSignature.mangle(method.name(), method.descriptor()) {
+                if let Ok(name) = context.config.codegen.method_naming_style_collision.mangle(method.name(), method.descriptor()) {
                     name
                 } else {
                     method_name
