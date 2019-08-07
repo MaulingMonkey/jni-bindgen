@@ -9,10 +9,10 @@ use std::path::*;
 
 
 pub(crate) struct DocPattern {
-    url_pattern:            String,
-    jni_prefix:             String,
-    namespace_separator:    String,
-    inner_class_seperator:  String,
+    pub(crate) url_pattern:             String,
+    pub(crate) jni_prefix:              String,
+    pub(crate) namespace_separator:     String,
+    pub(crate) inner_class_seperator:   String,
 }
 
 impl From<toml::DocumentationPattern> for DocPattern {

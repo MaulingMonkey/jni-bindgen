@@ -6,18 +6,9 @@ pub(crate) struct KnownDocsUrl {
 }
 
 impl KnownDocsUrl {
-    pub(crate) fn from(java_class: &Class) -> Option<KnownDocsUrl> {
+    pub(crate) fn from(context: &Context, java_class: &Class) -> Option<KnownDocsUrl> {
         let java_name = java_class.this_class().name();
-
-        //let prefix = if java_name.starts_with("android/") {
-        //    "https://developer.android.com/reference/kotlin/"
-        //} else if java_name.starts_with("java/") {
-        //    "https://docs.oracle.com/javase/7/docs/api/index.html?"
-        //} else {
-        //    return None;
-        //};
-
-        let prefix = "https://developer.android.com/reference/kotlin/";
+        let pattern = context.config.doc_patterns.iter().find(|pattern| java_name.starts_with(pattern.jni_prefix.as_str()))?;
 
         for ch in java_name.chars() {
             match ch {
@@ -36,9 +27,13 @@ impl KnownDocsUrl {
             &java_name[..]
         };
 
+        let java_name = java_name
+            .replace("/", pattern.namespace_separator.as_str())
+            .replace("$", pattern.inner_class_seperator.as_str());
+
         Some(KnownDocsUrl{
             label:  no_namespace.to_owned().replace("$","."),
-            url:    format!("{}{}.html", prefix, java_name.replace("$",".")),
+            url:    pattern.url_pattern.replace("{PATH}", java_name.as_str()),
         })
     }
 }

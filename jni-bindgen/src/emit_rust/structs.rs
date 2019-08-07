@@ -47,7 +47,7 @@ impl Struct {
 
         // TODO:  Eventually move macro codegen into the mod so multiple classes can be collapsed.
         writeln!(out, "{}__jni_bindgen! {{", indent)?;
-        if let Some(url) = KnownDocsUrl::from(&self.java_class) {
+        if let Some(url) = KnownDocsUrl::from(context, &self.java_class) {
             writeln!(out, "{}    /// {} {} [{}]({})", indent, visibility, keyword, url.label, url.url)?;
         }
         write!(out, "{}    {} {} {} extends {}", indent, visibility, keyword, &self.rust_struct_name, super_class)?;
