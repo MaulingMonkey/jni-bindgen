@@ -49,40 +49,36 @@ impl From<toml::FileWithContext> for Config {
         let file = fwc.file;
         let dir  = fwc.directory;
 
-        let documentation   = file.documentation.unwrap_or(Default::default());
-        let logging         = file.logging.unwrap_or(Default::default());
+        let documentation   = file.documentation;
+        let logging         = file.logging;
 
         let mut ignore_classes              = HashSet::new();
         let mut ignore_class_methods        = HashSet::new();
         let mut ignore_class_method_sigs    = HashSet::new();
-        if let Some(ignores) = file.ignore.as_ref() {
-            for ignore in ignores {
-                if let Some(method) = ignore.method.as_ref() {
-                    if let Some(sig) = ignore.signature.as_ref() {
-                        ignore_class_method_sigs.insert(format!("{}\x1f{}\x1f{}", ignore.class, method, sig));
-                    } else {
-                        ignore_class_methods.insert(format!("{}\x1f{}", ignore.class, method));
-                    }
+        for ignore in file.ignores {
+            if let Some(method) = ignore.method.as_ref() {
+                if let Some(sig) = ignore.signature.as_ref() {
+                    ignore_class_method_sigs.insert(format!("{}\x1f{}\x1f{}", ignore.class, method, sig));
                 } else {
-                    ignore_classes.insert(ignore.class.clone());
+                    ignore_class_methods.insert(format!("{}\x1f{}", ignore.class, method));
                 }
+            } else {
+                ignore_classes.insert(ignore.class.clone());
             }
         }
 
         let mut rename_classes              = HashMap::new();
         let mut rename_class_methods        = HashMap::new();
         let mut rename_class_method_sigs    = HashMap::new();
-        if let Some(renames) = file.rename.as_ref() {
-            for rename in renames {
-                if let Some(method) = rename.method.as_ref() {
-                    if let Some(sig) = rename.signature.as_ref() {
-                        rename_class_method_sigs.insert(format!("{}\x1f{}\x1f{}", rename.class, method, sig), rename.to.clone());
-                    } else {
-                        rename_class_methods.insert(format!("{}\x1f{}", rename.class, method), rename.to.clone());
-                    }
+        for rename in file.renames {
+            if let Some(method) = rename.method.as_ref() {
+                if let Some(sig) = rename.signature.as_ref() {
+                    rename_class_method_sigs.insert(format!("{}\x1f{}\x1f{}", rename.class, method, sig), rename.to.clone());
                 } else {
-                    rename_classes.insert(rename.class.clone(), rename.to.clone());
+                    rename_class_methods.insert(format!("{}\x1f{}", rename.class, method), rename.to.clone());
                 }
+            } else {
+                rename_classes.insert(rename.class.clone(), rename.to.clone());
             }
         }
 
@@ -90,7 +86,7 @@ impl From<toml::FileWithContext> for Config {
             doc_patterns:       documentation.patterns.into_iter().map(|pat| pat.into()).collect(),
             input_files:        file.input.files.into_iter().map(|file| resolve_file(file, &dir)).collect(),
             output_path:        resolve_file(file.output.path, &dir),
-            logging_verbose:    logging.verbose.unwrap_or(false),
+            logging_verbose:    logging.verbose,
             ignore_classes,
             ignore_class_methods,
             ignore_class_method_sigs,

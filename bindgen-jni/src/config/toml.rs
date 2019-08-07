@@ -39,6 +39,7 @@ pub struct DocumentationPattern {
 #[derive(Debug, Clone, Deserialize, Default)]
 pub struct Documentation {
     /// Documentation sources.  Processed from top to bottom.
+    #[serde(default = "Vec::new")]
     pub patterns: Vec<DocumentationPattern>,
 }
 
@@ -61,7 +62,8 @@ pub struct Output {
 /// The \[logging\] section.
 #[derive(Debug, Clone, Deserialize, Default)]
 pub struct Logging {
-    pub verbose: Option<bool>,
+    #[serde(default = "Default::default")]
+    pub verbose: bool,
 }
 
 /// An \[[ignore\]] section.
@@ -148,23 +150,29 @@ pub struct Rename {
 #[derive(Debug, Clone, Deserialize)]
 pub struct File {
     /// Documentation settings.
-    pub documentation: Option<Documentation>,
+    #[serde(default = "Default::default")]
+    pub documentation: Documentation,
 
     /// Input(s) into the bindgen-jni process.
     pub input: Input,
 
     /// Logging settings
-    pub logging: Option<Logging>,
+    #[serde(default = "Default::default")]
+    pub logging: Logging,
 
     /// Output(s) from the bindgen-jni process.
     pub output: Output,
 
     /// Classes and class methods to ignore.
-    pub ignore: Option<Vec<Ignore>>,
+    #[serde(rename = "ignore")] #[serde(default = "Vec::new")]
+    pub ignores: Vec<Ignore>,
 
     /// Classes and class methods to rename.
-    pub rename: Option<Vec<Rename>>,
+    #[serde(rename = "rename")] #[serde(default = "Vec::new")]
+    pub renames: Vec<Rename>,
 }
+
+fn empty_vec<T>() -> Vec<T> { Vec::new() }
 
 impl File {
     /// Read from I/O, under the assumption that it's in the "bindgen-jni.toml" file format.
@@ -260,57 +268,53 @@ impl File {
     "#;
     let file = File::read_str(well_configured_toml).unwrap();
 
-    assert!(file.logging.is_some());
-    assert_eq!(file.logging.as_ref().unwrap().verbose, Some(true));
+    assert_eq!(file.logging.verbose, true);
 
-    assert!(file.documentation.is_some());
-    assert_eq!(file.documentation.as_ref().unwrap().patterns.len(), 2);
+    assert_eq!(file.documentation.patterns.len(), 2);
 
-    assert_eq!(file.documentation.as_ref().unwrap().patterns[0].url_pattern,            "https://docs.oracle.com/javase/7/docs/api/index.html?java/{PATH}.html");
-    assert_eq!(file.documentation.as_ref().unwrap().patterns[0].jni_prefix,             Some("java/".to_owned()));
-    assert_eq!(file.documentation.as_ref().unwrap().patterns[0].namespace_separator,    Some("/".to_owned()));
-    assert_eq!(file.documentation.as_ref().unwrap().patterns[0].inner_class_seperator,  Some(".".to_owned()));
+    assert_eq!(file.documentation.patterns[0].url_pattern,            "https://docs.oracle.com/javase/7/docs/api/index.html?java/{PATH}.html");
+    assert_eq!(file.documentation.patterns[0].jni_prefix,             Some("java/".to_owned()));
+    assert_eq!(file.documentation.patterns[0].namespace_separator,    Some("/".to_owned()));
+    assert_eq!(file.documentation.patterns[0].inner_class_seperator,  Some(".".to_owned()));
 
-    assert_eq!(file.documentation.as_ref().unwrap().patterns[1].url_pattern,            "https://developer.android.com/reference/kotlin/{PATH}.html"           );
-    assert_eq!(file.documentation.as_ref().unwrap().patterns[1].jni_prefix,             None);
-    assert_eq!(file.documentation.as_ref().unwrap().patterns[1].namespace_separator,    None);
-    assert_eq!(file.documentation.as_ref().unwrap().patterns[1].inner_class_seperator,  None);
+    assert_eq!(file.documentation.patterns[1].url_pattern,            "https://developer.android.com/reference/kotlin/{PATH}.html"           );
+    assert_eq!(file.documentation.patterns[1].jni_prefix,             None);
+    assert_eq!(file.documentation.patterns[1].namespace_separator,    None);
+    assert_eq!(file.documentation.patterns[1].inner_class_seperator,  None);
 
     assert_eq!(file.input.files, &[Path::new("%LOCALAPPDATA%/Android/Sdk/platforms/android-28/android.jar")]);
     assert_eq!(file.output.path, Path::new("android28.rs"));
 
-    assert!(file.ignore.is_some());
-    assert_eq!(file.ignore.as_ref().unwrap().len(), 3);
+    assert_eq!(file.ignores.len(), 3);
 
-    assert_eq!(file.ignore.as_ref().unwrap()[0].class,      "some/java/Class");
-    assert_eq!(file.ignore.as_ref().unwrap()[0].method,     None);
-    assert_eq!(file.ignore.as_ref().unwrap()[0].signature,  None);
+    assert_eq!(file.ignores[0].class,      "some/java/Class");
+    assert_eq!(file.ignores[0].method,     None);
+    assert_eq!(file.ignores[0].signature,  None);
 
-    assert_eq!(file.ignore.as_ref().unwrap()[1].class,      "some/java/Class");
-    assert_eq!(file.ignore.as_ref().unwrap()[1].method,     Some("someMethod".to_owned()));
-    assert_eq!(file.ignore.as_ref().unwrap()[1].signature,  None);
+    assert_eq!(file.ignores[1].class,      "some/java/Class");
+    assert_eq!(file.ignores[1].method,     Some("someMethod".to_owned()));
+    assert_eq!(file.ignores[1].signature,  None);
 
-    assert_eq!(file.ignore.as_ref().unwrap()[2].class,      "some/java/Class");
-    assert_eq!(file.ignore.as_ref().unwrap()[2].method,     Some("someOtherMethod".to_owned()));
-    assert_eq!(file.ignore.as_ref().unwrap()[2].signature,  Some("()V".to_owned()));
+    assert_eq!(file.ignores[2].class,      "some/java/Class");
+    assert_eq!(file.ignores[2].method,     Some("someOtherMethod".to_owned()));
+    assert_eq!(file.ignores[2].signature,  Some("()V".to_owned()));
 
-    assert!(file.rename.is_some());
-    assert_eq!(file.rename.as_ref().unwrap().len(), 3);
+    assert_eq!(file.renames.len(), 3);
 
-    assert_eq!(file.rename.as_ref().unwrap()[0].class,      "some/java/Class");
-    assert_eq!(file.rename.as_ref().unwrap()[0].method,     None);
-    assert_eq!(file.rename.as_ref().unwrap()[0].signature,  None);
-    assert_eq!(file.rename.as_ref().unwrap()[0].to,         "class");
+    assert_eq!(file.renames[0].class,      "some/java/Class");
+    assert_eq!(file.renames[0].method,     None);
+    assert_eq!(file.renames[0].signature,  None);
+    assert_eq!(file.renames[0].to,         "class");
 
-    assert_eq!(file.rename.as_ref().unwrap()[1].class,      "some/java/Class");
-    assert_eq!(file.rename.as_ref().unwrap()[1].method,     Some("someMethod".to_owned()));
-    assert_eq!(file.rename.as_ref().unwrap()[1].signature,  None);
-    assert_eq!(file.rename.as_ref().unwrap()[1].to,         "some_method");
+    assert_eq!(file.renames[1].class,      "some/java/Class");
+    assert_eq!(file.renames[1].method,     Some("someMethod".to_owned()));
+    assert_eq!(file.renames[1].signature,  None);
+    assert_eq!(file.renames[1].to,         "some_method");
 
-    assert_eq!(file.rename.as_ref().unwrap()[2].class,      "some/java/Class");
-    assert_eq!(file.rename.as_ref().unwrap()[2].method,     Some("someOtherMethod".to_owned()));
-    assert_eq!(file.rename.as_ref().unwrap()[2].signature,  Some("()V".to_owned()));
-    assert_eq!(file.rename.as_ref().unwrap()[2].to,         "some_other_method");
+    assert_eq!(file.renames[2].class,      "some/java/Class");
+    assert_eq!(file.renames[2].method,     Some("someOtherMethod".to_owned()));
+    assert_eq!(file.renames[2].signature,  Some("()V".to_owned()));
+    assert_eq!(file.renames[2].to,         "some_other_method");
 }
 
 #[test] fn load_minimal_toml() {
@@ -322,12 +326,12 @@ impl File {
         path = "android28.rs"
     "#;
     let file = File::read_str(minimal_toml).unwrap();
-    assert!(file.logging.is_none());
-    assert!(file.documentation.is_none());
+    assert_eq!(file.logging.verbose, false);
+    assert_eq!(file.documentation.patterns.len(), 0);
     assert_eq!(file.input.files, &[Path::new("%LOCALAPPDATA%/Android/Sdk/platforms/android-28/android.jar")]);
     assert_eq!(file.output.path, Path::new("android28.rs"));
-    assert!(file.ignore.is_none());
-    assert!(file.rename.is_none());
+    assert_eq!(file.ignores.len(), 0);
+    assert_eq!(file.renames.len(), 0);
 }
 
 #[derive(Debug, Clone)]
