@@ -30,6 +30,7 @@ impl From<toml::DocumentationPattern> for DocPattern {
 
 /// Runtime configuration.  Create from a toml::File.
 pub struct Config {
+    pub(crate) codegen:                     toml::CodeGen,
     pub(crate) doc_patterns:                Vec<DocPattern>,
     pub(crate) input_files:                 Vec<PathBuf>,
     pub(crate) output_path:                 PathBuf,
@@ -83,6 +84,7 @@ impl From<toml::FileWithContext> for Config {
         }
 
         Self {
+            codegen:            file.codegen.clone(),
             doc_patterns:       documentation.patterns.into_iter().map(|pat| pat.into()).collect(),
             input_files:        file.input.files.into_iter().map(|file| resolve_file(file, &dir)).collect(),
             output_path:        resolve_file(file.output.path, &dir),

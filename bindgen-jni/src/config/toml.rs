@@ -8,6 +8,25 @@ use std::path::*;
 
 
 
+#[serde(rename_all = "snake_case")]
+#[derive(Debug, Clone, Copy, Deserialize, PartialEq, Eq)]
+pub enum StaticEnvStyle {
+    Explicit,
+    Implicit,
+}
+
+impl Default for StaticEnvStyle {
+    fn default() -> Self { StaticEnvStyle::Explicit }
+}
+
+/// The \[codegen\] section.
+#[derive(Debug, Clone, Deserialize, Default)]
+pub struct CodeGen {
+    /// How static methods should accept their &Env.
+    #[serde(default = "Default::default")]
+    pub static_env: StaticEnvStyle,
+}
+
 /// A \[\[documentation.pattern\]\] section.
 #[derive(Debug, Clone, Deserialize)]
 pub struct DocumentationPattern {
@@ -149,6 +168,9 @@ pub struct Rename {
 /// ```
 #[derive(Debug, Clone, Deserialize)]
 pub struct File {
+    #[serde(default = "Default::default")]
+    pub codegen: CodeGen,
+
     /// Documentation settings.
     #[serde(default = "Default::default")]
     pub documentation: Documentation,
@@ -215,6 +237,9 @@ impl File {
         # slew of .jar s from different sources you want to bind all at once, or if the platform documentation is broken
         # up by top level modules in strange ways.
 
+        [codegen]
+        static_env = "implicit"
+
         [logging]
         verbose = true
 
@@ -267,6 +292,8 @@ impl File {
         to        = "some_other_method"
     "#;
     let file = File::read_str(well_configured_toml).unwrap();
+
+    assert_eq!(file.codegen.static_env, StaticEnvStyle::Implicit);
 
     assert_eq!(file.logging.verbose, true);
 
@@ -326,6 +353,7 @@ impl File {
         path = "android28.rs"
     "#;
     let file = File::read_str(minimal_toml).unwrap();
+    assert_eq!(file.codegen.static_env, StaticEnvStyle::Explicit);
     assert_eq!(file.logging.verbose, false);
     assert_eq!(file.documentation.patterns.len(), 0);
     assert_eq!(file.input.files, &[Path::new("%LOCALAPPDATA%/Android/Sdk/platforms/android-28/android.jar")]);
