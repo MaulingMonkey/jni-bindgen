@@ -1,17 +1,16 @@
 [package]
 name = "jni-bindgen"
-version = "0.0.0"
+version = "0.0.2"
 authors = ["MaulingMonkey <git@maulingmonkey.com>"]
 edition = "2018"
 description = "Code generator for binding to JVM APIs from Rust"
 documentation = "https://docs.rs/jni-bindgen/"
 repository = "https://github.com/MaulingMonkey/jni-bindgen"
-readme = "README.md"
 keywords = ["jvm", "jni", "bindgen", "android"]
 categories = ["development-tools::ffi"]
 license = "MIT OR Apache-2.0"
-include = ["/src/**/*", "/Cargo.toml", "/LICENSE-MIT", "/LICENSE-APACHE", "/Readme.md"]
-autoexamples = false
+include = ["/src/**/*", "/Cargo.toml", "../LICENSE-MIT", "../LICENSE-APACHE", "../Readme.md"]
+
 
 [dependencies]
 bitflags = "1.1.0"

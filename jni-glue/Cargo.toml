@@ -1,8 +1,16 @@
 [package]
 name = "jni-glue"
-version = "0.1.0"
+version = "0.0.2"
 authors = ["MaulingMonkey <git@maulingmonkey.com>"]
 edition = "2018"
+description = "Manually written glue code to accompany the jni-bindgen code generator for binding to JVM APIs from Rust"
+documentation = "https://docs.rs/jni-bindgen/"
+repository = "https://github.com/MaulingMonkey/jni-bindgen"
+keywords = ["jvm", "jni", "bindgen", "android"]
+categories = ["development-tools::ffi"]
+license = "MIT OR Apache-2.0"
+include = ["/src/**/*", "/Cargo.toml", "../LICENSE-MIT", "../LICENSE-APACHE", "../Readme.md"]
+
 
 [dependencies]
 jni-sys = "0.3.0"

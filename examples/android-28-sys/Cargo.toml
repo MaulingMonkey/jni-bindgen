@@ -1,6 +1,7 @@
 [package]
 name = "android-28-sys"
 version = "0.0.0"
+publish = false
 authors = ["MaulingMonkey <git@maulingmonkey.com>"]
 edition = "2018"
 build = "build.rs"
