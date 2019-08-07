@@ -1,14 +1,9 @@
 [package]
 name = "bindgen-jni"
-version = "0.0.0"
+version = "0.0.1"
 authors = ["MaulingMonkey <git@maulingmonkey.com>"]
 edition = "2018"
-description = "Code generator for binding to JVM APIs from Rust"
-# documentation = "https://docs.rs/bindgen-jni/"
-repository = "https://github.com/MaulingMonkey/bindgen-jni"
-readme = "README.md"
-keywords = ["jvm", "jni", "bindgen", "android"]
-categories = ["development-tools::ffi"]
+description = "Renamed to jni-bindgen.  Code generator for binding to JVM APIs from Rust"
 license = "MIT OR Apache-2.0"
 include = ["/src/**/*", "/Cargo.toml", "/LICENSE-MIT", "/LICENSE-APACHE", "/Readme.md"]
 
@@ -21,3 +16,6 @@ zip = "0.5.2"
 [dev-dependencies]
 bugsalot = "0.1.4"
 jni-sys = "0.3.0"
+
+[badges]
+maintenance = { status = "deprecated" }
