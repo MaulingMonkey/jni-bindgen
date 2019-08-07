@@ -1,4 +1,4 @@
-# bindgen-jni
+# jni-bindgen
 
 **Work in progress, not yet usable**
 

@@ -1,11 +1,11 @@
 [package]
-name = "bindgen-jni"
+name = "jni-bindgen"
 version = "0.0.0"
 authors = ["MaulingMonkey <git@maulingmonkey.com>"]
 edition = "2018"
 description = "Code generator for binding to JVM APIs from Rust"
-documentation = "https://docs.rs/bindgen-jni/"
-repository = "https://github.com/MaulingMonkey/bindgen-jni"
+documentation = "https://docs.rs/jni-bindgen/"
+repository = "https://github.com/MaulingMonkey/jni-bindgen"
 readme = "README.md"
 keywords = ["jvm", "jni", "bindgen", "android"]
 categories = ["development-tools::ffi"]

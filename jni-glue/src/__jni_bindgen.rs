@@ -2,13 +2,13 @@
 
 #[doc(hidden)] // For codegen use only, not (yet?) an otherwise stable part of the glue interface.
 #[macro_export]
-macro_rules! __bindgen_jni {
+macro_rules! __jni_bindgen {
     () => {};
 
 
 
     (@deref $from:ty => (); $($rest:tt)*) => {
-        __bindgen_jni! { $($rest)* }
+        __jni_bindgen! { $($rest)* }
     };
 
     (@deref $from:ty => $target:ty; $($rest:tt)*) => {
@@ -18,7 +18,7 @@ macro_rules! __bindgen_jni {
                 unsafe { &*(self as *const Self as *const Self::Target) }
             }
         }
-        __bindgen_jni! { $($rest)* }
+        __jni_bindgen! { $($rest)* }
     };
 
     (@implements $from:ty => $target:ty; $($rest:tt)*) => {
@@ -27,7 +27,7 @@ macro_rules! __bindgen_jni {
                 unsafe { &*(self as *const Self as *const $target) }
             }
         }
-        __bindgen_jni! { $($rest)* }
+        __jni_bindgen! { $($rest)* }
     };
 
 
@@ -35,7 +35,7 @@ macro_rules! __bindgen_jni {
     ($(#[$attr:meta])* private static class $name:ident extends $parent:ty $(, implements $($interface:ty),+)* { $($body:tt)* } $($rest:tt)*) => {
         $(#[$attr])* #[repr(transparent)] struct $name;
         impl $name { $($body)* }
-        __bindgen_jni! {
+        __jni_bindgen! {
             // static
             $($rest)*
         }
@@ -46,7 +46,7 @@ macro_rules! __bindgen_jni {
         impl $name { $($body)* }
         unsafe impl $crate::AsValidJObjectAndEnv for $name {}
         unsafe impl $crate::AsJValue for $name { fn as_jvalue(&self) -> $crate::jni_sys::jvalue { $crate::jni_sys::jvalue { l: self.0.object } } }
-        __bindgen_jni! {
+        __jni_bindgen! {
             $($(@implements $name => $interface;)*)*
             @deref $name => $parent;
             $($rest)*
@@ -58,7 +58,7 @@ macro_rules! __bindgen_jni {
         impl $name { $($body)* }
         unsafe impl $crate::AsValidJObjectAndEnv for $name {}
         unsafe impl $crate::AsJValue for $name { fn as_jvalue(&self) -> $crate::jni_sys::jvalue { $crate::jni_sys::jvalue { l: self.0.object } } }
-        __bindgen_jni! {
+        __jni_bindgen! {
             $($(@implements $name => $interface;)*)*
             @deref $name => $parent;
             $($rest)*
@@ -70,7 +70,7 @@ macro_rules! __bindgen_jni {
         impl $name { $($body)* }
         unsafe impl $crate::AsValidJObjectAndEnv for $name {}
         unsafe impl $crate::AsJValue for $name { fn as_jvalue(&self) -> $crate::jni_sys::jvalue { $crate::jni_sys::jvalue { l: self.0.object } } }
-        __bindgen_jni! {
+        __jni_bindgen! {
             $($(@implements $name => $interface;)*)*
             @deref $name => $parent;
             $($rest)*
@@ -82,7 +82,7 @@ macro_rules! __bindgen_jni {
         impl $name { $($body)* }
         unsafe impl $crate::AsValidJObjectAndEnv for $name {}
         unsafe impl $crate::AsJValue for $name { fn as_jvalue(&self) -> $crate::jni_sys::jvalue { $crate::jni_sys::jvalue { l: self.0.object } } }
-        __bindgen_jni! {
+        __jni_bindgen! {
             $($(@implements $name => $interface;)*)*
             @deref $name => $parent;
             $($rest)*
@@ -94,7 +94,7 @@ macro_rules! __bindgen_jni {
     ($(#[$attr:meta])* public static class $name:ident extends $parent:ty $(, implements $($interface:ty),+)* { $($body:tt)* } $($rest:tt)*) => {
         $(#[$attr])* #[repr(transparent)] pub struct $name;
         impl $name { $($body)* }
-        __bindgen_jni! {
+        __jni_bindgen! {
             // static
             $($rest)*
         }
@@ -105,7 +105,7 @@ macro_rules! __bindgen_jni {
         impl $name { $($body)* }
         unsafe impl $crate::AsValidJObjectAndEnv for $name {}
         unsafe impl $crate::AsJValue for $name { fn as_jvalue(&self) -> $crate::jni_sys::jvalue { $crate::jni_sys::jvalue { l: self.0.object } } }
-        __bindgen_jni! {
+        __jni_bindgen! {
             $($(@implements $name => $interface;)*)*
             @deref $name => $parent;
             $($rest)*
@@ -117,7 +117,7 @@ macro_rules! __bindgen_jni {
         impl $name { $($body)* }
         unsafe impl $crate::AsValidJObjectAndEnv for $name {}
         unsafe impl $crate::AsJValue for $name { fn as_jvalue(&self) -> $crate::jni_sys::jvalue { $crate::jni_sys::jvalue { l: self.0.object } } }
-        __bindgen_jni! {
+        __jni_bindgen! {
             $($(@implements $name => $interface;)*)*
             @deref $name => $parent;
             $($rest)*
@@ -129,7 +129,7 @@ macro_rules! __bindgen_jni {
         impl $name { $($body)* }
         unsafe impl $crate::AsValidJObjectAndEnv for $name {}
         unsafe impl $crate::AsJValue for $name { fn as_jvalue(&self) -> $crate::jni_sys::jvalue { $crate::jni_sys::jvalue { l: self.0.object } } }
-        __bindgen_jni! {
+        __jni_bindgen! {
             $($(@implements $name => $interface;)*)*
             @deref $name => $parent;
             $($rest)*
@@ -141,7 +141,7 @@ macro_rules! __bindgen_jni {
         impl $name { $($body)* }
         unsafe impl $crate::AsValidJObjectAndEnv for $name {}
         unsafe impl $crate::AsJValue for $name { fn as_jvalue(&self) -> $crate::jni_sys::jvalue { $crate::jni_sys::jvalue { l: self.0.object } } }
-        __bindgen_jni! {
+        __jni_bindgen! {
             $($(@implements $name => $interface;)*)*
             @deref $name => $parent;
             $($rest)*

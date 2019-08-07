@@ -4,7 +4,7 @@ use super::*;
 /// 
 /// On Android, there is only one VM per-process, although on desktop it's possible (if rare) to have multiple VMs
 /// within the same process.  While this library does not yet support having multiple VMs active simultaniously, please
-/// don't hesitate to [file an issue](https://github.com/MaulingMonkey/bindgen-jni/issues/new) if this is an important
+/// don't hesitate to [file an issue](https://github.com/MaulingMonkey/jni-bindgen/issues/new) if this is an important
 /// use case for you.
 ///
 /// This is a "safe" alternative to jni_sys::JavaVM raw pointers, with the following caveats:

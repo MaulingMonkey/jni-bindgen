@@ -9,7 +9,7 @@ build = "build.rs"
 jni-glue = { path = "../../jni-glue" }
 
 [build-dependencies]
-bindgen-jni = { path = "../../bindgen-jni" }
+jni-bindgen = { path = "../../jni-bindgen" }
 
 [features]
 default = []

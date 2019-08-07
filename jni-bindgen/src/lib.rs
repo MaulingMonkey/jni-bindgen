@@ -4,7 +4,7 @@
 
 pub(crate) mod class_file_visitor;
 
-/// Configuration formats for invoking bindgen_jni
+/// Configuration formats for invoking jni_bindgen
 pub mod config { // Part of the actual official API of this crate.
     #[allow(unused_imports)] use super::*;
 

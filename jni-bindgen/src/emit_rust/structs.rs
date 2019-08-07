@@ -46,7 +46,7 @@ impl Struct {
         };
 
         // TODO:  Eventually move macro codegen into the mod so multiple classes can be collapsed.
-        writeln!(out, "{}__bindgen_jni! {{", indent)?;
+        writeln!(out, "{}__jni_bindgen! {{", indent)?;
         if let Some(url) = KnownDocsUrl::from(&self.java_class) {
             writeln!(out, "{}    /// {} {} [{}]({})", indent, visibility, keyword, url.label, url.url)?;
         }
@@ -147,7 +147,7 @@ impl Struct {
             // Contents of fn name<'env>(...) {
             let mut params_decl = if constructor || static_ {
                 match context.config.codegen.static_env {
-                    config::toml::StaticEnvStyle::Explicit => String::from("__jni_env: &'env __bindgen_jni::Env"),
+                    config::toml::StaticEnvStyle::Explicit => String::from("__jni_env: &'env __jni_bindgen::Env"),
                     config::toml::StaticEnvStyle::Implicit => {
                         emit_reject_reasons.push("StaticEnvStyle::Implicit not yet implemented");
                         String::new()
@@ -175,7 +175,7 @@ impl Struct {
                             },
                             JniField::Single(JniBasicType::Boolean)     => "bool".to_owned(),
                             JniField::Single(JniBasicType::Byte)        => "i8".to_owned(),
-                            JniField::Single(JniBasicType::Char)        => "__bindgen_jni::jchar".to_owned(),
+                            JniField::Single(JniBasicType::Char)        => "__jni_bindgen::jchar".to_owned(),
                             JniField::Single(JniBasicType::Short)       => "i16".to_owned(),
                             JniField::Single(JniBasicType::Int)         => "i32".to_owned(),
                             JniField::Single(JniBasicType::Long)        => "i64".to_owned(),
@@ -185,7 +185,7 @@ impl Struct {
                                 param_is_object = true;
                                 match context.java_to_rust_path(class) {
                                     // TODO: Should this take an Option?  Probably...
-                                    Ok(path) => format!("&impl __bindgen_jni::std::convert::AsRef<{}>", path),
+                                    Ok(path) => format!("&impl __jni_bindgen::std::convert::AsRef<{}>", path),
                                     Err(_) => {
                                         emit_reject_reasons.push("Failed to resolve JNI path to Rust path for argument type");
                                         format!("{:?}", class)
@@ -197,14 +197,14 @@ impl Struct {
                                 "???".to_owned()
                             }
                             // TODO: Should these take an Option?  Probably...
-                            JniField::Array { levels: 1, inner: JniBasicType::Boolean   } => { param_is_object = true; "&impl __bindgen_jni::std::convert::AsRef<__bindgen_jni::BooleanArray>".to_owned() },
-                            JniField::Array { levels: 1, inner: JniBasicType::Byte      } => { param_is_object = true; "&impl __bindgen_jni::std::convert::AsRef<__bindgen_jni::ByteArray   >".to_owned() },
-                            JniField::Array { levels: 1, inner: JniBasicType::Char      } => { param_is_object = true; "&impl __bindgen_jni::std::convert::AsRef<__bindgen_jni::CharArray   >".to_owned() },
-                            JniField::Array { levels: 1, inner: JniBasicType::Short     } => { param_is_object = true; "&impl __bindgen_jni::std::convert::AsRef<__bindgen_jni::ShortArray  >".to_owned() },
-                            JniField::Array { levels: 1, inner: JniBasicType::Int       } => { param_is_object = true; "&impl __bindgen_jni::std::convert::AsRef<__bindgen_jni::IntArray    >".to_owned() },
-                            JniField::Array { levels: 1, inner: JniBasicType::Long      } => { param_is_object = true; "&impl __bindgen_jni::std::convert::AsRef<__bindgen_jni::LongArray   >".to_owned() },
-                            JniField::Array { levels: 1, inner: JniBasicType::Float     } => { param_is_object = true; "&impl __bindgen_jni::std::convert::AsRef<__bindgen_jni::FloatArray  >".to_owned() },
-                            JniField::Array { levels: 1, inner: JniBasicType::Double    } => { param_is_object = true; "&impl __bindgen_jni::std::convert::AsRef<__bindgen_jni::DoubleArray >".to_owned() },
+                            JniField::Array { levels: 1, inner: JniBasicType::Boolean   } => { param_is_object = true; "&impl __jni_bindgen::std::convert::AsRef<__jni_bindgen::BooleanArray>".to_owned() },
+                            JniField::Array { levels: 1, inner: JniBasicType::Byte      } => { param_is_object = true; "&impl __jni_bindgen::std::convert::AsRef<__jni_bindgen::ByteArray   >".to_owned() },
+                            JniField::Array { levels: 1, inner: JniBasicType::Char      } => { param_is_object = true; "&impl __jni_bindgen::std::convert::AsRef<__jni_bindgen::CharArray   >".to_owned() },
+                            JniField::Array { levels: 1, inner: JniBasicType::Short     } => { param_is_object = true; "&impl __jni_bindgen::std::convert::AsRef<__jni_bindgen::ShortArray  >".to_owned() },
+                            JniField::Array { levels: 1, inner: JniBasicType::Int       } => { param_is_object = true; "&impl __jni_bindgen::std::convert::AsRef<__jni_bindgen::IntArray    >".to_owned() },
+                            JniField::Array { levels: 1, inner: JniBasicType::Long      } => { param_is_object = true; "&impl __jni_bindgen::std::convert::AsRef<__jni_bindgen::LongArray   >".to_owned() },
+                            JniField::Array { levels: 1, inner: JniBasicType::Float     } => { param_is_object = true; "&impl __jni_bindgen::std::convert::AsRef<__jni_bindgen::FloatArray  >".to_owned() },
+                            JniField::Array { levels: 1, inner: JniBasicType::Double    } => { param_is_object = true; "&impl __jni_bindgen::std::convert::AsRef<__jni_bindgen::DoubleArray >".to_owned() },
                             JniField::Array { .. } => {
                                 param_is_object = true;
                                 emit_reject_reasons.push("Passing in arrays not yet supported");
@@ -216,7 +216,7 @@ impl Struct {
                             params_array.push_str(", ");
                         }
 
-                        params_array.push_str("__bindgen_jni::AsJValue::as_jvalue(");
+                        params_array.push_str("__jni_bindgen::AsJValue::as_jvalue(");
                         if !param_is_object { params_array.push_str("&"); }
                         params_array.push_str(arg_name.as_str());
                         if param_is_object { params_array.push_str(".as_ref()"); }
@@ -235,7 +235,7 @@ impl Struct {
                             JniField::Single(JniBasicType::Void)        => "()".to_owned(),
                             JniField::Single(JniBasicType::Boolean)     => "bool".to_owned(),
                             JniField::Single(JniBasicType::Byte)        => "i8".to_owned(),
-                            JniField::Single(JniBasicType::Char)        => "__bindgen_jni::jchar".to_owned(),
+                            JniField::Single(JniBasicType::Char)        => "__jni_bindgen::jchar".to_owned(),
                             JniField::Single(JniBasicType::Short)       => "i16".to_owned(),
                             JniField::Single(JniBasicType::Int)         => "i32".to_owned(),
                             JniField::Single(JniBasicType::Long)        => "i64".to_owned(),
@@ -243,7 +243,7 @@ impl Struct {
                             JniField::Single(JniBasicType::Double)      => "f64".to_owned(),
                             JniField::Single(JniBasicType::Class(class)) => {
                                 match context.java_to_rust_path(class) {
-                                    Ok(path) => format!("__bindgen_jni::std::option::Option<__bindgen_jni::Local<'env, {}>>", path),
+                                    Ok(path) => format!("__jni_bindgen::std::option::Option<__jni_bindgen::Local<'env, {}>>", path),
                                     Err(_) => {
                                         emit_reject_reasons.push("Failed to resolve JNI path to Rust path for return type");
                                         format!("{:?}", class)
@@ -254,14 +254,14 @@ impl Struct {
                                 emit_reject_reasons.push("Returning arrays of void isn't a thing");
                                 "???".to_owned()
                             }
-                            JniField::Array { levels: 1, inner: JniBasicType::Boolean   } => "__bindgen_jni::std::option::Option<__bindgen_jni::Local<'env, __bindgen_jni::BooleanArray>>".to_owned(),
-                            JniField::Array { levels: 1, inner: JniBasicType::Byte      } => "__bindgen_jni::std::option::Option<__bindgen_jni::Local<'env, __bindgen_jni::ByteArray   >>".to_owned(),
-                            JniField::Array { levels: 1, inner: JniBasicType::Char      } => "__bindgen_jni::std::option::Option<__bindgen_jni::Local<'env, __bindgen_jni::CharArray   >>".to_owned(),
-                            JniField::Array { levels: 1, inner: JniBasicType::Short     } => "__bindgen_jni::std::option::Option<__bindgen_jni::Local<'env, __bindgen_jni::ShortArray  >>".to_owned(),
-                            JniField::Array { levels: 1, inner: JniBasicType::Int       } => "__bindgen_jni::std::option::Option<__bindgen_jni::Local<'env, __bindgen_jni::IntArray    >>".to_owned(),
-                            JniField::Array { levels: 1, inner: JniBasicType::Long      } => "__bindgen_jni::std::option::Option<__bindgen_jni::Local<'env, __bindgen_jni::LongArray   >>".to_owned(),
-                            JniField::Array { levels: 1, inner: JniBasicType::Float     } => "__bindgen_jni::std::option::Option<__bindgen_jni::Local<'env, __bindgen_jni::FloatArray  >>".to_owned(),
-                            JniField::Array { levels: 1, inner: JniBasicType::Double    } => "__bindgen_jni::std::option::Option<__bindgen_jni::Local<'env, __bindgen_jni::DoubleArray >>".to_owned(),
+                            JniField::Array { levels: 1, inner: JniBasicType::Boolean   } => "__jni_bindgen::std::option::Option<__jni_bindgen::Local<'env, __jni_bindgen::BooleanArray>>".to_owned(),
+                            JniField::Array { levels: 1, inner: JniBasicType::Byte      } => "__jni_bindgen::std::option::Option<__jni_bindgen::Local<'env, __jni_bindgen::ByteArray   >>".to_owned(),
+                            JniField::Array { levels: 1, inner: JniBasicType::Char      } => "__jni_bindgen::std::option::Option<__jni_bindgen::Local<'env, __jni_bindgen::CharArray   >>".to_owned(),
+                            JniField::Array { levels: 1, inner: JniBasicType::Short     } => "__jni_bindgen::std::option::Option<__jni_bindgen::Local<'env, __jni_bindgen::ShortArray  >>".to_owned(),
+                            JniField::Array { levels: 1, inner: JniBasicType::Int       } => "__jni_bindgen::std::option::Option<__jni_bindgen::Local<'env, __jni_bindgen::IntArray    >>".to_owned(),
+                            JniField::Array { levels: 1, inner: JniBasicType::Long      } => "__jni_bindgen::std::option::Option<__jni_bindgen::Local<'env, __jni_bindgen::LongArray   >>".to_owned(),
+                            JniField::Array { levels: 1, inner: JniBasicType::Float     } => "__jni_bindgen::std::option::Option<__jni_bindgen::Local<'env, __jni_bindgen::FloatArray  >>".to_owned(),
+                            JniField::Array { levels: 1, inner: JniBasicType::Double    } => "__jni_bindgen::std::option::Option<__jni_bindgen::Local<'env, __jni_bindgen::DoubleArray >>".to_owned(),
                             JniField::Array { .. } => {
                                 emit_reject_reasons.push("Returning arrays of objects or arrays not yet supported");
                                 format!("{:?}", ret)
@@ -289,7 +289,7 @@ impl Struct {
                 if ret_method_fragment == "Void" {
                     ret_method_fragment = "Object";
                     ret_decl = match context.java_to_rust_path(self.java_class.this_class().name()) {
-                        Ok(path) => format!("__bindgen_jni::std::option::Option<__bindgen_jni::Local<'env, {}>>", path),
+                        Ok(path) => format!("__jni_bindgen::std::option::Option<__jni_bindgen::Local<'env, {}>>", path),
                         Err(_) => {
                             emit_reject_reasons.push("Failed to resolve JNI path to Rust path for this type");
                             format!("{:?}", self.java_class.this_class().name())
@@ -312,7 +312,7 @@ impl Struct {
             for reason in &emit_reject_reasons {
                 writeln!(out, "{}// Not emitting: {}", indent, reason)?;
             }
-            writeln!(out, "{}{}fn {}<'env>({}) -> __bindgen_jni::Result<{}> {{", indent, access, method_name, params_decl, ret_decl)?;
+            writeln!(out, "{}{}fn {}<'env>({}) -> __jni_bindgen::Result<{}> {{", indent, access, method_name, params_decl, ret_decl)?;
             writeln!(out, "{}    // class.name() == {:?}, method.access_flags() == {:?}, .name() == {:?}, .descriptor() == {:?}", indent, self.java_class.this_class().name(), method.access_flags(), method.name(), method.descriptor())?;
             writeln!(out, "{}    let __jni_args = [{}];", indent, params_array)?;
             if constructor || static_ {
@@ -322,13 +322,13 @@ impl Struct {
                     config::toml::StaticEnvStyle::__NonExhaustive   => writeln!(out, "{}    let __jni_env = ...?;", indent)?, // XXX
                 };
             } else {
-                writeln!(out, "{}    let __jni_env = self.0.env as *mut __bindgen_jni::jni_sys::JNIEnv;", indent)?;
+                writeln!(out, "{}    let __jni_env = self.0.env as *mut __jni_bindgen::jni_sys::JNIEnv;", indent)?;
             }
 
             writeln!(out, "{}    let __jni_class  = unsafe {{ (**__jni_env).FindClass.unwrap()(__jni_env, {}) }};", indent, emit_cstr(self.java_class.this_class().name()))?;
-            writeln!(out, "{}    assert_ne!(__jni_class, __bindgen_jni::std::ptr::null_mut());", indent)?;
+            writeln!(out, "{}    assert_ne!(__jni_class, __jni_bindgen::std::ptr::null_mut());", indent)?;
             writeln!(out, "{}    let __jni_method = unsafe {{ (**__jni_env).GetMethodID.unwrap()(__jni_env, __jni_class, {}, {}) }};", indent, emit_cstr(method.name()), emit_cstr(method.descriptor()) )?;
-            writeln!(out, "{}    assert_ne!(__jni_method, __bindgen_jni::std::ptr::null_mut());", indent)?;
+            writeln!(out, "{}    assert_ne!(__jni_method, __jni_bindgen::std::ptr::null_mut());", indent)?;
 
             if constructor {
                 writeln!(out, "{}    let result = unsafe {{ (**__jni_env).NewObjectA.unwrap()(__jni_env, __jni_class, __jni_method, __jni_args.as_ptr()) }};", indent)?;
@@ -347,11 +347,11 @@ impl Struct {
                 writeln!(out, "{}    }} else if result.is_null() {{", indent)?;
                 writeln!(out, "{}        Ok(None)", indent)?;
                 writeln!(out, "{}    }} else {{", indent)?;
-                writeln!(out, "{}        let result = unsafe {{ __bindgen_jni::Local::from_env_object(__jni_env as *const __bindgen_jni::jni_sys::JNIEnv, result) }};", indent)?;
+                writeln!(out, "{}        let result = unsafe {{ __jni_bindgen::Local::from_env_object(__jni_env as *const __jni_bindgen::jni_sys::JNIEnv, result) }};", indent)?;
                 writeln!(out, "{}        Ok(Some(result))", indent)?;
             } else if ret_method_fragment == "Boolean" {
                 writeln!(out, "{}    }} else {{", indent)?;
-                writeln!(out, "{}        Ok(result != __bindgen_jni::jni_sys::JNI_FALSE)", indent)?;
+                writeln!(out, "{}        Ok(result != __jni_bindgen::jni_sys::JNI_FALSE)", indent)?;
             } else {
                 writeln!(out, "{}    }} else {{", indent)?;
                 writeln!(out, "{}        Ok(result)", indent)?;
@@ -372,6 +372,6 @@ impl Struct {
 fn emit_cstr(s: &str) -> String {
     let mut s = format!("{:?}", s); // XXX
     s.insert_str(s.len() - 1, "\\0");
-    s.push_str(".as_ptr() as *const __bindgen_jni::std::os::raw::c_char");
+    s.push_str(".as_ptr() as *const __jni_bindgen::std::os::raw::c_char");
     s
 }

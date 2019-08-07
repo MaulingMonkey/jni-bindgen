@@ -1,4 +1,4 @@
-//! bindgen-jni.toml configuration file structures and parsing APIs.
+//! jni-bindgen.toml configuration file structures and parsing APIs.
 
 use serde_derive::*;
 
@@ -103,7 +103,7 @@ pub struct Rename {
     pub signature:  Option<String>,
 }
 
-/// Format for a `bindgen-jni.toml` file or in-memory settings.
+/// Format for a `jni-bindgen.toml` file or in-memory settings.
 /// 
 /// # Example File
 /// 
@@ -176,14 +176,14 @@ pub struct File {
     #[serde(default = "Default::default")]
     pub documentation: Documentation,
 
-    /// Input(s) into the bindgen-jni process.
+    /// Input(s) into the jni-bindgen process.
     pub input: Input,
 
     /// Logging settings
     #[serde(default = "Default::default")]
     pub logging: Logging,
 
-    /// Output(s) from the bindgen-jni process.
+    /// Output(s) from the jni-bindgen process.
     pub output: Output,
 
     /// Classes and class methods to ignore.
@@ -198,26 +198,26 @@ pub struct File {
 fn empty_vec<T>() -> Vec<T> { Vec::new() }
 
 impl File {
-    /// Read from I/O, under the assumption that it's in the "bindgen-jni.toml" file format.
+    /// Read from I/O, under the assumption that it's in the "jni-bindgen.toml" file format.
     pub fn read(file: &mut impl io::Read) -> io::Result<Self> {
         let mut buffer = String::new();
         file.read_to_string(&mut buffer)?; // Apparently toml can't stream.
         Self::read_str(&buffer[..])
     }
 
-    /// Read from a memory buffer, under the assumption that it's in the "bindgen-jni.toml" file format.
+    /// Read from a memory buffer, under the assumption that it's in the "jni-bindgen.toml" file format.
     pub fn read_str(buffer: &str) -> io::Result<Self> {
         let file : File = toml::from_str(buffer).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
         Ok(file)
     }
 
-    /// Search the current directory - or failing that, it's ancestors - until we find "bindgen-jni.toml" or reach the
+    /// Search the current directory - or failing that, it's ancestors - until we find "jni-bindgen.toml" or reach the
     /// filesystem and cannot continue.
     pub fn from_current_directory() -> io::Result<FileWithContext> {
         let cwd = std::env::current_dir()?;
         let mut path = cwd.clone();
         loop {
-            path.push("bindgen-jni.toml");
+            path.push("jni-bindgen.toml");
             println!("cargo:rerun-if-changed={}", path.display());
             if path.exists() {
                 let file = File::read(&mut fs::File::open(&path)?)?;
@@ -225,7 +225,7 @@ impl File {
                 return Ok(FileWithContext { file, directory: path });
             }
             if !path.pop() || !path.pop() {
-                Err(io::Error::new(io::ErrorKind::NotFound, format!("Failed to find bindgen-jni.toml in \"{}\" or any of it's parent directories.", cwd.display())))?;
+                Err(io::Error::new(io::ErrorKind::NotFound, format!("Failed to find jni-bindgen.toml in \"{}\" or any of it's parent directories.", cwd.display())))?;
             }
         }
     }
