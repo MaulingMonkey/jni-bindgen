@@ -13,6 +13,7 @@ use std::path::*;
 pub enum StaticEnvStyle {
     Explicit,
     Implicit,
+    #[doc(hidden)] __NonExhaustive,
 }
 
 impl Default for StaticEnvStyle {

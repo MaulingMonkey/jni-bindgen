@@ -44,6 +44,15 @@ signature = "(I)V"
 
 
 
+# https://developer.android.com/reference/java/lang/Long
+[[rename]]
+class       = "java/lang/Long"
+method      = "getLong"
+signature   = "(Ljava/lang/String;Ljava/lang/Long;)Ljava/lang/Long;"
+to          = "get_long_string_long_object"
+
+
+
 # https://developer.android.com/reference/java/net/URLConnection
 [[rename]]
 class     = "java/net/URLConnection"
@@ -170,3 +179,96 @@ class     = "android/media/AudioRecord"
 method    = "removeOnRoutingChangedListener"
 signature = "(Landroid/media/AudioTrack$OnRoutingChangedListener;)V"
 to        = "remove_on_routing_changed_audio_track_listener"
+
+
+
+# https://developer.android.com/reference/android/app/ActionBar.LayoutParams
+[[rename]]
+class       = "android/app/ActionBar$LayoutParams"
+method      = "<init>"
+signature   = "(Landroid/view/ViewGroup$LayoutParams;)V"
+to          = "new_view_group_layout_params"
+
+# https://developer.android.com/reference/android/widget/Toolbar.LayoutParams
+[[rename]]
+class       = "android/widget/Toolbar$LayoutParams"
+method      = "<init>"
+signature   = "(Landroid/app/ActionBar$LayoutParams;)V"
+to          = "new_action_bar_layout_params"
+
+[[rename]]
+class       = "android/widget/Toolbar$LayoutParams"
+method      = "<init>"
+signature   = "(Landroid/view/ViewGroup$MarginLayoutParams;)V"
+to          = "new_view_group_margin_layout_params"
+
+[[rename]]
+class       = "android/widget/Toolbar$LayoutParams"
+method      = "<init>"
+signature   = "(Landroid/view/ViewGroup$LayoutParams;)V"
+to          = "new_view_group_layout_params"
+
+# https://developer.android.com/reference/android/widget/RelativeLayout.LayoutParams
+[[rename]]
+class       = "android/widget/RelativeLayout$LayoutParams"
+method      = "<init>"
+signature   = "(Landroid/view/ViewGroup$MarginLayoutParams;)V"
+to          = "new_view_group_margin_layout_params"
+
+[[rename]]
+class       = "android/widget/RelativeLayout$LayoutParams"
+method      = "<init>"
+signature   = "(Landroid/view/ViewGroup$LayoutParams;)V"
+to          = "new_view_group_layout_params"
+
+# https://developer.android.com/reference/android/widget/LinearLayout.LayoutParams
+[[rename]]
+class       = "android/widget/LinearLayout$LayoutParams"
+method      = "<init>"
+signature   = "(Landroid/view/ViewGroup$MarginLayoutParams;)V"
+to          = "new_view_group_margin_layout_params"
+
+[[rename]]
+class       = "android/widget/LinearLayout$LayoutParams"
+method      = "<init>"
+signature   = "(Landroid/view/ViewGroup$LayoutParams;)V"
+to          = "new_view_group_layout_params"
+
+# https://developer.android.com/reference/android/widget/GridLayout.LayoutParams
+[[rename]]
+class       = "android/widget/GridLayout$LayoutParams"
+method      = "<init>"
+signature   = "(Landroid/view/ViewGroup$MarginLayoutParams;)V"
+to          = "new_view_group_margin_layout_params"
+
+[[rename]]
+class       = "android/widget/GridLayout$LayoutParams"
+method      = "<init>"
+signature   = "(Landroid/view/ViewGroup$LayoutParams;)V"
+to          = "new_view_group_layout_params"
+
+# https://developer.android.com/reference/android/widget/FrameLayout.LayoutParams
+[[rename]]
+class       = "android/widget/FrameLayout$LayoutParams"
+method      = "<init>"
+signature   = "(Landroid/view/ViewGroup$MarginLayoutParams;)V"
+to          = "new_view_group_margin_layout_params"
+
+[[rename]]
+class       = "android/widget/FrameLayout$LayoutParams"
+method      = "<init>"
+signature   = "(Landroid/view/ViewGroup$LayoutParams;)V"
+to          = "new_view_group_layout_params"
+
+# https://developer.android.com/reference/android/widget/ActionMenuView.LayoutParams
+[[rename]] # XXX: Doesn't actually take a margin layout params, remove this if I start adding warnings for catching this stuff.
+class       = "android/widget/ActionMenuView$LayoutParams"
+method      = "<init>"
+signature   = "(Landroid/view/ViewGroup$MarginLayoutParams;)V"
+to          = "new_view_group_margin_layout_params"
+
+[[rename]]
+class       = "android/widget/ActionMenuView$LayoutParams"
+method      = "<init>"
+signature   = "(Landroid/view/ViewGroup$LayoutParams;)V"
+to          = "new_view_group_layout_params"

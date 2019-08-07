@@ -34,7 +34,7 @@ pub struct Local<'env, Class: AsValidJObjectAndEnv> {
 // Do *not* implement Copy, cannot be safely done.
 
 impl<'env, Class: AsValidJObjectAndEnv> Local<'env, Class> {
-    pub unsafe fn from_object_lifetime_and_raw_env_obj(_: &'env impl AsValidJObjectAndEnv, env: *const JNIEnv, object: jobject) -> Self {
+    pub unsafe fn from_env_object(env: *const JNIEnv, object: jobject) -> Self {
         Self {
             oae: ObjectAndEnv { object, env },
             _env:   PhantomData,
