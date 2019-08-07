@@ -2,13 +2,27 @@ use super::*;
 use std::marker::*;
 use std::ops::*;
 
-pub trait PrimitiveArray<T> where Self : Sized, T : Clone + Default {
-    fn new(env: &Env, size: usize) -> Self;
-    fn from(env: &Env, elements: &[T]) -> Self;
+pub trait PrimitiveArray<T> where Self : Sized + AsValidJObjectAndEnv, T : Clone + Default {
+    /// Uses env.New{Type}Array to create a new java array containing "size" elements.
+    fn new<'env>(env: &'env Env, size: usize) -> Local<'env, Self>;
+
+    /// Uses env.GetArrayLength to get the length of the java array.
     fn len(&self) -> usize;
+
+    /// Uses env.Get{Type}ArrayRegion to read the contents of the java array from \[start .. start + elements.len())
     fn get_region(&self, start: usize, elements: &mut [T]);
+
+    /// Uses env.Set{Type}ArrayRegion to set the contents of the java array from \[start .. start + elements.len())
     fn set_region(&self, start: usize, elements: &[T]);
 
+    /// Uses env.New{Type}Array + Set{Type}ArrayRegion to create a new java array containing a copy of "elements".
+    fn from<'env>(env: &'env Env, elements: &[T]) -> Local<'env, Self> {
+        let array = Self::new(env, elements.len());
+        array.set_region(0, elements);
+        array
+    }
+
+    /// Uses env.GetArrayLength + env.Get{Type}ArrayRegion to read the contents of the java array from range into a new Vec.
     fn get_region_as_vec(&self, range: impl RangeBounds<usize>) -> Vec<T> {
         let len = self.len();
 
@@ -34,6 +48,7 @@ pub trait PrimitiveArray<T> where Self : Sized, T : Clone + Default {
         vec
     }
 
+    /// Uses env.GetArrayLength + env.Get{Type}ArrayRegion to read the contents of the entire java array into a new Vec.
     fn as_vec(&self) -> Vec<T> {
         self.get_region_as_vec(0..self.len())
     }
@@ -57,13 +72,14 @@ pub trait PrimitiveArray<T> where Self : Sized, T : Clone + Default {
 
 macro_rules! primitive_array {
     (#[repr(transparent)] pub struct $name:ident = $type:ident { $new_array:ident $set_region:ident $get_region:ident } ) => {
+        /// A [PrimitiveArray](trait.PrimitiveArray.html) implementation.
         #[repr(transparent)] pub struct $name(ObjectAndEnv);
 
         unsafe impl AsValidJObjectAndEnv for $name {}
         unsafe impl AsJValue for $name { fn as_jvalue(&self) -> jni_sys::jvalue { jni_sys::jvalue { l: self.0.object } } }
 
         impl PrimitiveArray<$type> for $name {
-            fn new(env: &Env, size: usize) -> Self {
+            fn new<'env>(env: &'env Env, size: usize) -> Local<'env, Self> {
                 assert!(size <= std::i32::MAX as usize); // jsize == jint == i32
                 let size = size as jsize;
                 let env = env.as_jni_env();
@@ -71,11 +87,11 @@ macro_rules! primitive_array {
                     let object = (**env).$new_array.unwrap()(env, size);
                     let exception = (**env).ExceptionOccurred.unwrap()(env);
                     assert!(exception.is_null()); // Only sane exception here is an OOM exception
-                    Self(ObjectAndEnv { object, env })
+                    Local::from_env_object(env, object)
                 }
             }
 
-            fn from(env: &Env, elements: &[$type]) -> Self {
+            fn from<'env>(env: &'env Env, elements: &[$type]) -> Local<'env, Self> {
                 let array  = Self::new(env, elements.len());
                 let size   = elements.len() as jsize;
                 let env    = array.0.env as *mut JNIEnv;
