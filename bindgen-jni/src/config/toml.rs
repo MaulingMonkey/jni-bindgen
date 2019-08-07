@@ -8,7 +8,7 @@ use std::path::*;
 
 
 
-/// A \[\[documentation.patterns\]\] section.
+/// A \[\[documentation.pattern\]\] section.
 #[derive(Debug, Clone, Deserialize)]
 pub struct DocumentationPattern {
     /// The URL to use for documenting a given class.  `{PATH}` will be replaced with everything *after* the JNI prefix.
@@ -39,7 +39,7 @@ pub struct DocumentationPattern {
 #[derive(Debug, Clone, Deserialize, Default)]
 pub struct Documentation {
     /// Documentation sources.  Processed from top to bottom.
-    #[serde(default = "Vec::new")]
+    #[serde(rename = "pattern")] #[serde(default = "Vec::new")]
     pub patterns: Vec<DocumentationPattern>,
 }
 
@@ -96,13 +96,13 @@ pub struct Rename {
 /// [logging]
 /// verbose = true
 /// 
-/// [[documentation.patterns]]
+/// [[documentation.pattern]]
 /// url_pattern             = "https://docs.oracle.com/javase/7/docs/api/index.html?java/{PATH}.html"
 /// jni_prefix              = "java/"
 /// namespace_separator     = "/"
 /// inner_class_seperator   = "."
 /// 
-/// [[documentation.patterns]]
+/// [[documentation.pattern]]
 /// url_pattern             = "https://developer.android.com/reference/kotlin/{PATH}.html"
 /// jni_prefix              = ""
 /// namespace_separator     = "/"
@@ -218,13 +218,13 @@ impl File {
         [logging]
         verbose = true
 
-        [[documentation.patterns]]
+        [[documentation.pattern]]
         url_pattern             = "https://docs.oracle.com/javase/7/docs/api/index.html?java/{PATH}.html"
         jni_prefix              = "java/"
         namespace_separator     = "/"
         inner_class_seperator   = "."
 
-        [[documentation.patterns]]
+        [[documentation.pattern]]
         url_pattern             = "https://developer.android.com/reference/kotlin/{PATH}.html"
 
         [input]

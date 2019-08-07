@@ -1,4 +1,4 @@
-[[documentation.patterns]]
+[[documentation.pattern]]
 url_pattern = "https://developer.android.com/reference/{PATH}.html"
 
 [input]
