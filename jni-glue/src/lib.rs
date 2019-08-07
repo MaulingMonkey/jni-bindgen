@@ -40,6 +40,7 @@ mod refs {
 }
 
 mod __bindgen_jni;
+mod array;
 mod as_jvalue;
 mod as_valid_jobject_and_env;
 mod env;
@@ -48,6 +49,7 @@ mod object_and_env;
 mod result;
 mod vm;
 
+pub use array::*;
 pub use as_jvalue::*;
 pub use as_valid_jobject_and_env::*;
 pub use env::*;

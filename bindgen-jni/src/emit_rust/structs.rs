@@ -137,7 +137,6 @@ impl Struct {
 
             let mut params_array = String::new();
             let mut params_decl  = String::from(if static_ || constructor { "" } else { "&'env self" });
-            let mut ret_is_object = false;
             let mut ret_decl = String::new();
             let mut ret_method_fragment = "";
             let descriptor = if let Ok(d) = JniDescriptor::new(descriptor) {
@@ -155,7 +154,10 @@ impl Struct {
                         let mut param_is_object = false; // XXX
 
                         let arg_type = match parameter {
-                            JniField::Single(JniBasicType::Void)        => "()".to_owned(), // XXX: Shouldn't happen?
+                            JniField::Single(JniBasicType::Void) => {
+                                emit_reject_reasons.push("Void arguments aren't a thing");
+                                "???".to_owned()
+                            },
                             JniField::Single(JniBasicType::Boolean)     => "bool".to_owned(),
                             JniField::Single(JniBasicType::Byte)        => "i8".to_owned(),
                             JniField::Single(JniBasicType::Char)        => "__bindgen_jni::jchar".to_owned(),
@@ -167,7 +169,7 @@ impl Struct {
                             JniField::Single(JniBasicType::Class(class)) => {
                                 param_is_object = true;
                                 match context.java_to_rust_path(class) {
-                                    // TODO: Should this take an Option?
+                                    // TODO: Should this take an Option?  Probably...
                                     Ok(path) => format!("&impl __bindgen_jni::std::convert::AsRef<{}>", path),
                                     Err(_) => {
                                         emit_reject_reasons.push("Failed to resolve JNI path to Rust path for argument type");
@@ -175,7 +177,21 @@ impl Struct {
                                     }
                                 }
                             },
+                            JniField::Array { levels: 1, inner: JniBasicType::Void      } => {
+                                emit_reject_reasons.push("Accepting arrays of void isn't a thing");
+                                "???".to_owned()
+                            }
+                            // TODO: Should these take an Option?  Probably...
+                            JniField::Array { levels: 1, inner: JniBasicType::Boolean   } => { param_is_object = true; "&impl __bindgen_jni::std::convert::AsRef<__bindgen_jni::BooleanArray>".to_owned() },
+                            JniField::Array { levels: 1, inner: JniBasicType::Byte      } => { param_is_object = true; "&impl __bindgen_jni::std::convert::AsRef<__bindgen_jni::ByteArray   >".to_owned() },
+                            JniField::Array { levels: 1, inner: JniBasicType::Char      } => { param_is_object = true; "&impl __bindgen_jni::std::convert::AsRef<__bindgen_jni::CharArray   >".to_owned() },
+                            JniField::Array { levels: 1, inner: JniBasicType::Short     } => { param_is_object = true; "&impl __bindgen_jni::std::convert::AsRef<__bindgen_jni::ShortArray  >".to_owned() },
+                            JniField::Array { levels: 1, inner: JniBasicType::Int       } => { param_is_object = true; "&impl __bindgen_jni::std::convert::AsRef<__bindgen_jni::IntArray    >".to_owned() },
+                            JniField::Array { levels: 1, inner: JniBasicType::Long      } => { param_is_object = true; "&impl __bindgen_jni::std::convert::AsRef<__bindgen_jni::LongArray   >".to_owned() },
+                            JniField::Array { levels: 1, inner: JniBasicType::Float     } => { param_is_object = true; "&impl __bindgen_jni::std::convert::AsRef<__bindgen_jni::FloatArray  >".to_owned() },
+                            JniField::Array { levels: 1, inner: JniBasicType::Double    } => { param_is_object = true; "&impl __bindgen_jni::std::convert::AsRef<__bindgen_jni::DoubleArray >".to_owned() },
                             JniField::Array { .. } => {
+                                param_is_object = true;
                                 emit_reject_reasons.push("Passing in arrays not yet supported");
                                 format!("{:?}", parameter)
                             },
@@ -211,7 +227,6 @@ impl Struct {
                             JniField::Single(JniBasicType::Float)       => "f32".to_owned(),
                             JniField::Single(JniBasicType::Double)      => "f64".to_owned(),
                             JniField::Single(JniBasicType::Class(class)) => {
-                                ret_is_object = true;
                                 match context.java_to_rust_path(class) {
                                     Ok(path) => format!("__bindgen_jni::std::option::Option<__bindgen_jni::Local<'env, {}>>", path),
                                     Err(_) => {
@@ -220,9 +235,20 @@ impl Struct {
                                     },
                                 }
                             },
+                            JniField::Array { levels: 1, inner: JniBasicType::Void      } => {
+                                emit_reject_reasons.push("Returning arrays of void isn't a thing");
+                                "???".to_owned()
+                            }
+                            JniField::Array { levels: 1, inner: JniBasicType::Boolean   } => "__bindgen_jni::std::option::Option<__bindgen_jni::Local<'env, __bindgen_jni::BooleanArray>>".to_owned(),
+                            JniField::Array { levels: 1, inner: JniBasicType::Byte      } => "__bindgen_jni::std::option::Option<__bindgen_jni::Local<'env, __bindgen_jni::ByteArray   >>".to_owned(),
+                            JniField::Array { levels: 1, inner: JniBasicType::Char      } => "__bindgen_jni::std::option::Option<__bindgen_jni::Local<'env, __bindgen_jni::CharArray   >>".to_owned(),
+                            JniField::Array { levels: 1, inner: JniBasicType::Short     } => "__bindgen_jni::std::option::Option<__bindgen_jni::Local<'env, __bindgen_jni::ShortArray  >>".to_owned(),
+                            JniField::Array { levels: 1, inner: JniBasicType::Int       } => "__bindgen_jni::std::option::Option<__bindgen_jni::Local<'env, __bindgen_jni::IntArray    >>".to_owned(),
+                            JniField::Array { levels: 1, inner: JniBasicType::Long      } => "__bindgen_jni::std::option::Option<__bindgen_jni::Local<'env, __bindgen_jni::LongArray   >>".to_owned(),
+                            JniField::Array { levels: 1, inner: JniBasicType::Float     } => "__bindgen_jni::std::option::Option<__bindgen_jni::Local<'env, __bindgen_jni::FloatArray  >>".to_owned(),
+                            JniField::Array { levels: 1, inner: JniBasicType::Double    } => "__bindgen_jni::std::option::Option<__bindgen_jni::Local<'env, __bindgen_jni::DoubleArray >>".to_owned(),
                             JniField::Array { .. } => {
-                                ret_is_object = true;
-                                emit_reject_reasons.push("Returning arrays not yet supported");
+                                emit_reject_reasons.push("Returning arrays of objects or arrays not yet supported");
                                 format!("{:?}", ret)
                             }
                         };
@@ -244,12 +270,13 @@ impl Struct {
                 }
             }
 
+            let ret_is_object = ret_method_fragment == "Object";
+
             if constructor && ret_method_fragment != "Void" { emit_reject_reasons.push("Constructor should've returned void"); }
 
             let indent = if !emit_reject_reasons.is_empty() {
                 format!("{}        // ", indent)
             } else {
-                //format!("{}        // ", indent) // XXX
                 format!("{}        ", indent)
             };
             let access = if public { "pub " } else { "" };
@@ -303,7 +330,6 @@ impl Struct {
             }
             writeln!(out, "{}    }}", indent)?;
 
-            // TODO: Finish writing method body
             writeln!(out, "{}}}", indent)?;
         }
 
