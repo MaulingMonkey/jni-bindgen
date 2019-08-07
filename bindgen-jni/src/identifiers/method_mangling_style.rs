@@ -106,6 +106,8 @@ impl std::fmt::Display for MethodManglingError { fn fmt(&self, fmt: &mut std::fm
         ("<init>", "()V",                   "new",    "new",           "new",                     "new_3",                     "new",     "new",            "new",                      "new_3"                     ),
         ("<init>", "(I)V",                  "new",    "new_int",       "new_int",                 "new_int_3",                 "new",     "new_int",        "new_int",                  "new_int_3"                 ),
         ("<init>", "(Ljava/lang/Object;)V", "new",    "new_Object",    "new_java_lang_Object",    "new_java_lang_Object_3",    "new",     "new_object",     "new_java_lang_object",     "new_java_lang_object_3"    ),
+        // TODO: get1DFoo
+        // TODO: array types (primitive + non-primitive)
     ] {
         assert_eq!(MethodManglingStyle::Java                            .mangle(name, sig).unwrap(), java);
         assert_eq!(MethodManglingStyle::JavaShortSignature              .mangle(name, sig).unwrap(), java_short);
@@ -177,8 +179,34 @@ fn short_sig(signature: &str) -> String {
                             buffer.push_str("_unknown");
                         }
                     },
-                    JniField::Array { .. } => {
-                        buffer.push_str("_array");
+                    JniField::Array { levels, inner } => {
+                        match inner {
+                            JniBasicType::Boolean   => { buffer.push_str("_boolean");   },
+                            JniBasicType::Byte      => { buffer.push_str("_byte");      },
+                            JniBasicType::Char      => { buffer.push_str("_char");      },
+                            JniBasicType::Double    => { buffer.push_str("_double");    },
+                            JniBasicType::Float     => { buffer.push_str("_float");     },
+                            JniBasicType::Int       => { buffer.push_str("_int");       },
+                            JniBasicType::Long      => { buffer.push_str("_long");      },
+                            JniBasicType::Short     => { buffer.push_str("_short");     },
+                            JniBasicType::Void      => { buffer.push_str("_void");      },
+                            JniBasicType::Class(cl) => {
+                                for component in JniPathIter::new(cl) {
+                                    match component {
+                                        JniIdentifier::Namespace(_) => {},
+                                        JniIdentifier::ContainingClass(_) => {},
+                                        JniIdentifier::LeafClass(cls) => {
+                                            buffer.push('_');
+                                            buffer.push_str(cls);
+                                        },
+                                    }
+                                }
+                            },
+                        }
+
+                        for _ in 0..levels {
+                            buffer.push_str("_array");
+                        }
                     }
                 }
             },
