@@ -1,3 +1,5 @@
+use super::*;
+
 #[doc(hidden)] // You should generally not be interacting with this type directly, but it must be public for codegen.
 /// This is hideously unsafe to implement:
 /// 
@@ -7,4 +9,4 @@
 ///     2.2) Do not allow value access.
 ///     2.3) Do not allow &mut T access.
 ///     2.4) Only allow &T access, which cannot be moved from.
-pub unsafe trait AsValidJObjectAndEnv {}
+pub unsafe trait AsValidJObjectAndEnv: AsJValue {}

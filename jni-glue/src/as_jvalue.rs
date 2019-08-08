@@ -14,3 +14,12 @@ unsafe impl AsJValue for jlong      { fn as_jvalue(&self) -> jvalue { jvalue { j
 unsafe impl AsJValue for jfloat     { fn as_jvalue(&self) -> jvalue { jvalue { f: *self } } }
 unsafe impl AsJValue for jdouble    { fn as_jvalue(&self) -> jvalue { jvalue { d: *self } } }
 //unsafe impl AsJValue for jobject  { fn as_jvalue(&self) -> jvalue { jvalue { l: *self } } } // do NOT implement, no guarantee any given jobject is actually safe!
+
+unsafe impl<T: AsValidJObjectAndEnv> AsJValue for Option<&T> {
+    fn as_jvalue(&self) -> jvalue {
+        match self {
+            None => jvalue { l: null_mut() },
+            Some(inner) => inner.as_jvalue(),
+        }
+    }
+}

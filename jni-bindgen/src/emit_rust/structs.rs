@@ -45,7 +45,6 @@ impl Struct {
             "()".to_owned() // This might only happen for java.lang.Object
         };
 
-        // TODO:  Eventually move macro codegen into the mod so multiple classes can be collapsed.
         writeln!(out, "{}__jni_bindgen! {{", indent)?;
         if let Some(url) = KnownDocsUrl::from_class(context, &self.java_class.this_class().name()) {
             writeln!(out, "{}    /// {} {} [{}]({})", indent, visibility, keyword, url.label, url.url)?;
@@ -126,7 +125,6 @@ impl Struct {
             if !public      { emit_reject_reasons.push("Non-public method"); }
             if varargs      { emit_reject_reasons.push("Marked as varargs - haven't decided on how I want to handle this."); }
             if bridge       { emit_reject_reasons.push("Bridge method - type erasure"); }
-            //if overloaded   { emit_reject_reasons.push("Overloaded - I haven't decided how I want to deconflict overloads."); }
             if static_init  { emit_reject_reasons.push("Static class constructor - never needs to be called by Rust."); }
             if ignored      { emit_reject_reasons.push("[[ignore]]d"); }
 
@@ -184,8 +182,7 @@ impl Struct {
                             JniField::Single(JniBasicType::Class(class)) => {
                                 param_is_object = true;
                                 match context.java_to_rust_path(class) {
-                                    // TODO: Should this take an Option?  Probably...
-                                    Ok(path) => format!("&impl __jni_bindgen::std::convert::AsRef<{}>", path),
+                                    Ok(path) => format!("impl __jni_bindgen::std::convert::Into<__jni_bindgen::std::option::Option<&'env {}>>", path),
                                     Err(_) => {
                                         emit_reject_reasons.push("Failed to resolve JNI path to Rust path for argument type");
                                         format!("{:?}", class)
@@ -196,18 +193,17 @@ impl Struct {
                                 emit_reject_reasons.push("Accepting arrays of void isn't a thing");
                                 "???".to_owned()
                             }
-                            // TODO: Should these take an Option?  Probably...
-                            JniField::Array { levels: 1, inner: JniBasicType::Boolean   } => { param_is_object = true; "&impl __jni_bindgen::std::convert::AsRef<__jni_bindgen::BooleanArray>".to_owned() },
-                            JniField::Array { levels: 1, inner: JniBasicType::Byte      } => { param_is_object = true; "&impl __jni_bindgen::std::convert::AsRef<__jni_bindgen::ByteArray   >".to_owned() },
-                            JniField::Array { levels: 1, inner: JniBasicType::Char      } => { param_is_object = true; "&impl __jni_bindgen::std::convert::AsRef<__jni_bindgen::CharArray   >".to_owned() },
-                            JniField::Array { levels: 1, inner: JniBasicType::Short     } => { param_is_object = true; "&impl __jni_bindgen::std::convert::AsRef<__jni_bindgen::ShortArray  >".to_owned() },
-                            JniField::Array { levels: 1, inner: JniBasicType::Int       } => { param_is_object = true; "&impl __jni_bindgen::std::convert::AsRef<__jni_bindgen::IntArray    >".to_owned() },
-                            JniField::Array { levels: 1, inner: JniBasicType::Long      } => { param_is_object = true; "&impl __jni_bindgen::std::convert::AsRef<__jni_bindgen::LongArray   >".to_owned() },
-                            JniField::Array { levels: 1, inner: JniBasicType::Float     } => { param_is_object = true; "&impl __jni_bindgen::std::convert::AsRef<__jni_bindgen::FloatArray  >".to_owned() },
-                            JniField::Array { levels: 1, inner: JniBasicType::Double    } => { param_is_object = true; "&impl __jni_bindgen::std::convert::AsRef<__jni_bindgen::DoubleArray >".to_owned() },
+                            JniField::Array { levels: 1, inner: JniBasicType::Boolean   } => { param_is_object = true; "impl __jni_bindgen::std::convert::Into<__jni_bindgen::std::option::Option<&'env __jni_bindgen::BooleanArray>>".to_owned() },
+                            JniField::Array { levels: 1, inner: JniBasicType::Byte      } => { param_is_object = true; "impl __jni_bindgen::std::convert::Into<__jni_bindgen::std::option::Option<&'env __jni_bindgen::ByteArray   >>".to_owned() },
+                            JniField::Array { levels: 1, inner: JniBasicType::Char      } => { param_is_object = true; "impl __jni_bindgen::std::convert::Into<__jni_bindgen::std::option::Option<&'env __jni_bindgen::CharArray   >>".to_owned() },
+                            JniField::Array { levels: 1, inner: JniBasicType::Short     } => { param_is_object = true; "impl __jni_bindgen::std::convert::Into<__jni_bindgen::std::option::Option<&'env __jni_bindgen::ShortArray  >>".to_owned() },
+                            JniField::Array { levels: 1, inner: JniBasicType::Int       } => { param_is_object = true; "impl __jni_bindgen::std::convert::Into<__jni_bindgen::std::option::Option<&'env __jni_bindgen::IntArray    >>".to_owned() },
+                            JniField::Array { levels: 1, inner: JniBasicType::Long      } => { param_is_object = true; "impl __jni_bindgen::std::convert::Into<__jni_bindgen::std::option::Option<&'env __jni_bindgen::LongArray   >>".to_owned() },
+                            JniField::Array { levels: 1, inner: JniBasicType::Float     } => { param_is_object = true; "impl __jni_bindgen::std::convert::Into<__jni_bindgen::std::option::Option<&'env __jni_bindgen::FloatArray  >>".to_owned() },
+                            JniField::Array { levels: 1, inner: JniBasicType::Double    } => { param_is_object = true; "impl __jni_bindgen::std::convert::Into<__jni_bindgen::std::option::Option<&'env __jni_bindgen::DoubleArray >>".to_owned() },
                             JniField::Array { .. } => {
                                 param_is_object = true;
-                                emit_reject_reasons.push("Passing in arrays not yet supported");
+                                emit_reject_reasons.push("Passing in arrays of arrays/objects is not yet supported");
                                 format!("{:?}", parameter)
                             },
                         };
@@ -217,9 +213,9 @@ impl Struct {
                         }
 
                         params_array.push_str("__jni_bindgen::AsJValue::as_jvalue(");
-                        if !param_is_object { params_array.push_str("&"); }
+                        params_array.push_str("&");
                         params_array.push_str(arg_name.as_str());
-                        if param_is_object { params_array.push_str(".as_ref()"); }
+                        if param_is_object { params_array.push_str(".into()"); }
                         params_array.push_str(")");
 
                         if !params_decl.is_empty() {
