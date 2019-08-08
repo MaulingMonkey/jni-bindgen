@@ -32,7 +32,7 @@ public class MainActivity extends AppCompatActivity {
 
 ### main_activity.rs
 
-```rs
+```rust
 use jni_sys::{jboolean, jobject, JNI_TRUE};
 use jni_glue::{Argument, Env};
 use jni_android_sys::android::view::KeyEvent;
