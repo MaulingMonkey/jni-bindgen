@@ -1,6 +1,6 @@
 # jni-bindgen
 
-**Work in progress, not yet usable**
+**Work in progress, only barely kinda partially usable**
 
 Vaguely inspired by, but otherwise unrelated to, [bindgen](https://github.com/rust-lang/rust-bindgen) and
 [wasm-bindgen](https://github.com/rustwasm/wasm-bindgen)'s WebIDL stuff.
