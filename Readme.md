@@ -1,5 +1,19 @@
 # jni-bindgen
 
+[![GitHub](https://img.shields.io/github/stars/MaulingMonkey/jni-bindgen.svg?label=GitHub&style=social)](https://github.com/MaulingMonkey/jni-bindgen)
+[![Build Status](https://travis-ci.org/MaulingMonkey/jni-bindgen.svg)](https://travis-ci.org/MaulingMonkey/jni-bindgen)
+![unsafe: yes](https://img.shields.io/badge/unsafe-yes-yellow.svg)
+![rust: 1.36.0+](https://img.shields.io/badge/rust-1.36.0%2B-green.svg)
+[![Open issues](https://img.shields.io/github/issues-raw/MaulingMonkey/jni-bindgen.svg)](https://github.com/MaulingMonkey/jni-bindgen/issues)
+[![License](https://img.shields.io/crates/l/jni-bindgen.svg)](https://github.com/MaulingMonkey/jni-bindgen)
+[![dependency status](https://deps.rs/repo/github/MaulingMonkey/jni-bindgen/status.svg)](https://deps.rs/repo/github/MaulingMonkey/jni-bindgen)
+
+| [github.com](https://github.com)                                                              | [crates.io](https://crates.io)                                                                                | [docs.rs](https://docs.rs)                                                                |
+| --------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| [jni-android-sys](https://github.com/MaulingMonkey/jni-bindgen/tree/master/jni-android-sys)   | [![Crates.io](https://img.shields.io/crates/v/jni-android-sys.svg)](https://crates.io/crates/jni-android-sys) | [![Docs](https://docs.rs/jni-android-sys/badge.svg)](https://docs.rs/jni-android-sys/)    |
+| [jni-bindgen](https://github.com/MaulingMonkey/jni-bindgen/tree/master/jni-bindgen)           | [![Crates.io](https://img.shields.io/crates/v/jni-bindgen.svg)](https://crates.io/crates/jni-bindgen)         | [![Docs](https://docs.rs/jni-bindgen/badge.svg)](https://docs.rs/jni-bindgen/)            |
+| [jni-glue](https://github.com/MaulingMonkey/jni-bindgen/tree/master/jni-glue)                 | [![Crates.io](https://img.shields.io/crates/v/jni-glue.svg)](https://crates.io/crates/jni-glue)               | [![Docs](https://docs.rs/jni-glue/badge.svg)](https://docs.rs/jni-glue/)                  |
+
 **Work in progress, only barely kinda partially usable**
 
 Vaguely inspired by, but otherwise unrelated to, [bindgen](https://github.com/rust-lang/rust-bindgen) and
