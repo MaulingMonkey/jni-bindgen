@@ -51,16 +51,32 @@ impl Default for CodeGen {
     }
 }
 
+fn default_empty()  -> String { String::new() }
+fn default_slash()  -> String { String::from("/") }
+fn default_period() -> String { String::from(".") }
+fn default_comma()  -> String { String::from(",") }
+
 /// A \[\[documentation.pattern\]\] section.
 #[derive(Debug, Clone, Deserialize)]
 pub struct DocumentationPattern {
-    /// The URL to use for documenting a given class.  `{PATH}` will be replaced with everything *after* the JNI prefix.
+    /// The URL to use for documenting a given class.  `{CLASS}` will be replaced with everything *after* the JNI prefix.
     /// 
     /// | Given:                | Use this if you want android documentation:   |
     /// | --------------------- | --------------------------------------------- |
-    /// | jni_prefix = "java/"  | url_pattern = "https://developer.android.com/reference/kotlin/java/{PATH}.html"
-    /// | jni_prefix = ""       | url_pattern = "https://developer.android.com/reference/kotlin/{PATH}.html"
-    pub url_pattern:            String,
+    /// | jni_prefix = "java/"  | url_pattern = "https://developer.android.com/reference/java/{CLASS}.html"
+    /// | jni_prefix = ""       | url_pattern = "https://developer.android.com/reference/{CLASS}.html"
+    pub class_url_pattern: String,
+
+    /// The URL to use for documenting a given class method.
+    /// `{CLASS}` will be replaced with everything *after* the JNI prefix.
+    /// `{METHOD}` will be replaced with the method name.
+    /// `{ARGUMENTS}` will be replaced with the method arguments.
+    /// 
+    /// | Given:                | Use this if you want android documentation:   |
+    /// | --------------------- | --------------------------------------------- |
+    /// | jni_prefix = "java/"  | url_pattern = "https://developer.android.com/reference/java/{CLASS}.html#{METHOD}({ARGUMENTS})"
+    /// | jni_prefix = ""       | url_pattern = "https://developer.android.com/reference/{CLASS}.html#{METHOD}({ARGUMENTS})"
+    pub method_url_pattern: Option<String>,
 
     /// What java class(es) to match against.  This takes the form of a simple prefix to a JNI path with no wildcards.
     /// 
@@ -69,13 +85,28 @@ pub struct DocumentationPattern {
     /// | *                         | jni_prefix = ""
     /// | java.lang.*               | jni_prefix = "java/lang/"
     /// | name.spaces.OuterClass.*  | jni_prefix = "name/spaces/OuterClass$"
-    pub jni_prefix:             Option<String>,
+    #[serde(default = "default_empty")]
+    pub jni_prefix: String,
 
-    /// What to use in URLs to seperate namespaces.  Defaults to "/".
-    pub namespace_separator:    Option<String>,
+    /// What to use in the {CLASS} portion of URLs to seperate namespaces.  Defaults to "/".
+    #[serde(default = "default_slash")]
+    pub class_namespace_separator: String,
 
-    /// What to use in URLs to seperate inner classes from outer classes.  Defaults to ".".
-    pub inner_class_seperator:  Option<String>,
+    /// What to use in the {CLASS} portion of URLs to seperate inner classes from outer classes.  Defaults to ".".
+    #[serde(default = "default_period")]
+    pub class_inner_class_seperator: String,
+
+    /// What to use in the {ARGUMENTS} portion of URLs to seperate namespaces.  Defaults to ".".
+    #[serde(default = "default_period")]
+    pub method_namespace_separator: String,
+
+    /// What to use in the {ARGUMENTS} portion of URLs to seperate inner classes from outer classes.  Defaults to ".".
+    #[serde(default = "default_period")]
+    pub method_inner_class_seperator: String,
+
+    /// What to use in the {ARGUMENTS} portion of URLs to seperate inner classes from outer classes.  Defaults to ",".
+    #[serde(default = "default_comma")]
+    pub method_argument_seperator: String,
 }
 
 /// The \[documentation\] section.
@@ -148,13 +179,13 @@ pub struct Rename {
 /// verbose = true
 /// 
 /// [[documentation.pattern]]
-/// url_pattern             = "https://docs.oracle.com/javase/7/docs/api/index.html?java/{PATH}.html"
+/// class_url_pattern       = "https://docs.oracle.com/javase/7/docs/api/index.html?java/{PATH}.html"
 /// jni_prefix              = "java/"
 /// namespace_separator     = "/"
 /// inner_class_seperator   = "."
 /// 
 /// [[documentation.pattern]]
-/// url_pattern             = "https://developer.android.com/reference/kotlin/{PATH}.html"
+/// class_url_pattern       = "https://developer.android.com/reference/kotlin/{PATH}.html"
 /// jni_prefix              = ""
 /// namespace_separator     = "/"
 /// inner_class_seperator   = "."
@@ -278,13 +309,13 @@ impl File {
         verbose = true
 
         [[documentation.pattern]]
-        url_pattern             = "https://docs.oracle.com/javase/7/docs/api/index.html?java/{PATH}.html"
-        jni_prefix              = "java/"
-        namespace_separator     = "/"
-        inner_class_seperator   = "."
+        class_url_pattern             = "https://docs.oracle.com/javase/7/docs/api/index.html?java/{CLASS}.html"
+        jni_prefix                    = "java/"
+        class_namespace_separator     = "/"
+        class_inner_class_seperator   = "."
 
         [[documentation.pattern]]
-        url_pattern             = "https://developer.android.com/reference/kotlin/{PATH}.html"
+        class_url_pattern             = "https://developer.android.com/reference/kotlin/{CLASS}.html"
 
         [input]
         files = [
@@ -335,15 +366,15 @@ impl File {
 
     assert_eq!(file.documentation.patterns.len(), 2);
 
-    assert_eq!(file.documentation.patterns[0].url_pattern,            "https://docs.oracle.com/javase/7/docs/api/index.html?java/{PATH}.html");
-    assert_eq!(file.documentation.patterns[0].jni_prefix,             Some("java/".to_owned()));
-    assert_eq!(file.documentation.patterns[0].namespace_separator,    Some("/".to_owned()));
-    assert_eq!(file.documentation.patterns[0].inner_class_seperator,  Some(".".to_owned()));
+    assert_eq!(file.documentation.patterns[0].class_url_pattern,            "https://docs.oracle.com/javase/7/docs/api/index.html?java/{CLASS}.html");
+    assert_eq!(file.documentation.patterns[0].jni_prefix,                   "java/");
+    assert_eq!(file.documentation.patterns[0].class_namespace_separator,    "/");
+    assert_eq!(file.documentation.patterns[0].class_inner_class_seperator,  ".");
 
-    assert_eq!(file.documentation.patterns[1].url_pattern,            "https://developer.android.com/reference/kotlin/{PATH}.html"           );
-    assert_eq!(file.documentation.patterns[1].jni_prefix,             None);
-    assert_eq!(file.documentation.patterns[1].namespace_separator,    None);
-    assert_eq!(file.documentation.patterns[1].inner_class_seperator,  None);
+    assert_eq!(file.documentation.patterns[1].class_url_pattern,            "https://developer.android.com/reference/kotlin/{CLASS}.html"           );
+    assert_eq!(file.documentation.patterns[1].jni_prefix,                   "");
+    assert_eq!(file.documentation.patterns[1].class_namespace_separator,    "/");
+    assert_eq!(file.documentation.patterns[1].class_inner_class_seperator,  ".");
 
     assert_eq!(file.input.files, &[Path::new("%LOCALAPPDATA%/Android/Sdk/platforms/android-28/android.jar")]);
     assert_eq!(file.output.path, Path::new("android28.rs"));

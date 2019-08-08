@@ -1,5 +1,7 @@
 [[documentation.pattern]]
-url_pattern = "https://developer.android.com/reference/{PATH}.html"
+class_url_pattern = "https://developer.android.com/reference/{CLASS}.html"
+method_url_pattern = "https://developer.android.com/reference/{CLASS}.html#{METHOD}({ARGUMENTS})"
+method_argument_seperator = ",%2520"
 
 [input]
 files = [] # Specified by build.rs

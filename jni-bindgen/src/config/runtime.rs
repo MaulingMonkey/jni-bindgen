@@ -9,19 +9,27 @@ use std::path::*;
 
 
 pub(crate) struct DocPattern {
-    pub(crate) url_pattern:             String,
-    pub(crate) jni_prefix:              String,
-    pub(crate) namespace_separator:     String,
-    pub(crate) inner_class_seperator:   String,
+    pub(crate) class_url_pattern:               String,
+    pub(crate) method_url_pattern:              Option<String>,
+    pub(crate) jni_prefix:                      String,
+    pub(crate) class_namespace_separator:       String,
+    pub(crate) class_inner_class_seperator:     String,
+    pub(crate) method_namespace_separator:      String,
+    pub(crate) method_inner_class_seperator:    String,
+    pub(crate) method_argument_seperator:       String,
 }
 
 impl From<toml::DocumentationPattern> for DocPattern {
     fn from(file: toml::DocumentationPattern) -> Self {
         Self {
-            url_pattern:            file.url_pattern,
-            jni_prefix:             file.jni_prefix             .unwrap_or(String::from("")),
-            namespace_separator:    file.namespace_separator    .unwrap_or(String::from("/")),
-            inner_class_seperator:  file.inner_class_seperator  .unwrap_or(String::from(".")),
+            class_url_pattern:              file.class_url_pattern,
+            method_url_pattern:             file.method_url_pattern,
+            jni_prefix:                     file.jni_prefix,
+            class_namespace_separator:      file.class_namespace_separator,
+            class_inner_class_seperator:    file.class_inner_class_seperator,
+            method_namespace_separator:     file.method_namespace_separator,
+            method_inner_class_seperator:   file.method_inner_class_seperator,
+            method_argument_seperator:      file.method_argument_seperator,
         }
     }
 }

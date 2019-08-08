@@ -47,7 +47,7 @@ impl Struct {
 
         // TODO:  Eventually move macro codegen into the mod so multiple classes can be collapsed.
         writeln!(out, "{}__jni_bindgen! {{", indent)?;
-        if let Some(url) = KnownDocsUrl::from(context, &self.java_class) {
+        if let Some(url) = KnownDocsUrl::from_class(context, &self.java_class.this_class().name()) {
             writeln!(out, "{}    /// {} {} [{}]({})", indent, visibility, keyword, url.label, url.url)?;
         }
         write!(out, "{}    {} {} {} extends {}", indent, visibility, keyword, &self.rust_struct_name, super_class)?;
@@ -309,6 +309,9 @@ impl Struct {
             writeln!(out, "")?;
             for reason in &emit_reject_reasons {
                 writeln!(out, "{}// Not emitting: {}", indent, reason)?;
+            }
+            if let Some(url) = KnownDocsUrl::from_method(context, self.java_class.this_class().name(), method.name(), method.descriptor()) {
+                writeln!(out, "{}/// [{}]({})", indent, url.label, url.url)?;
             }
             writeln!(out, "{}{}fn {}<'env>({}) -> __jni_bindgen::Result<{}> {{", indent, access, method_name, params_decl, ret_decl)?;
             writeln!(out, "{}    // class.name() == {:?}, method.access_flags() == {:?}, .name() == {:?}, .descriptor() == {:?}", indent, self.java_class.this_class().name(), method.access_flags(), method.name(), method.descriptor())?;
