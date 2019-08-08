@@ -269,27 +269,27 @@ impl Struct {
                         };
 
                         ret_method_fragment = match ret {
-                            JniField::Single(JniBasicType::Void)        => "Void",
-                            JniField::Single(JniBasicType::Boolean)     => "Boolean",
-                            JniField::Single(JniBasicType::Byte)        => "Byte",
-                            JniField::Single(JniBasicType::Char)        => "Char",
-                            JniField::Single(JniBasicType::Short)       => "Short",
-                            JniField::Single(JniBasicType::Int)         => "Int",
-                            JniField::Single(JniBasicType::Long)        => "Long",
-                            JniField::Single(JniBasicType::Float)       => "Float",
-                            JniField::Single(JniBasicType::Double)      => "Double",
-                            JniField::Single(JniBasicType::Class(_))    => "Object",
-                            JniField::Array { .. }                      => "Object",
+                            JniField::Single(JniBasicType::Void)        => "void",
+                            JniField::Single(JniBasicType::Boolean)     => "boolean",
+                            JniField::Single(JniBasicType::Byte)        => "byte",
+                            JniField::Single(JniBasicType::Char)        => "char",
+                            JniField::Single(JniBasicType::Short)       => "short",
+                            JniField::Single(JniBasicType::Int)         => "int",
+                            JniField::Single(JniBasicType::Long)        => "long",
+                            JniField::Single(JniBasicType::Float)       => "float",
+                            JniField::Single(JniBasicType::Double)      => "double",
+                            JniField::Single(JniBasicType::Class(_))    => "object",
+                            JniField::Array { .. }                      => "object",
                         };
                     },
                 }
             }
 
             if constructor {
-                if ret_method_fragment == "Void" {
-                    ret_method_fragment = "Object";
+                if ret_method_fragment == "void" {
+                    ret_method_fragment = "object";
                     ret_decl = match context.java_to_rust_path(self.java_class.this_class().name()) {
-                        Ok(path) => format!("__jni_bindgen::std::option::Option<__jni_bindgen::Local<'env, {}>>", path),
+                        Ok(path) => format!("__jni_bindgen::Local<'env, {}>", path),
                         Err(_) => {
                             emit_reject_reasons.push("Failed to resolve JNI path to Rust path for this type");
                             format!("{:?}", self.java_class.this_class().name())
@@ -299,8 +299,6 @@ impl Struct {
                     emit_reject_reasons.push("Constructor should've returned void");
                 }
             }
-
-            let ret_is_object = ret_method_fragment == "Object";
 
             let indent = if !emit_reject_reasons.is_empty() {
                 format!("{}        // ", indent)
@@ -314,50 +312,28 @@ impl Struct {
             }
             writeln!(out, "{}{}fn {}<'env>({}) -> __jni_bindgen::Result<{}> {{", indent, access, method_name, params_decl, ret_decl)?;
             writeln!(out, "{}    // class.name() == {:?}, method.access_flags() == {:?}, .name() == {:?}, .descriptor() == {:?}", indent, self.java_class.this_class().name(), method.access_flags(), method.name(), method.descriptor())?;
-            writeln!(out, "{}    let __jni_args = [{}];", indent, params_array)?;
+            writeln!(out, "{}    unsafe {{", indent)?;
+            writeln!(out, "{}        let __jni_args = [{}];", indent, params_array)?;
             if constructor || static_ {
                 match context.config.codegen.static_env {
-                    config::toml::StaticEnvStyle::Explicit          => writeln!(out, "{}    let __jni_env = __jni_env.as_jni_env();", indent)?,
+                    config::toml::StaticEnvStyle::Explicit          => {},
                     config::toml::StaticEnvStyle::Implicit          => writeln!(out, "{}    let __jni_env = ...?;", indent)?, // XXX
                     config::toml::StaticEnvStyle::__NonExhaustive   => writeln!(out, "{}    let __jni_env = ...?;", indent)?, // XXX
                 };
             } else {
-                writeln!(out, "{}    let __jni_env = self.0.env as *mut __jni_bindgen::jni_sys::JNIEnv;", indent)?;
+                writeln!(out, "{}        let __jni_env = __jni_bindgen::Env::from_ptr(self.0.env);", indent)?;
             }
 
-            writeln!(out, "{}    let __jni_class  = unsafe {{ (**__jni_env).FindClass.unwrap()(__jni_env, {}) }};", indent, emit_cstr(self.java_class.this_class().name()))?;
-            writeln!(out, "{}    assert_ne!(__jni_class, __jni_bindgen::std::ptr::null_mut());", indent)?;
-            writeln!(out, "{}    let __jni_method = unsafe {{ (**__jni_env).GetMethodID.unwrap()(__jni_env, __jni_class, {}, {}) }};", indent, emit_cstr(method.name()), emit_cstr(method.descriptor()) )?;
-            writeln!(out, "{}    assert_ne!(__jni_method, __jni_bindgen::std::ptr::null_mut());", indent)?;
+            writeln!(out, "{}        let (__jni_class, __jni_method) = __jni_env.require_class_{}method({}, {}, {});", indent, if static_ { "static_" } else { "" }, emit_cstr(self.java_class.this_class().name()), emit_cstr(method.name()), emit_cstr(method.descriptor()) )?;
 
             if constructor {
-                writeln!(out, "{}    let result = unsafe {{ (**__jni_env).NewObjectA.unwrap()(__jni_env, __jni_class, __jni_method, __jni_args.as_ptr()) }};", indent)?;
+                writeln!(out, "{}        __jni_env.new_object_a(__jni_class, __jni_method, __jni_args.as_ptr())", indent)?;
             } else if static_ {
-                writeln!(out, "{}    let result = unsafe {{ (**__jni_env).CallStatic{}MethodA.unwrap()(__jni_env, __jni_class, __jni_method, __jni_args.as_ptr()) }};", indent, ret_method_fragment)?;
+                writeln!(out, "{}        __jni_env.call_static_{}_method_a(__jni_class, __jni_method, __jni_args.as_ptr())", indent, ret_method_fragment)?;
             } else {
-                writeln!(out, "{}    let __jni_this = self.0.object;", indent)?;
-                writeln!(out, "{}    let result = unsafe {{ (**__jni_env).Call{}MethodA.unwrap()(__jni_env, __jni_this, __jni_method, __jni_args.as_ptr()) }};", indent, ret_method_fragment)?;
-            }
-
-            writeln!(out, "{}    let __jni_exception = unsafe {{ (**__jni_env).ExceptionOccurred.unwrap()(__jni_env) }};", indent)?;
-            writeln!(out, "{}    if !__jni_exception.is_null() {{", indent)?;
-            writeln!(out, "{}        unsafe {{ (**__jni_env).ExceptionClear.unwrap()(__jni_env) }};", indent)?;
-            writeln!(out, "{}        Err(__jni_exception)", indent)?;
-            if ret_is_object {
-                writeln!(out, "{}    }} else if result.is_null() {{", indent)?;
-                writeln!(out, "{}        Ok(None)", indent)?;
-                writeln!(out, "{}    }} else {{", indent)?;
-                writeln!(out, "{}        let result = unsafe {{ __jni_bindgen::Local::from_env_object(__jni_env as *const __jni_bindgen::jni_sys::JNIEnv, result) }};", indent)?;
-                writeln!(out, "{}        Ok(Some(result))", indent)?;
-            } else if ret_method_fragment == "Boolean" {
-                writeln!(out, "{}    }} else {{", indent)?;
-                writeln!(out, "{}        Ok(result != __jni_bindgen::jni_sys::JNI_FALSE)", indent)?;
-            } else {
-                writeln!(out, "{}    }} else {{", indent)?;
-                writeln!(out, "{}        Ok(result)", indent)?;
+                writeln!(out, "{}        __jni_env.call_{}_method_a(self.0.object, __jni_method, __jni_args.as_ptr())", indent, ret_method_fragment)?;
             }
             writeln!(out, "{}    }}", indent)?;
-
             writeln!(out, "{}}}", indent)?;
         }
 
@@ -372,6 +348,5 @@ impl Struct {
 fn emit_cstr(s: &str) -> String {
     let mut s = format!("{:?}", s); // XXX
     s.insert_str(s.len() - 1, "\\0");
-    s.push_str(".as_ptr() as *const __jni_bindgen::std::os::raw::c_char");
     s
 }
