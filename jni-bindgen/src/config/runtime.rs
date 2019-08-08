@@ -34,6 +34,7 @@ pub struct Config {
     pub(crate) doc_patterns:                Vec<DocPattern>,
     pub(crate) input_files:                 Vec<PathBuf>,
     pub(crate) output_path:                 PathBuf,
+    pub(crate) output_reference_path:       Option<PathBuf>,
     pub(crate) logging_verbose:             bool,
 
     pub(crate) ignore_classes:              HashSet<String>,
@@ -84,11 +85,12 @@ impl From<toml::FileWithContext> for Config {
         }
 
         Self {
-            codegen:            file.codegen.clone(),
-            doc_patterns:       documentation.patterns.into_iter().map(|pat| pat.into()).collect(),
-            input_files:        file.input.files.into_iter().map(|file| resolve_file(file, &dir)).collect(),
-            output_path:        resolve_file(file.output.path, &dir),
-            logging_verbose:    logging.verbose,
+            codegen:                file.codegen.clone(),
+            doc_patterns:           documentation.patterns.into_iter().map(|pat| pat.into()).collect(),
+            input_files:            file.input.files.into_iter().map(|file| resolve_file(file, &dir)).collect(),
+            output_path:            resolve_file(file.output.path, &dir),
+            output_reference_path:  file.output.reference_path.map(|p| resolve_file(p, &dir)),
+            logging_verbose:        logging.verbose,
             ignore_classes,
             ignore_class_methods,
             ignore_class_method_sigs,
