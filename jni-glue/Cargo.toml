@@ -1,6 +1,6 @@
 [package]
 name = "jni-glue"
-version = "0.0.2"
+version = "0.0.3"
 authors = ["MaulingMonkey <git@maulingmonkey.com>"]
 edition = "2018"
 description = "Manually written glue code to accompany the jni-bindgen code generator for binding to JVM APIs from Rust"
