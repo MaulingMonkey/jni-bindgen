@@ -46,7 +46,7 @@ impl<Class: AsValidJObjectAndEnv> Argument<Class> {
 /// 
 /// Much like Local, the inclusion of an Env means this cannot be stored statically or shared between threads.
 /// 
-/// **Not FFI Safe:**  #[repr(rust)], and exactly layout is likely to change depending on exact features used in the
+/// **Not FFI Safe:**  #[repr(rust)], and exact layout is likely to change - depending on exact features used - in the
 /// future.  Specifically, on Android, since we're guaranteed to only have a single ambient VM, we can likely store the
 /// *const JNIEnv in thread local storage instead of lugging it around in every Local.  Of course, there's no
 /// guarantee that's actually an *optimization*...
