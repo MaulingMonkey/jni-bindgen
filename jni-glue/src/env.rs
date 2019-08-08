@@ -1,7 +1,7 @@
 use super::*;
 use std::os::raw::c_char;
 
-/// FFI:  Use **&Env** instead of *const JNIEnv.  This represents a per-thread Java exection environment.
+/// FFI:  Use **&Env** instead of \*const JNIEnv.  This represents a per-thread Java exection environment.
 /// 
 /// A "safe" alternative to jni_sys::JNIEnv raw pointers, with the following caveats:
 /// 
