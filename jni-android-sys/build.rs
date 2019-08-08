@@ -1,3 +1,4 @@
+use jni_bindgen::config::toml::FileWithContext;
 use std::path::*;
 
 fn requested_api_level() -> i32 {
@@ -50,6 +51,22 @@ fn main() {
         println!("cargo:warning=Untested api-level-{} (<7).  If you've found where I can grab such an early version of the Android SDK/APIs, please comment on / reopen https://github.com/MaulingMonkey/jni-bindgen/issues/10 !", api_level);
     }
 
+    if cfg!(feature = "locally-verify") {
+        let mut config_file = load_config_file(api_level);
+        config_file.file.output.path            = PathBuf::from(format!("src/locally-generated/api-level-{}.rs", api_level));
+        config_file.file.output.reference_path  = Some(PathBuf::from(format!("src/reference/api-level-{}.rs", api_level)));
+        jni_bindgen::run(config_file).unwrap();
+    } else if cfg!(feature = "locally-generate") {
+        let mut config_file = load_config_file(api_level);
+        config_file.file.output.path            = PathBuf::from(format!("src/locally-generated/api-level-{}.rs", api_level));
+        config_file.file.output.reference_path  = None;
+        jni_bindgen::run(config_file).unwrap();
+    } else {
+        // Do nothing
+    }
+}
+
+fn load_config_file(api_level: i32) -> FileWithContext {
     // Upversion android sdk if installed one is missing?  Or try to install with:
     //  set ANDROID_HOME=%LOCALAPPDATA%\Android\Sdk\
     //  set JAVA_HOME=%ProgramFiles%\Android\Android Studio\jre\
@@ -66,16 +83,5 @@ fn main() {
 
     let mut config_file = jni_bindgen::config::toml::File::from_current_directory().unwrap();
     config_file.file.input.files.push(PathBuf::from(sdk_android_jar));
-
-    if cfg!(feature = "locally-verify") {
-        config_file.file.output.path            = PathBuf::from(format!("src/locally-generated/api-level-{}.rs", api_level));
-        config_file.file.output.reference_path  = Some(PathBuf::from(format!("src/reference/api-level-{}.rs", api_level)));
-        jni_bindgen::run(config_file).unwrap();
-    } else if cfg!(feature = "locally-generate") {
-        config_file.file.output.path            = PathBuf::from(format!("src/locally-generated/api-level-{}.rs", api_level));
-        config_file.file.output.reference_path  = None;
-        jni_bindgen::run(config_file).unwrap();
-    } else {
-        // Do nothing
-    }
+    config_file
 }
