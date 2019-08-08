@@ -33,8 +33,8 @@ pub fn run(config: impl Into<Config>) -> Result<(), Box<dyn Error>> {
     }
 
     if let Some(reference) = config.output_reference_path.as_ref() {
-        let mut output    = BufReader::new(File::open(&config.output_path)?);
-        let mut reference = BufReader::new(File::open(&reference)?);
+        let mut output    = BufReader::new(File::open(&config.output_path).map_err(|e| format!("Unable to open output at {}: {:?}", config.output_path.display(), e))?);
+        let mut reference = BufReader::new(File::open(&reference).map_err(|e| format!("Unable to open reference at {}: {:?}", reference.display(), e))?);
         let mut output_line    = String::new();
         let mut reference_line = String::new();
 

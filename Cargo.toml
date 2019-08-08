@@ -2,5 +2,5 @@
 members = [
     "jni-bindgen",
     "jni-glue",
-    "examples/android-28-sys",
+    "jni-android-sys",
 ]
