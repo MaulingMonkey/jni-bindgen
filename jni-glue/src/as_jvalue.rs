@@ -7,7 +7,7 @@ pub unsafe trait AsJValue           { fn as_jvalue(&self) -> jvalue; }
 
 unsafe impl AsJValue for bool       { fn as_jvalue(&self) -> jvalue { jvalue { z: if *self { JNI_TRUE } else { JNI_FALSE } } } }
 unsafe impl AsJValue for jbyte      { fn as_jvalue(&self) -> jvalue { jvalue { b: *self } } }
-unsafe impl AsJValue for jchar      { fn as_jvalue(&self) -> jvalue { jvalue { c: *self } } }
+unsafe impl AsJValue for jchar      { fn as_jvalue(&self) -> jvalue { jvalue { c: self.0 } } }
 unsafe impl AsJValue for jshort     { fn as_jvalue(&self) -> jvalue { jvalue { s: *self } } }
 unsafe impl AsJValue for jint       { fn as_jvalue(&self) -> jvalue { jvalue { i: *self } } }
 unsafe impl AsJValue for jlong      { fn as_jvalue(&self) -> jvalue { jvalue { j: *self } } }

@@ -167,7 +167,7 @@ impl Env {
             (**env).ExceptionClear.unwrap()(env);
             Err(exception)
         } else {
-            Ok(result)
+            Ok(jchar(result))
         }
     }
 
@@ -291,7 +291,7 @@ impl Env {
             (**env).ExceptionClear.unwrap()(env);
             Err(exception)
         } else {
-            Ok(result)
+            Ok(jchar(result))
         }
     }
 
