@@ -1,0 +1,17 @@
+[package]
+name = "basic"
+version = "0.0.0"
+publish = false
+authors = ["MaulingMonkey <git@maulingmonkey.com>"]
+edition = "2018"
+
+[lib]
+crate_type = ["dylib"]
+
+[target.'cfg(target_os = "android")'.dependencies]
+jni-android-sys = { path = "../../../..", features = ["api-level-28"] }
+jni-glue        = { path = "../../../../../jni-glue", features = [] }
+jni-sys         = "0.3"
+
+[workspace]
+members = ["."]

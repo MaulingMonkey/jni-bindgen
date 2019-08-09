@@ -1,3 +1,14 @@
 {
-    "editor.rulers": [120]
+    "editor.rulers": [120],
+    "files.exclude": {
+        "**/.git": true,
+        "**/.gradle": true,
+        "**/.idea/caches": true,
+        "**/.idea/libraries": true,
+        "**/android-studio/**/app/libs": true,
+        "**/android-studio/**/app/app.iml": true,
+        "**/android-studio/**/gradle": true,
+        "**/android-studio/**/basic.iml": true,
+        "**/android-studio/**/local.properties": true,
+    }
 }
