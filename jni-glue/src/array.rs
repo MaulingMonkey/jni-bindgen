@@ -134,6 +134,14 @@ macro_rules! primitive_array {
                 unsafe { (**self.0.env).$set_region.unwrap()(self.0.env as *mut _, self.0.object, start, elements_len, elements.as_ptr() as *const _) };
             }
         }
+
+        impl AsLocal<$name> for &[$type] {
+            fn as_local<'env>(self, env: &'env Env) -> Local<'env, $name> { PrimitiveArray::<$type>::from(env, self) }
+        }
+
+        impl AsOptionalLocal<$name> for &[$type] {
+            fn as_optional_local<'env>(self, env: &'env Env) -> Option<Local<'env, $name>> { Some(PrimitiveArray::<$type>::from(env, self)) }
+        }
     };
 }
 
