@@ -71,7 +71,7 @@ lazy_static! { // RwLock::new is not const
 #[cfg(feature = "unsafe-manual-jni-load-unload")]
 pub unsafe fn on_load(vm: *const JavaVM, _reserved: *const c_void) -> jint {
     VMS.write().unwrap().on_load(vm);
-    JNI_OK
+    JNI_VERSION_1_2
 }
 
 /// **Disable "unsafe-manual-jni-load-unload", or call from JNI_OnUnload, or there will be soundness issues!**
@@ -84,7 +84,7 @@ pub fn on_unload(vm: *const JavaVM, _reserved: *const c_void) {
 #[no_mangle] #[allow(non_snake_case)] #[cfg(not(feature = "unsafe-manual-jni-load-unload"))]
 pub unsafe extern "system" fn JNI_OnLoad(vm: *const JavaVM, _reserved: *const c_void) -> jint {
     VMS.write().unwrap().on_load(vm);
-    JNI_OK
+    JNI_VERSION_1_2
 }
 
 /// **Do not call!**  Automatically invoked by the JVM.  See "unsafe-manual-jni-load-unload" to override this behavior.
