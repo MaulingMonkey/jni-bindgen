@@ -227,7 +227,7 @@ pub enum Constant {
     InvokeDynamic(InvokeDynamic),
 }
 
-impl From<UnusedPlaceholder>    for Constant { fn from(value: UnusedPlaceholder  ) -> Self { Constant::UnusedPlaceholder(value) } }
+impl From<UnusedPlaceholder>    for Constant { fn from(value: UnusedPlaceholder     ) -> Self { Constant::UnusedPlaceholder(value) } }
 impl From<Class>                for Constant { fn from(value: Class                 ) -> Self { Constant::Class(value) } }
 impl From<Fieldref>             for Constant { fn from(value: Fieldref              ) -> Self { Constant::Fieldref(value) } }
 impl From<Methodref>            for Constant { fn from(value: Methodref             ) -> Self { Constant::Methodref(value) } }
