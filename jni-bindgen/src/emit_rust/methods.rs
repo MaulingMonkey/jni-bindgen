@@ -4,17 +4,15 @@ use class_file_visitor::method::*;
 use std::io;
 
 pub struct Method {
-    pub access_flags:       MethodAccessFlags,
-    pub java_class:         String,
-    pub java_name:          String,
-    pub java_desc:          String,
-
-    rust_name:              Option<String>,
-    mangling_style:         MethodManglingStyle,
+    access_flags:   MethodAccessFlags,
+    java_class:     String,
+    java_name:      String,
+    java_desc:      String,
+    rust_name:      Option<String>,
+    mangling_style: MethodManglingStyle,
 }
 
 impl Method {
-    // TODO: fn new
     pub fn new(context: &Context, class: &Class, method: MethodRef) -> Self {
         let mut result = Self {
             access_flags:   method.access_flags(),
@@ -47,9 +45,7 @@ impl Method {
 
     pub fn set_mangling_style(&mut self, style: MethodManglingStyle) {
         self.mangling_style = style;
-        self.rust_name = if !self.access_flags.contains(MethodAccessFlags::PUBLIC) {
-            None // Skip private/protected methods
-        } else if let Ok(name) = self.mangling_style.mangle(self.java_name.as_str(), self.java_desc.as_str()) {
+        self.rust_name = if let Ok(name) = self.mangling_style.mangle(self.java_name.as_str(), self.java_desc.as_str()) {
             Some(name)
         } else {
             None // Failed to mangle
