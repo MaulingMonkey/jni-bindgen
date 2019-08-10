@@ -62,13 +62,6 @@ impl Constants {
         }
     }
 
-    pub fn get_str(&self, index: u16) -> io::Result<&str> {
-        match self.get(index)? {
-            Constant::String { string_index } => Ok(self.get_utf8(*string_index)?),
-            other => io_data_err!("Expected a CONSTANT_String_info at constant #{}, found a {:?} instead", index, other),
-        }
-    }
-
     pub fn get_class(&self, index: u16) -> io::Result<&str> {
         match self.get(index)? {
             Constant::Class { name_index } => Ok(self.get_utf8(*name_index)?),
