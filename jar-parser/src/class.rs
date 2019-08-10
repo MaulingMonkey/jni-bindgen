@@ -8,7 +8,6 @@ use crate::io::*;
 
 use bitflags::bitflags;
 
-use std::collections::*;
 use std::io::{self, Read};
 
 
@@ -77,7 +76,6 @@ pub struct Class {
     pub fields:     Vec<Field>,
     pub methods:    Vec<Method>,
     pub deprecated: bool,
-    inner_classes:  BTreeMap<String, Class>,
 }
 
 impl Class {
@@ -115,7 +113,6 @@ impl Class {
             fields,
             methods,
             deprecated,
-            inner_classes: BTreeMap::new(),
         })
     }
 
