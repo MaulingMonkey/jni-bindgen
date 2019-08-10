@@ -60,12 +60,12 @@ impl<'a> Context<'a> {
         Err(format!("Failed to find LeafClass in {:?}", java_class))?
     }
 
-    pub fn add_struct(&mut self, java_class: Class) -> Result<(), Box<dyn Error>> {
-        let mut rust_mod : &mut Module = &mut self.module;
+    pub fn add_struct(&mut self, class: jar_parser::Class) -> Result<(), Box<dyn Error>> {
+        let mut rust_mod            = &mut self.module;
         let mut rust_mod_prefix     = String::from("crate::");
         let mut rust_struct_name    = String::new();
 
-        for component in JniPathIter::new(java_class.this_class().name()) {
+        for component in JniPathIter::new(&class.path) {
             match component {
                 JniIdentifier::Namespace(id) => {
                     let id = match RustIdentifier::from_str(id) {
@@ -106,7 +106,7 @@ impl<'a> Context<'a> {
                     rust_mod.structs.insert(rust_struct_name.clone(), Struct {
                         rust_mod_prefix,
                         rust_struct_name,
-                        java_class,
+                        java: class,
                     });
 
                     return Ok(());
@@ -114,7 +114,7 @@ impl<'a> Context<'a> {
             }
         }
 
-        Err(format!("Failed to find LeafClass in {:?}", java_class.this_class().name()))?
+        Err(format!("Failed to find LeafClass in {:?}", &class.path))?
     }
 
     pub fn write(&self, out: &mut impl io::Write) -> io::Result<()> {

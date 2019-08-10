@@ -29,7 +29,7 @@ impl Module {
         for (name, structure) in self.structs.iter() {
             if indent.is_empty() {
                 if name.contains("_") { writeln!(out, "#[allow(non_camel_case_types)] // We map Java inner classes to Outer_Inner")?; }
-                if !structure.java_class.access_flags().contains(ClassAccessFlags::PUBLIC) { writeln!(out, "#[allow(dead_code)] // We generate structs for private Java types too, just in case.")?; }
+                if !structure.java.is_public() { writeln!(out, "#[allow(dead_code)] // We generate structs for private Java types too, just in case.")?; }
             }
             structure.write(context, indent, out)?;
         }

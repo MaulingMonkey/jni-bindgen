@@ -1,6 +1,6 @@
 use super::*;
 use config::runtime::*;
-use gather_java::*;
+use jar_parser::*;
 
 use std::result::Result;
 use std::error::Error;
@@ -67,7 +67,7 @@ fn gather_file(context: &mut emit_rust::Context,path: &Path) -> Result<(), Box<d
     match ext.to_string_lossy().to_ascii_lowercase().as_str() {
         "class" => {
             let mut file = File::open(path)?;
-            let class = Class::try_read_all(&mut file)?;
+            let class = Class::read(&mut file)?;
             context.add_struct(class)?;
         },
         "jar" => {
@@ -82,7 +82,7 @@ fn gather_file(context: &mut emit_rust::Context,path: &Path) -> Result<(), Box<d
                     println!("  reading {:3}/{}: {}...", i, n, file.name());
                     next_log = Instant::now() + Duration::from_secs(1);
                 }
-                let class = Class::try_read_all(&mut file)?;
+                let class = Class::read(&mut file)?;
                 context.add_struct(class)?;
             }
         },

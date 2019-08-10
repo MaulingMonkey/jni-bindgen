@@ -1,5 +1,4 @@
-use crate::class_file_visitor::field::FieldAccessFlags;
-
+use jar_parser::*;
 use serde_derive::*;
 
 #[derive(Clone, Debug, Deserialize, PartialEq, Eq, Hash)]
@@ -35,7 +34,7 @@ impl std::error::Error for FieldManglingError {}
 impl std::fmt::Display for FieldManglingError { fn fmt(&self, fmt: &mut std::fmt::Formatter) -> std::fmt::Result { std::fmt::Debug::fmt(self, fmt) } }
 
 impl FieldManglingStyle {
-    pub fn mangle(&self, flags: FieldAccessFlags, name: &str, signature: &str) -> Result<String, FieldManglingError> {
+    pub fn mangle(&self, flags: field::Flags, name: &str, signature: &str) -> Result<String, FieldManglingError> {
         Err(FieldManglingError::NotYetImplemented)
     }
 }

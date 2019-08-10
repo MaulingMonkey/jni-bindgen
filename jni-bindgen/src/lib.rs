@@ -2,8 +2,6 @@
 
 #![allow(dead_code)] // XXX
 
-pub(crate) mod class_file_visitor;
-
 /// Configuration formats for invoking jni_bindgen
 pub mod config { // Part of the actual official API of this crate.
     #[allow(unused_imports)] use super::*;
@@ -15,8 +13,6 @@ pub mod config { // Part of the actual official API of this crate.
 /// Rust generation logic
 pub(crate) mod emit_rust {
     #[allow(unused_imports)] use super::*;
-    use class_file_visitor::*;
-    use gather_java::*;
 
     mod context;
     mod fields;
@@ -33,25 +29,6 @@ pub(crate) mod emit_rust {
     use modules::*;
     use preamble::*;
     use structs::*;
-}
-
-/// Java enumeration/collection logic
-pub(crate) mod gather_java {
-    #[allow(unused_imports)] use super::*;
-    use class_file_visitor::*;
-
-    use std::collections::*;
-    use std::io;
-
-    mod class;
-    pub(crate) mod class_constants;
-    mod field_ref;
-    mod method_ref;
-
-    pub use class::*;
-    pub(crate) use class_constants::{ClassConstants, KnownAttribute};
-    pub use field_ref::*;
-    pub use method_ref::*;
 }
 
 /// JNI and Rust identifier parsing and categorizing utilities
@@ -81,15 +58,6 @@ mod run {
     mod run;
 
     pub use run::run;
-}
-
-/// Visitors for use with class_file_visitor
-#[allow(dead_code)]
-mod visitors {
-    #[allow(unused_imports)] use super::*;
-
-    mod noop;
-    mod print;
 }
 
 pub(crate) use identifiers::*;

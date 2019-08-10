@@ -7,7 +7,7 @@ use std::io;
 pub(crate) struct Struct {
     pub rust_mod_prefix:    String,
     pub rust_struct_name:   String,
-    pub java_class:         Class,
+    pub java:               jar_parser::Class,
 }
 
 impl Struct {
@@ -20,60 +20,60 @@ impl Struct {
     fn write_rust_struct(&self, context: &Context, indent: &str, out: &mut impl io::Write) -> io::Result<()> {
         // Ignored access_flags: SUPER, SYNTHETIC, ANNOTATION, ABSTRACT
 
-        let keyword = if self.java_class.access_flags().contains(ClassAccessFlags::INTERFACE) {
+        let keyword = if self.java.is_interface() {
             "interface"
-        } else if self.java_class.access_flags().contains(ClassAccessFlags::ENUM) {
+        } else if self.java.is_enum() {
             "enum"
-        } else if self.java_class.access_flags().contains(ClassAccessFlags::STATIC) {
-            "static class"
-        } else if self.java_class.access_flags().contains(ClassAccessFlags::FINAL) {
+        } else if self.java.is_static() {
+            "static java"
+        } else if self.java.is_final() {
             "final class"
         } else {
             "class"
         };
 
-        let visibility = if self.java_class.access_flags().contains(ClassAccessFlags::PUBLIC) {
+        let visibility = if self.java.is_public() {
             "public"
         } else {
             "private"
         };
 
-        let super_class = if let Some(super_class) = self.java_class.super_class() {
-            context.java_to_rust_path(super_class.name()).unwrap()
+        let super_path = if let Some(super_path) = self.java.super_path.as_ref() {
+            context.java_to_rust_path(super_path).unwrap()
         } else {
             "()".to_owned() // This might only happen for java.lang.Object
         };
 
         writeln!(out, "{}__jni_bindgen! {{", indent)?;
-        if let Some(url) = KnownDocsUrl::from_class(context, &self.java_class.this_class().name()) {
+        if let Some(url) = KnownDocsUrl::from_class(context, &self.java.path) {
             writeln!(out, "{}    /// {} {} [{}]({})", indent, visibility, keyword, url.label, url.url)?;
         }
-        write!(out, "{}    {} {} {} extends {}", indent, visibility, keyword, &self.rust_struct_name, super_class)?;
+        write!(out, "{}    {} {} {} extends {}", indent, visibility, keyword, &self.rust_struct_name, super_path)?;
         let mut implements = false;
-        for interface in self.java_class.interfaces() {
+        for interface in &self.java.interfaces {
             write!(out, ", ")?;
             if !implements {
                 write!(out, "implements ")?;
                 implements = true;
             }
-            write!(out, "{}", &context.java_to_rust_path(interface.name()).unwrap())?;
+            write!(out, "{}", &context.java_to_rust_path(interface).unwrap())?;
         }
         writeln!(out, " {{")?;
 
         let mut id_repeats = HashMap::new();
 
-        let mut methods : Vec<Method> = self.java_class.methods().map(|m| Method::new(context, &self.java_class, m)).collect();
-        let mut fields  : Vec<Field > = self.java_class.fields().map(|f| Field::new(context, &self.java_class, f)).collect();
+        let mut methods : Vec<Method> = self.java.methods.iter().map(|m| Method::new(context, &self.java, m)).collect();
+        let mut fields  : Vec<Field > = self.java.fields.iter().map(|f| Field::new(context, &self.java, f)).collect();
 
         for method in &methods {
-            if !method.is_public() { continue; } // Skip private/protected methods
+            if !method.java.is_public() { continue; } // Skip private/protected methods
             if let Some(name) = method.rust_name() {
                 *id_repeats.entry(name.to_owned()).or_insert(0) += 1;
             }
         }
 
         for field in &fields {
-            if !field.is_public() { continue; } // Skip private/protected fields
+            if !field.java.is_public() { continue; } // Skip private/protected fields
             if let Some(name) = field.rust_name() {
                 *id_repeats.entry(name.to_owned()).or_insert(0) += 1;
             }

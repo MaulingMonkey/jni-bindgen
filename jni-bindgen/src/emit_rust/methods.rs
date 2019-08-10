@@ -1,24 +1,19 @@
 use super::*;
-use class_file_visitor::method::*;
 
 use std::io;
 
-pub struct Method {
-    access_flags:   MethodAccessFlags,
-    java_class:     String,
-    java_name:      String,
-    java_desc:      String,
+pub struct Method<'a> {
+    pub class:      &'a jar_parser::Class,
+    pub java:       &'a jar_parser::Method,
     rust_name:      Option<String>,
     mangling_style: MethodManglingStyle,
 }
 
-impl Method {
-    pub fn new(context: &Context, class: &Class, method: MethodRef) -> Self {
+impl<'a> Method<'a> {
+    pub fn new(context: &Context, class: &'a jar_parser::Class, java: &'a jar_parser::Method) -> Self {
         let mut result = Self {
-            access_flags:   method.access_flags(),
-            java_class:     class.this_class().name().to_owned(),
-            java_name:      method.name().to_owned(),
-            java_desc:      method.descriptor().to_owned(),
+            class,
+            java,
             rust_name:      None,
             mangling_style: MethodManglingStyle::Java, // Immediately overwritten bellow
         };
@@ -30,22 +25,11 @@ impl Method {
         self.rust_name.as_ref().map(|s| s.as_str())
     }
 
-    pub fn is_constructor(&self) -> bool { self.java_name == "<init>" }
-    pub fn is_static_init(&self) -> bool { self.java_name == "<clinit>" }
-
-    pub fn is_public(&self)     -> bool { self.access_flags.contains(MethodAccessFlags::PUBLIC)     }
-    pub fn is_protected(&self)  -> bool { self.access_flags.contains(MethodAccessFlags::PROTECTED)  }
-    pub fn is_private(&self)    -> bool { !(self.is_public() || self.is_protected()) }
-    pub fn is_static(&self)     -> bool { self.access_flags.contains(MethodAccessFlags::STATIC)     }
-    pub fn is_varargs(&self)    -> bool { self.access_flags.contains(MethodAccessFlags::VARARGS)    }
-    pub fn is_bridge(&self)     -> bool { self.access_flags.contains(MethodAccessFlags::BRIDGE)     }
-    // Ignored: FINAL | SYNCRONIZED | NATIVE | ABSTRACT | STRICT | SYNTHETIC
-
     pub fn mangling_style(&self) -> MethodManglingStyle { self.mangling_style }
 
     pub fn set_mangling_style(&mut self, style: MethodManglingStyle) {
         self.mangling_style = style;
-        self.rust_name = if let Ok(name) = self.mangling_style.mangle(self.java_name.as_str(), self.java_desc.as_str()) {
+        self.rust_name = if let Ok(name) = self.mangling_style.mangle(self.java.name.as_str(), self.java.descriptor.as_str()) {
             Some(name)
         } else {
             None // Failed to mangle
@@ -55,20 +39,9 @@ impl Method {
     pub fn emit(&self, context: &Context, indent: &str, out: &mut impl io::Write) -> io::Result<()> {
         let mut emit_reject_reasons = Vec::new();
 
-        let constructor = self.java_name == "<init>";
-        let static_init = self.java_name == "<clinit>";
-        let public      = self.access_flags.contains(MethodAccessFlags::PUBLIC);
-        let protected   = self.access_flags.contains(MethodAccessFlags::PROTECTED);
-        let static_     = self.access_flags.contains(MethodAccessFlags::STATIC);
-        let varargs     = self.access_flags.contains(MethodAccessFlags::VARARGS);
-        let bridge      = self.access_flags.contains(MethodAccessFlags::BRIDGE);
-        // Ignored: FINAL | SYNCRONIZED | NATIVE | ABSTRACT | STRICT | SYNTHETIC
-        let _private    = !public && !protected;
-        let _access     = if public { "public" } else if protected { "protected" } else { "private" };
-
-        let java_class              = format!("{}", &self.java_class);
-        let java_class_method       = format!("{}\x1f{}", &self.java_class, &self.java_name);
-        let java_class_method_sig   = format!("{}\x1f{}\x1f{}", &self.java_class, &self.java_name, &self.java_desc);
+        let java_class              = format!("{}", &self.class.path);
+        let java_class_method       = format!("{}\x1f{}", &self.class.path, &self.java.name);
+        let java_class_method_sig   = format!("{}\x1f{}\x1f{}", &self.class.path, &self.java.name, &self.java.descriptor);
 
         let ignored =
             context.config.ignore_classes          .contains(&java_class) ||
@@ -79,7 +52,7 @@ impl Method {
             .or_else(||  context.config.rename_class_methods    .get(&java_class_method))
             .or_else(||  context.config.rename_class_method_sigs.get(&java_class_method_sig));
 
-        let descriptor = &self.java_desc;
+        let descriptor = &self.java.descriptor;
 
         let method_name = if let Some(renamed_to) = renamed_to {
             renamed_to.clone()
@@ -87,13 +60,13 @@ impl Method {
             name.to_owned()
         } else {
             emit_reject_reasons.push("Failed to mangle method name");
-            self.java_name.to_owned()
+            self.java.name.to_owned()
         };
 
-        if !public      { emit_reject_reasons.push("Non-public method"); }
-        if varargs      { emit_reject_reasons.push("Marked as varargs - haven't decided on how I want to handle this."); }
-        if bridge       { emit_reject_reasons.push("Bridge method - type erasure"); }
-        if static_init  { emit_reject_reasons.push("Static class constructor - never needs to be called by Rust."); }
+        if !self.java.is_public()       { emit_reject_reasons.push("Non-public method"); }
+        if self.java.is_varargs()       { emit_reject_reasons.push("Marked as varargs - haven't decided on how I want to handle this."); }
+        if self.java.is_bridge()        { emit_reject_reasons.push("Bridge method - type erasure"); }
+        if self.java.is_static_init()   { emit_reject_reasons.push("Static class constructor - never needs to be called by Rust."); }
         if ignored      { emit_reject_reasons.push("[[ignore]]d"); }
 
         // Parameter names may or may not be available as extra debug information.  Example:
@@ -110,7 +83,7 @@ impl Method {
         };
 
         // Contents of fn name<'env>(...) {
-        let mut params_decl = if constructor || static_ {
+        let mut params_decl = if self.java.is_constructor() || self.java.is_static() {
             match context.config.codegen.static_env {
                 config::toml::StaticEnvStyle::Explicit => String::from("__jni_env: &'env __jni_bindgen::Env"),
                 config::toml::StaticEnvStyle::Implicit => {
@@ -248,14 +221,14 @@ impl Method {
             }
         }
 
-        if constructor {
+        if self.java.is_constructor() {
             if ret_method_fragment == "void" {
                 ret_method_fragment = "object";
-                ret_decl = match context.java_to_rust_path(self.java_class.as_str()) {
+                ret_decl = match context.java_to_rust_path(self.class.path.as_str()) {
                     Ok(path) => format!("__jni_bindgen::Local<'env, {}>", path),
                     Err(_) => {
                         emit_reject_reasons.push("Failed to resolve JNI path to Rust path for this type");
-                        format!("{:?}", self.java_class.as_str())
+                        format!("{:?}", self.class.path.as_str())
                     },
                 };
             } else {
@@ -268,19 +241,19 @@ impl Method {
         } else {
             format!("{}        ", indent)
         };
-        let access = if public { "pub " } else { "" };
+        let access = if self.java.is_public() { "pub " } else { "" };
         writeln!(out, "")?;
         for reason in &emit_reject_reasons {
             writeln!(out, "{}// Not emitting: {}", indent, reason)?;
         }
-        if let Some(url) = KnownDocsUrl::from_method(context, self.java_class.as_str(), self.java_name.as_str(), self.java_desc.as_str()) {
+        if let Some(url) = KnownDocsUrl::from_method(context, self.class.path.as_str(), self.java.name.as_str(), self.java.descriptor.as_str()) {
             writeln!(out, "{}/// [{}]({})", indent, url.label, url.url)?;
         }
         writeln!(out, "{}{}fn {}<'env>({}) -> __jni_bindgen::Result<{}> {{", indent, access, method_name, params_decl, ret_decl)?;
-        writeln!(out, "{}    // class.name() == {:?}, method.access_flags() == {:?}, .name() == {:?}, .descriptor() == {:?}", indent, &self.java_class, self.access_flags, &self.java_name, &self.java_desc)?;
+        writeln!(out, "{}    // class.path == {:?}, java.flags == {:?}, .name == {:?}, .descriptor == {:?}", indent, &self.class.path, self.java.flags, &self.java.name, &self.java.descriptor)?;
         writeln!(out, "{}    unsafe {{", indent)?;
         writeln!(out, "{}        let __jni_args = [{}];", indent, params_array)?;
-        if constructor || static_ {
+        if self.java.is_constructor() || self.java.is_static() {
             match context.config.codegen.static_env {
                 config::toml::StaticEnvStyle::Explicit          => {},
                 config::toml::StaticEnvStyle::Implicit          => writeln!(out, "{}    let __jni_env = ...?;", indent)?, // XXX
@@ -290,11 +263,11 @@ impl Method {
             writeln!(out, "{}        let __jni_env = __jni_bindgen::Env::from_ptr(self.0.env);", indent)?;
         }
 
-        writeln!(out, "{}        let (__jni_class, __jni_method) = __jni_env.require_class_{}method({}, {}, {});", indent, if static_ { "static_" } else { "" }, emit_cstr(self.java_class.as_str()), emit_cstr(self.java_name.as_str()), emit_cstr(self.java_desc.as_str()) )?;
+        writeln!(out, "{}        let (__jni_class, __jni_method) = __jni_env.require_class_{}method({}, {}, {});", indent, if self.java.is_static() { "static_" } else { "" }, emit_cstr(self.class.path.as_str()), emit_cstr(self.java.name.as_str()), emit_cstr(self.java.descriptor.as_str()) )?;
 
-        if constructor {
+        if self.java.is_constructor() {
             writeln!(out, "{}        __jni_env.new_object_a(__jni_class, __jni_method, __jni_args.as_ptr())", indent)?;
-        } else if static_ {
+        } else if self.java.is_static() {
             writeln!(out, "{}        __jni_env.call_static_{}_method_a(__jni_class, __jni_method, __jni_args.as_ptr())", indent, ret_method_fragment)?;
         } else {
             writeln!(out, "{}        __jni_env.call_{}_method_a(self.0.object, __jni_method, __jni_args.as_ptr())", indent, ret_method_fragment)?;
