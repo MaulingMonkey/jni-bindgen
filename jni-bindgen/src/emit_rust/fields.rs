@@ -78,6 +78,7 @@ impl Field {
             Ok(JniField::Single(JniBasicType::Int))     => "i32",
             Ok(JniField::Single(JniBasicType::Long))    => "i64",
             Ok(JniField::Single(JniBasicType::Short))   => "i16",
+            Ok(JniField::Single(JniBasicType::Class("java/lang/String"))) if self.rust_const_value.is_some() => "&'static str",
             Ok(JniField::Single(JniBasicType::Void)) => {
                 emit_reject_reasons.push("void is not a valid field type");
                 "()"
@@ -129,9 +130,9 @@ impl Field {
 
         if let Some(rust_const_value) = self.rust_const_value.as_ref() {
             match rust_type {
-                "__jni_bindgen::jchar"  => writeln!(out, "{}{}pub const {} : {} = {}({});", indent, &attributes, rust_name, rust_type, rust_type, rust_const_value)?
-                "bool"                  => writeln!(out, "{}{}pub const {} : {} = {};", indent, &attributes, rust_name, rust_type, if rust_const_value == "0" { "false" } else { "true" })?
-                _                       => writeln!(out, "{}{}pub const {} : {} = {};", indent, &attributes, rust_name, rust_type, rust_const_value)?
+                "__jni_bindgen::jchar"  => writeln!(out, "{}{}pub const {} : {} = {}({});", indent, &attributes, rust_name, rust_type, rust_type, rust_const_value)?,
+                "bool"                  => writeln!(out, "{}{}pub const {} : {} = {};", indent, &attributes, rust_name, rust_type, if rust_const_value == "0" { "false" } else { "true" })?,
+                _                       => writeln!(out, "{}{}pub const {} : {} = {};", indent, &attributes, rust_name, rust_type, rust_const_value)?,
             }
         } else if self.is_static() {
             writeln!(out, "{}{}pub fn {}<'env>(env: &'env Env) -> {} {{ ... }}", indent, &attributes, rust_getter_name, rust_type)?;
