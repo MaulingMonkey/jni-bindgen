@@ -1,6 +1,7 @@
 //! jni-bindgen.toml configuration file structures and parsing APIs.
 
 use super::MethodManglingStyle;
+use super::FieldManglingStyle;
 
 use serde_derive::*;
 
@@ -39,6 +40,9 @@ pub struct CodeGen {
     /// How methods should be named on name collision.
     #[serde(default = "default_method_naming_style_collision")]
     pub method_naming_style_collision: MethodManglingStyle,
+
+    #[serde(default = "Default::default")]
+    pub field_naming_style: FieldManglingStyle,
 }
 
 impl Default for CodeGen {
@@ -47,6 +51,7 @@ impl Default for CodeGen {
             static_env:                     Default::default(),
             method_naming_style:            default_method_naming_style(),
             method_naming_style_collision:  default_method_naming_style_collision(),
+            field_naming_style:             Default::default(),
         }
     }
 }

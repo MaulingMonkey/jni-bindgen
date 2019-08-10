@@ -19,6 +19,7 @@ pub(crate) mod emit_rust {
     use gather_java::*;
 
     mod context;
+    mod fields;
     mod known_docs_url;
     mod methods;
     mod modules;
@@ -26,6 +27,7 @@ pub(crate) mod emit_rust {
     mod structs;
 
     pub use context::Context;
+    use fields::*;
     use known_docs_url::*;
     use methods::*;
     use modules::*;
@@ -47,7 +49,7 @@ pub(crate) mod gather_java {
     mod method_ref;
 
     pub use class::*;
-    pub(crate) use class_constants::{ClassConstants};
+    pub(crate) use class_constants::{ClassConstants, KnownAttribute};
     pub use field_ref::*;
     pub use method_ref::*;
 }
@@ -57,12 +59,14 @@ mod identifiers {
     #[allow(unused_imports)] use super::*;
     use std::iter::*;
 
+    mod field_mangling_style;
     mod jni_descriptor;
     mod jni_field;
     mod jni_path_iter;
     mod method_mangling_style;
     mod rust_identifier;
 
+    pub use field_mangling_style::*;
     pub use jni_descriptor::*;
     pub use jni_field::*;
     pub use jni_path_iter::*;

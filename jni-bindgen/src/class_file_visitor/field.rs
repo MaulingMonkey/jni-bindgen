@@ -38,12 +38,16 @@ impl FieldAccessFlags {
 
 
 /// [Java SE 7 &sect; 4.5](https://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html#jvms-4.5):  field_info, minus the attributes array
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Debug)] // XXX: Re-enable Copy if inferred fields removed
 pub struct Field {
     pub access_flags:       FieldAccessFlags,
     pub name_index:         u16,
     pub descriptor_index:   u16,
     pub attributes_count:   u16,
+
+    // XXX: Values inferred from attributes
+    pub(crate) deprecated:         bool,
+    pub(crate) rust_const_value:   Option<String>,
 }
 
 impl Field {
@@ -53,6 +57,8 @@ impl Field {
             name_index:         read_u2(read)?,
             descriptor_index:   read_u2(read)?,
             attributes_count:   read_u2(read)?,
+            deprecated:         false,
+            rust_const_value:   None,
         })
     }
 
@@ -60,7 +66,7 @@ impl Field {
         let field_count = read_u2(read)?;
         for field_index in 0..field_count {
             let field = Field::read_except_attributes(read)?;
-            visitor.on_field(field_index, field);
+            visitor.on_field(field_index, field.clone());
             Attribute::read_list_callback(read, field.attributes_count, |attribute_index, attribute| visitor.on_field_attribute(field_index, attribute_index, attribute))?;
         }
         Ok(())

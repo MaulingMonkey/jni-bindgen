@@ -67,8 +67,26 @@ impl constant::Visitor for Class {
 }
 
 impl FieldVisitor for Class {
-    fn on_field(&mut self, _index: u16, field: Field) { self.fields.push(field); }
-    fn on_field_attribute(&mut self, _field_index: u16, _attribute_index: u16, _attribute: Attribute) {}
+    fn on_field(&mut self, _index: u16, field: Field) {
+        self.fields.push(field);
+    }
+
+    fn on_field_attribute(&mut self, field_index: u16, _attribute_index: u16, attribute: Attribute) {
+        assert_eq!(field_index as usize, self.fields.len() - 1);
+        let field = self.fields.last_mut().unwrap();
+
+        if let Ok(known) = KnownAttribute::from(&self.constants, &attribute) {
+            match known {
+                KnownAttribute::ConstantValue_Integer(value) => { field.rust_const_value = Some(value.to_string()); },
+                KnownAttribute::ConstantValue_Long   (value) => { field.rust_const_value = Some(value.to_string()); },
+                KnownAttribute::ConstantValue_Float  (value) => { field.rust_const_value = Some(value.to_string()); },
+                KnownAttribute::ConstantValue_Double (value) => { field.rust_const_value = Some(value.to_string()); },
+                KnownAttribute::ConstantValue_String (value) => { field.rust_const_value = Some(format!("{:?}", value)); },
+                KnownAttribute::Deprecated { .. }            => { field.deprecated = true; },
+                _ => {},
+            }
+        }
+    }
 }
 
 impl MethodVisitor for Class {

@@ -63,6 +63,7 @@ impl Struct {
         let mut id_repeats = HashMap::new();
 
         let mut methods : Vec<Method> = self.java_class.methods().map(|m| Method::new(context, &self.java_class, m)).collect();
+        let mut fields  : Vec<Field > = self.java_class.fields().map(|f| Field::new(context, &self.java_class, f)).collect();
 
         for method in &methods {
             if !method.is_public() { continue; } // Skip private/protected methods
@@ -71,7 +72,12 @@ impl Struct {
             }
         }
 
-        // TODO: fields
+        for field in &fields {
+            if !field.is_public() { continue; } // Skip private/protected fields
+            if let Some(name) = field.rust_name() {
+                *id_repeats.entry(name.to_owned()).or_insert(0) += 1;
+            }
+        }
 
         for method in &mut methods {
             if let Some(name) = method.rust_name() {
@@ -85,7 +91,17 @@ impl Struct {
             method.emit(context, indent, out)?;
         }
 
-        // TODO: fields
+        for field in &mut fields {
+            //if let Some(name) = field.rust_name() {
+            //    let repeats = *id_repeats.get(name).unwrap_or(&0);
+            //    let overloaded = repeats > 1;
+            //    if overloaded {
+            //        field.set_mangling_style(context.config.codegen.field_naming_style_collision);
+            //    }
+            //}
+
+            field.emit(context, indent, out)?;
+        }
 
         writeln!(out, "{}    }}", indent)?;
         writeln!(out, "{}}}", indent)?;
