@@ -49,6 +49,7 @@ pub(crate) enum Attribute {
 
     /// https://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html#jvms-4.7.15
     Deprecated { #[doc(hidden)] __nyi: () },
+    // Deprecated is actually completely parsed, but I'm keeping "__nyi" around in case future expansions to the JVM allow an optional deprecation message or something.
 
     /// https://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html#jvms-4.7.16
     RuntimeVisibleAnnotations { #[doc(hidden)] __nyi: () },
