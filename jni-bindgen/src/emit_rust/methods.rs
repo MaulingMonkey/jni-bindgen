@@ -77,8 +77,6 @@ impl<'a> Method<'a> {
         // https://docs.oracle.com/javase/tutorial/reflect/member/methodparameterreflection.html
 
         let mut params_array = String::new(); // Contents of let __jni_args = [...];
-        let mut ret_decl = String::new();     // Contents of fn name<'env>() -> Result<...> {
-        let mut ret_method_fragment = "";     // Contents of Call...MethodA
 
         // Contents of fn name<'env>(...) {
         let mut params_decl = if self.java.is_constructor() || self.java.is_static() {
@@ -163,7 +161,7 @@ impl<'a> Method<'a> {
             params_decl.push_str(arg_type.as_str());
         }
 
-        ret_decl = match descriptor.return_type() {
+        let mut ret_decl = match descriptor.return_type() { // Contents of fn name<'env>() -> Result<...> {
             method::Type::Single(method::BasicType::Void)        => "()".to_owned(),
             method::Type::Single(method::BasicType::Boolean)     => "bool".to_owned(),
             method::Type::Single(method::BasicType::Byte)        => "i8".to_owned(),
@@ -200,7 +198,7 @@ impl<'a> Method<'a> {
             }
         };
 
-        ret_method_fragment = match descriptor.return_type() {
+        let mut ret_method_fragment = match descriptor.return_type() { // Contents of call_..._method_a
             method::Type::Single(method::BasicType::Void)        => "void",
             method::Type::Single(method::BasicType::Boolean)     => "boolean",
             method::Type::Single(method::BasicType::Byte)        => "byte",
@@ -215,7 +213,7 @@ impl<'a> Method<'a> {
         };
 
         if self.java.is_constructor() {
-            if ret_method_fragment == "void" {
+            if descriptor.return_type() == method::Type::Single(method::BasicType::Void) {
                 ret_method_fragment = "object";
                 ret_decl = match context.java_to_rust_path(self.class.path.as_id()) {
                     Ok(path) => format!("__jni_bindgen::Local<'env, {}>", path),
