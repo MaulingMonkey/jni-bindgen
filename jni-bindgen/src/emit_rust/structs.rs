@@ -38,6 +38,10 @@ impl Struct {
             "private"
         };
 
+        let attributes = format!("{}",
+            if self.java.deprecated { "#[deprecated] " } else { "" }
+        );
+
         let super_path = if let Some(super_path) = self.java.super_path.as_ref() {
             context.java_to_rust_path(super_path.as_id()).unwrap()
         } else {
@@ -48,7 +52,7 @@ impl Struct {
         if let Some(url) = KnownDocsUrl::from_class(context, self.java.path.as_id()) {
             writeln!(out, "{}    /// {} {} [{}]({})", indent, visibility, keyword, url.label, url.url)?;
         }
-        write!(out, "{}    {} {} {} extends {}", indent, visibility, keyword, &self.rust_struct_name, super_path)?;
+        write!(out, "{}    {}{} {} {} extends {}", indent, attributes, visibility, keyword, &self.rust_struct_name, super_path)?;
         let mut implements = false;
         for interface in &self.java.interfaces {
             write!(out, ", ")?;
