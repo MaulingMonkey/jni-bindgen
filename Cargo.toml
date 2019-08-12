@@ -1,6 +1,5 @@
 [workspace]
 members = [
-    "jar-parser",
     "jni-bindgen",
     "jni-glue",
     "jni-android-sys",

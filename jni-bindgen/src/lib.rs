@@ -45,6 +45,8 @@ mod identifiers {
     pub use rust_identifier::*;
 }
 
+mod java;
+
 /// Core generation logic
 mod run {
     #[allow(unused_imports)] use super::*;

@@ -7,7 +7,7 @@ use std::io;
 pub(crate) struct Struct {
     pub rust_mod_prefix:    String,
     pub rust_struct_name:   String,
-    pub java:               jar_parser::Class,
+    pub java:               java::Class,
 }
 
 impl Struct {

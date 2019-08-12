@@ -1,5 +1,5 @@
 use super::*;
-use jar_parser::method;
+use java::method;
 
 pub(crate) struct KnownDocsUrl {
     pub(crate) label:  String,
@@ -7,7 +7,7 @@ pub(crate) struct KnownDocsUrl {
 }
 
 impl KnownDocsUrl {
-    pub(crate) fn from_class(context: &Context, java_class: jar_parser::class::Id) -> Option<KnownDocsUrl> {
+    pub(crate) fn from_class(context: &Context, java_class: java::class::Id) -> Option<KnownDocsUrl> {
         let java_class = java_class.as_str();
         let pattern = context.config.doc_patterns.iter().find(|pattern| java_class.starts_with(pattern.jni_prefix.as_str()))?;
 

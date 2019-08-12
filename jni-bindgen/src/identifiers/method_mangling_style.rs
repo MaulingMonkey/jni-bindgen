@@ -1,7 +1,6 @@
 use super::*;
-
-use jar_parser::class::IdPart;
-use jar_parser::method;
+use crate::java::class::IdPart;
+use crate::java::method;
 
 use serde_derive::*;
 

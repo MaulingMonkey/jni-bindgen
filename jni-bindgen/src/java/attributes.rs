@@ -1,5 +1,5 @@
 use super::*;
-use crate::io::*;
+use crate::java::io::*;
 
 use std::io::{self, Read};
 

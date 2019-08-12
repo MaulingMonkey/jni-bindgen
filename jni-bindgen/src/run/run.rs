@@ -1,6 +1,6 @@
 use super::*;
 use config::runtime::*;
-use jar_parser::*;
+use java::*;
 
 use std::result::Result;
 use std::error::Error;

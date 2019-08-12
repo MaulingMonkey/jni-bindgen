@@ -1,20 +1,20 @@
 use super::*;
 
-use jar_parser::method;
+use java::method;
 
 use std::io;
 
 
 
 pub struct Method<'a> {
-    pub class:      &'a jar_parser::Class,
-    pub java:       &'a jar_parser::Method,
+    pub class:      &'a java::Class,
+    pub java:       &'a java::Method,
     rust_name:      Option<String>,
     mangling_style: MethodManglingStyle,
 }
 
 impl<'a> Method<'a> {
-    pub fn new(context: &Context, class: &'a jar_parser::Class, java: &'a jar_parser::Method) -> Self {
+    pub fn new(context: &Context, class: &'a java::Class, java: &'a java::Method) -> Self {
         let mut result = Self {
             class,
             java,

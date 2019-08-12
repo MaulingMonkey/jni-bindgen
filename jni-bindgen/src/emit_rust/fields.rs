@@ -1,19 +1,19 @@
 use super::*;
 
-use jar_parser::class;
-use jar_parser::field;
+use java::class;
+use java::field;
 
 use std::io;
 
 pub struct Field<'a> {
-    pub class:          &'a jar_parser::Class,
-    pub java:           &'a jar_parser::Field,
+    pub class:          &'a java::Class,
+    pub java:           &'a java::Field,
     rust_name:          Option<String>,
     rust_const_value:   Option<String>,
 }
 
 impl<'a> Field<'a> {
-    pub fn new(context: &Context, class: &'a jar_parser::Class, java: &'a jar_parser::Field) -> Self {
+    pub fn new(context: &Context, class: &'a java::Class, java: &'a java::Field) -> Self {
         let mut result = Self {
             class,
             java,

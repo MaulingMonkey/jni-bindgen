@@ -1,6 +1,6 @@
 use super::*;
 
-use jar_parser::class;
+use java::class;
 
 use std::error::Error;
 use std::fmt::Write;
@@ -62,7 +62,7 @@ impl<'a> Context<'a> {
         Err(format!("Failed to find LeafClass in {:?}", java_class))?
     }
 
-    pub fn add_struct(&mut self, class: jar_parser::Class) -> Result<(), Box<dyn Error>> {
+    pub fn add_struct(&mut self, class: java::Class) -> Result<(), Box<dyn Error>> {
         let mut rust_mod            = &mut self.module;
         let mut rust_mod_prefix     = String::from("crate::");
         let mut rust_struct_name    = String::new();

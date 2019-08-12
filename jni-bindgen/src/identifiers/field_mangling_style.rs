@@ -1,4 +1,4 @@
-use jar_parser::*;
+use crate::java::*;
 use serde_derive::*;
 
 #[derive(Clone, Debug, Deserialize, PartialEq, Eq, Hash)]
