@@ -9,15 +9,7 @@ use std::io::{self, Read};
 #[derive(Clone, Debug)]
 pub(crate) enum Attribute {
     /// https://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html#jvms-4.7.2
-    ConstantValue_Long(i64),
-    /// https://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html#jvms-4.7.2
-    ConstantValue_Float(f32),
-    /// https://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html#jvms-4.7.2
-    ConstantValue_Double(f64),
-    /// https://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html#jvms-4.7.2
-    ConstantValue_Integer(i32), // int, short, char, byte, boolean
-    /// https://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html#jvms-4.7.2
-    ConstantValue_String(String),
+    ConstantValue(field::Constant),
 
     /// https://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html#jvms-4.7.3
     Code { #[doc(hidden)] __nyi: () },
@@ -95,11 +87,11 @@ impl Attribute {
                 let constantvalue_index = read_u2(read)?;
                 let constant = constants.get(constantvalue_index)?;
                 match constant {
-                    Constant::Long(value)               => Ok(Attribute::ConstantValue_Long(*value)),
-                    Constant::Float(value)              => Ok(Attribute::ConstantValue_Float(*value)),
-                    Constant::Double(value)             => Ok(Attribute::ConstantValue_Double(*value)),
-                    Constant::Integer(value)            => Ok(Attribute::ConstantValue_Integer(*value)),
-                    Constant::String { string_index }   => Ok(Attribute::ConstantValue_String(constants.get_utf8(*string_index)?.to_owned())),
+                    Constant::Long(value)               => Ok(Attribute::ConstantValue(field::Constant::Long(*value))),
+                    Constant::Float(value)              => Ok(Attribute::ConstantValue(field::Constant::Float(*value))),
+                    Constant::Double(value)             => Ok(Attribute::ConstantValue(field::Constant::Double(*value))),
+                    Constant::Integer(value)            => Ok(Attribute::ConstantValue(field::Constant::Integer(*value))),
+                    Constant::String { string_index }   => Ok(Attribute::ConstantValue(field::Constant::String(constants.get_utf8(*string_index)?.to_owned()))),
                     c                                   => io_data_err!("Expected Constant::{{Long, Float, Double, Integer, String}}, got {:?}", c),
                 }
             },

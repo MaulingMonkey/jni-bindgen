@@ -109,12 +109,8 @@ impl Field {
         let mut constant        = None;
         for _ in 0..attributes_count {
             match Attribute::read(read, constants)? {
-                Attribute::Deprecated { .. }            => { deprecated = true; },
-                Attribute::ConstantValue_Integer(value) => { constant = Some(Constant::Integer(value)); },
-                Attribute::ConstantValue_Long   (value) => { constant = Some(Constant::Long(value)); },
-                Attribute::ConstantValue_Float  (value) => { constant = Some(Constant::Float(value)); },
-                Attribute::ConstantValue_Double (value) => { constant = Some(Constant::Double(value)); },
-                Attribute::ConstantValue_String (value) => { constant = Some(Constant::String(value)); },
+                Attribute::Deprecated { .. }    => { deprecated = true; },
+                Attribute::ConstantValue(value) => { constant = Some(value); },
                 _ => {},
             }
         }
