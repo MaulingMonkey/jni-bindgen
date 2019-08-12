@@ -45,7 +45,7 @@ impl<'a> Method<'a> {
 
         let java_class              = format!("{}", self.class.path.as_str());
         let java_class_method       = format!("{}\x1f{}", self.class.path.as_str(), &self.java.name);
-        let java_class_method_sig   = format!("{}\x1f{}\x1f{}", self.class.path.as_str(), &self.java.name, self.java.descriptor().as_str());
+        let java_class_method_sig   = format!("{}\x1f{}\x1f{}", self.class.path.as_str(), &self.java.name, self.java.descriptor_str());
 
         let ignored =
             context.config.ignore_classes          .contains(&java_class) ||
@@ -247,7 +247,7 @@ impl<'a> Method<'a> {
             writeln!(out, "{}/// [{}]({})", indent, url.label, url.url)?;
         }
         writeln!(out, "{}{}{}fn {}<'env>({}) -> __jni_bindgen::Result<{}> {{", indent, attributes, access, method_name, params_decl, ret_decl)?;
-        writeln!(out, "{}    // class.path == {:?}, java.flags == {:?}, .name == {:?}, .descriptor == {:?}", indent, &self.class.path, self.java.flags, &self.java.name, &self.java.descriptor().as_str())?;
+        writeln!(out, "{}    // class.path == {:?}, java.flags == {:?}, .name == {:?}, .descriptor == {:?}", indent, &self.class.path, self.java.flags, &self.java.name, &self.java.descriptor_str())?;
         writeln!(out, "{}    unsafe {{", indent)?;
         writeln!(out, "{}        let __jni_args = [{}];", indent, params_array)?;
         if self.java.is_constructor() || self.java.is_static() {
@@ -260,7 +260,7 @@ impl<'a> Method<'a> {
             writeln!(out, "{}        let __jni_env = __jni_bindgen::Env::from_ptr(self.0.env);", indent)?;
         }
 
-        writeln!(out, "{}        let (__jni_class, __jni_method) = __jni_env.require_class_{}method({}, {}, {});", indent, if self.java.is_static() { "static_" } else { "" }, emit_cstr(self.class.path.as_str()), emit_cstr(self.java.name.as_str()), emit_cstr(self.java.descriptor().as_str()) )?;
+        writeln!(out, "{}        let (__jni_class, __jni_method) = __jni_env.require_class_{}method({}, {}, {});", indent, if self.java.is_static() { "static_" } else { "" }, emit_cstr(self.class.path.as_str()), emit_cstr(self.java.name.as_str()), emit_cstr(self.java.descriptor_str()) )?;
 
         if self.java.is_constructor() {
             writeln!(out, "{}        __jni_env.new_object_a(__jni_class, __jni_method, __jni_args.as_ptr())", indent)?;

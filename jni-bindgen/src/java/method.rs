@@ -72,6 +72,7 @@ impl Method {
         })
     }
 
+    pub fn descriptor_str(&self) -> &str { self.descriptor.as_str() }
     pub fn descriptor(&self) -> Descriptor { Descriptor::new(self.descriptor.as_str()).unwrap() } // Already validated in new/read_one
 
     pub fn is_public        (&self) -> bool { self.flags.contains(Flags::PUBLIC         ) }
