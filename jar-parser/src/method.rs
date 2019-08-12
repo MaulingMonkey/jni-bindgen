@@ -2,6 +2,8 @@
 
 use super::*;
 use crate::io::*;
+pub use field::BasicType;
+pub use field::Descriptor as Type;
 
 use bitflags::bitflags;
 
@@ -53,21 +55,24 @@ impl Flags {
 pub struct Method {
     pub flags:      Flags,
     pub name:       String,
-    pub descriptor: String,
+    descriptor:     String,
     pub deprecated: bool,
     _incomplete:    (),
 }
 
 impl Method {
-    pub fn new(flags: Flags, name: String, descriptor: String) -> Self {
-        Self {
+    pub fn new(flags: Flags, name: String, descriptor: String) -> io::Result<Self> {
+        method::Descriptor::new(descriptor.as_str())?;
+        Ok(Self {
             flags,
             name,
             descriptor,
             deprecated: false,
             _incomplete: (),
-        }
+        })
     }
+
+    pub fn descriptor(&self) -> Descriptor { Descriptor::new(self.descriptor.as_str()).unwrap() } // Already validated in new/read_one
 
     pub fn is_public        (&self) -> bool { self.flags.contains(Flags::PUBLIC         ) }
     pub fn is_private       (&self) -> bool { self.flags.contains(Flags::PRIVATE        ) }
@@ -98,6 +103,8 @@ impl Method {
         let descriptor          = constants.get_utf8(read_u2(read)?)?.to_owned();
         let attributes_count    = read_u2(read)? as usize;
 
+        method::Descriptor::new(descriptor.as_str())?;
+
         let mut deprecated      = false;
         for _ in 0..attributes_count {
             match Attribute::read(read, constants)? {
@@ -123,4 +130,93 @@ impl Method {
         }
         Ok(methods)
     }
+}
+
+
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub struct Descriptor<'a> {
+    string:     &'a str,
+    end_paren:  usize,
+}
+
+impl<'a> Descriptor<'a> {
+    pub fn new(desc: &'a str) -> io::Result<Descriptor<'a>> {
+        if !desc.starts_with('(') { return io_data_err!("Method descriptor didn't start with '(': {:?}", desc); }
+        let end_paren = if let Some(i) = desc.rfind(')') { i } else { return io_data_err!("Method descriptor doesn't contain a ')' terminating the arguments list: {:?}", desc); };
+        let (arguments, return_) = desc.split_at(end_paren);
+
+        Type::from_str(&return_[1..])?; // Skip )
+        let mut args = &arguments[1..];  // Skip (
+        while !args.is_empty() {
+            Type::read_next(&mut args)?;
+        }
+
+        Ok(Descriptor { string: desc, end_paren })
+    }
+
+    pub fn as_str(&self) -> &'a str { self.string }
+    pub fn return_type(&self) -> Type<'a> { Type::from_str(&self.string[(1+self.end_paren)..]).unwrap() } // Already validated in Descriptor::new
+    pub fn arguments(&self) -> ArgumentsIter { ArgumentsIter(&self.string[1..self.end_paren]) }
+}
+
+pub struct ArgumentsIter<'a>(&'a str);
+
+impl<'a> Iterator for ArgumentsIter<'a> {
+    type Item = Type<'a>;
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.0.is_empty() {
+            None
+        } else {
+            Some(Type::read_next(&mut self.0).unwrap()) // Already verified in Descriptor::next
+        }
+    }
+}
+
+#[test] fn jni_descriptor_from_str() {
+    let d = Descriptor::new("(Landroid/net/Uri;[Ljava/lang/String;Ljava/lang/String;[Ljava/lang/String;Ljava/lang/String;)Landroid/database/Cursor;").unwrap();
+    assert_eq!(d.return_type(), Type::Single(BasicType::Class(class::Id("android/database/Cursor"))));
+    let mut d = d.arguments();
+    assert_eq!(d.next(), Some(Type::Single(BasicType::Class(class::Id("android/net/Uri")))));
+    assert_eq!(d.next(), Some(Type::Array { levels: 1, inner: BasicType::Class(class::Id("java/lang/String")) }));
+    assert_eq!(d.next(), Some(Type::Single(BasicType::Class(class::Id("java/lang/String")))));
+    assert_eq!(d.next(), Some(Type::Array { levels: 1, inner: BasicType::Class(class::Id("java/lang/String")) }));
+    assert_eq!(d.next(), Some(Type::Single(BasicType::Class(class::Id("java/lang/String")))));
+    assert_eq!(d.next(), None);
+    assert_eq!(d.next(), None);
+
+    let d = Descriptor::new("(Landroid/net/Uri;[Ljava/lang/String;Ljava/lang/String;[Ljava/lang/String;Ljava/lang/String;Landroid/os/CancellationSignal;)Landroid/database/Cursor;").unwrap();
+    assert_eq!(d.return_type(), Type::Single(BasicType::Class(class::Id("android/database/Cursor"))));
+    let mut d = d.arguments();
+    assert_eq!(d.next(), Some(Type::Single(BasicType::Class(class::Id("android/net/Uri")))));
+    assert_eq!(d.next(), Some(Type::Array { levels: 1, inner: BasicType::Class(class::Id("java/lang/String")) }));
+    assert_eq!(d.next(), Some(Type::Single(BasicType::Class(class::Id("java/lang/String")))));
+    assert_eq!(d.next(), Some(Type::Array { levels: 1, inner: BasicType::Class(class::Id("java/lang/String")) }));
+    assert_eq!(d.next(), Some(Type::Single(BasicType::Class(class::Id("java/lang/String")))));
+    assert_eq!(d.next(), Some(Type::Single(BasicType::Class(class::Id("android/os/CancellationSignal")))));
+    assert_eq!(d.next(), None);
+    assert_eq!(d.next(), None);
+
+    let d = Descriptor::new("(Landroid/net/Uri;[Ljava/lang/String;Landroid/os/Bundle;Landroid/os/CancellationSignal;)Landroid/database/Cursor;").unwrap();
+    assert_eq!(d.return_type(), Type::Single(BasicType::Class(class::Id("android/database/Cursor"))));
+    let mut d = d.arguments();
+    assert_eq!(d.next(), Some(Type::Single(BasicType::Class(class::Id("android/net/Uri")))));
+    assert_eq!(d.next(), Some(Type::Array { levels: 1, inner: BasicType::Class(class::Id("java/lang/String")) }));
+    assert_eq!(d.next(), Some(Type::Single(BasicType::Class(class::Id("android/os/Bundle")))));
+    assert_eq!(d.next(), Some(Type::Single(BasicType::Class(class::Id("android/os/CancellationSignal")))));
+    assert_eq!(d.next(), None);
+    assert_eq!(d.next(), None);
+
+    let d = Descriptor::new("([Ljava/lang/String;)V").unwrap();
+    assert_eq!(d.return_type(), Type::Single(BasicType::Void));
+    let mut d = d.arguments();
+    assert_eq!(d.next(), Some(Type::Array { levels: 1, inner: BasicType::Class(class::Id("java/lang/String")) }));
+    assert_eq!(d.next(), None);
+    assert_eq!(d.next(), None);
+
+    let d = Descriptor::new("()V").unwrap();
+    assert_eq!(d.return_type(), Type::Single(BasicType::Void));
+    let mut d = d.arguments();
+    assert_eq!(d.next(), None);
+    assert_eq!(d.next(), None);
 }

@@ -1,6 +1,7 @@
 use super::*;
 
 use jar_parser::class::IdPart;
+use jar_parser::method;
 
 use serde_derive::*;
 
@@ -95,6 +96,8 @@ impl std::fmt::Display for MethodManglingError { fn fmt(&self, fmt: &mut std::fm
         // TODO: get1DFoo
         // TODO: array types (primitive + non-primitive)
     ] {
+        let sig = method::Descriptor::new(sig).unwrap();
+
         assert_eq!(MethodManglingStyle::Java                            .mangle(name, sig).unwrap(), java);
         assert_eq!(MethodManglingStyle::JavaShortSignature              .mangle(name, sig).unwrap(), java_short);
         assert_eq!(MethodManglingStyle::JavaLongSignature               .mangle(name, sig).unwrap(), java_long);
@@ -106,13 +109,13 @@ impl std::fmt::Display for MethodManglingError { fn fmt(&self, fmt: &mut std::fm
 }
 
 #[test] fn mangle_method_name_test() {
-    assert_eq!(MethodManglingStyle::Rustify.mangle("isFooBar",          "()V").unwrap(), "is_foo_bar"         );
-    assert_eq!(MethodManglingStyle::Rustify.mangle("XMLHttpRequest",    "()V").unwrap(), "xml_http_request"   );
-    assert_eq!(MethodManglingStyle::Rustify.mangle("getFieldID_Input",  "()V").unwrap(), "get_field_id_input" );
+    assert_eq!(MethodManglingStyle::Rustify.mangle("isFooBar",          method::Descriptor::new("()V").unwrap()).unwrap(), "is_foo_bar"         );
+    assert_eq!(MethodManglingStyle::Rustify.mangle("XMLHttpRequest",    method::Descriptor::new("()V").unwrap()).unwrap(), "xml_http_request"   );
+    assert_eq!(MethodManglingStyle::Rustify.mangle("getFieldID_Input",  method::Descriptor::new("()V").unwrap()).unwrap(), "get_field_id_input" );
 }
 
 impl MethodManglingStyle {
-    pub fn mangle(&self, name: &str, signature: &str) -> Result<String, MethodManglingError> {
+    pub fn mangle(&self, name: &str, descriptor: method::Descriptor) -> Result<String, MethodManglingError> {
         let name = match name {
             ""          => { return Err(MethodManglingError::EmptyString); },
             "<init>"    => "new",
@@ -122,105 +125,113 @@ impl MethodManglingStyle {
 
         match self {
             MethodManglingStyle::Java                   => Ok(String::from(javaify_method_name(name)?)),
-            MethodManglingStyle::JavaShortSignature     => Ok(String::from(javaify_method_name(&format!("{}{}", name, short_sig(signature) )[..])?)),
-            MethodManglingStyle::JavaLongSignature      => Ok(String::from(javaify_method_name(&format!("{}{}", name, long_sig(signature)  )[..])?)),
+            MethodManglingStyle::JavaShortSignature     => Ok(String::from(javaify_method_name(&format!("{}{}", name, short_sig(descriptor) )[..])?)),
+            MethodManglingStyle::JavaLongSignature      => Ok(String::from(javaify_method_name(&format!("{}{}", name, long_sig(descriptor)  )[..])?)),
 
             MethodManglingStyle::Rustify                => Ok(rustify_method_name(name)?),
-            MethodManglingStyle::RustifyShortSignature  => Ok(rustify_method_name(&format!("{}{}", name, short_sig(signature) )[..])?),
-            MethodManglingStyle::RustifyLongSignature   => Ok(rustify_method_name(&format!("{}{}", name, long_sig(signature)  )[..])?),
+            MethodManglingStyle::RustifyShortSignature  => Ok(rustify_method_name(&format!("{}{}", name, short_sig(descriptor) )[..])?),
+            MethodManglingStyle::RustifyLongSignature   => Ok(rustify_method_name(&format!("{}{}", name, long_sig(descriptor)  )[..])?),
         }
     }
 }
 
-fn short_sig(signature: &str) -> String {
-    let desc = match JniDescriptor::new(signature) {
-        Err(_) => { return String::new(); },
-        Ok(d) => d,
-    };
+fn short_sig(descriptor: method::Descriptor) -> String {
+    use method::*;
 
     let mut buffer = String::new();
 
-    for comp in desc {
-        match comp {
-            JniDescriptorSegment::Parameter(param) => {
-                match param {
-                    JniField::Single(JniBasicType::Boolean  ) => { buffer.push_str("_boolean");     },
-                    JniField::Single(JniBasicType::Byte     ) => { buffer.push_str("_byte");        },
-                    JniField::Single(JniBasicType::Char     ) => { buffer.push_str("_char");        },
-                    JniField::Single(JniBasicType::Double   ) => { buffer.push_str("_double");      },
-                    JniField::Single(JniBasicType::Float    ) => { buffer.push_str("_float");       },
-                    JniField::Single(JniBasicType::Int      ) => { buffer.push_str("_int");         },
-                    JniField::Single(JniBasicType::Long     ) => { buffer.push_str("_long");        },
-                    JniField::Single(JniBasicType::Short    ) => { buffer.push_str("_short");       },
-                    JniField::Single(JniBasicType::Void     ) => { buffer.push_str("_void");        },
-                    JniField::Single(JniBasicType::Class(class)) => {
-                        if let Some(IdPart::LeafClass(leaf)) = class.iter().last() {
-                            buffer.push('_');
-                            buffer.push_str(leaf);
-                        } else {
-                            buffer.push_str("_unknown");
-                        }
-                    },
-                    JniField::Array { levels, inner } => {
-                        match inner {
-                            JniBasicType::Boolean   => { buffer.push_str("_boolean");   },
-                            JniBasicType::Byte      => { buffer.push_str("_byte");      },
-                            JniBasicType::Char      => { buffer.push_str("_char");      },
-                            JniBasicType::Double    => { buffer.push_str("_double");    },
-                            JniBasicType::Float     => { buffer.push_str("_float");     },
-                            JniBasicType::Int       => { buffer.push_str("_int");       },
-                            JniBasicType::Long      => { buffer.push_str("_long");      },
-                            JniBasicType::Short     => { buffer.push_str("_short");     },
-                            JniBasicType::Void      => { buffer.push_str("_void");      },
-                            JniBasicType::Class(class) => {
-                                for component in class.iter() {
-                                    match component {
-                                        IdPart::Namespace(_) => {},
-                                        IdPart::ContainingClass(_) => {},
-                                        IdPart::LeafClass(cls) => {
-                                            buffer.push('_');
-                                            buffer.push_str(cls);
-                                        },
-                                    }
-                                }
-                            },
-                        }
-
-                        for _ in 0..levels {
-                            buffer.push_str("_array");
-                        }
-                    }
+    for arg in descriptor.arguments() {
+        match arg {
+            Type::Single(BasicType::Boolean  ) => { buffer.push_str("_boolean");     },
+            Type::Single(BasicType::Byte     ) => { buffer.push_str("_byte");        },
+            Type::Single(BasicType::Char     ) => { buffer.push_str("_char");        },
+            Type::Single(BasicType::Double   ) => { buffer.push_str("_double");      },
+            Type::Single(BasicType::Float    ) => { buffer.push_str("_float");       },
+            Type::Single(BasicType::Int      ) => { buffer.push_str("_int");         },
+            Type::Single(BasicType::Long     ) => { buffer.push_str("_long");        },
+            Type::Single(BasicType::Short    ) => { buffer.push_str("_short");       },
+            Type::Single(BasicType::Void     ) => { buffer.push_str("_void");        },
+            Type::Single(BasicType::Class(class)) => {
+                if let Some(IdPart::LeafClass(leaf)) = class.iter().last() {
+                    buffer.push('_');
+                    buffer.push_str(leaf);
+                } else {
+                    buffer.push_str("_unknown");
                 }
             },
-            JniDescriptorSegment::Return(_) => {}, // Ignore
+            Type::Array { levels, inner } => {
+                match inner {
+                    BasicType::Boolean   => { buffer.push_str("_boolean");   },
+                    BasicType::Byte      => { buffer.push_str("_byte");      },
+                    BasicType::Char      => { buffer.push_str("_char");      },
+                    BasicType::Double    => { buffer.push_str("_double");    },
+                    BasicType::Float     => { buffer.push_str("_float");     },
+                    BasicType::Int       => { buffer.push_str("_int");       },
+                    BasicType::Long      => { buffer.push_str("_long");      },
+                    BasicType::Short     => { buffer.push_str("_short");     },
+                    BasicType::Void      => { buffer.push_str("_void");      },
+                    BasicType::Class(class) => {
+                        for component in class.iter() {
+                            match component {
+                                IdPart::Namespace(_) => {},
+                                IdPart::ContainingClass(_) => {},
+                                IdPart::LeafClass(cls) => {
+                                    buffer.push('_');
+                                    buffer.push_str(cls);
+                                },
+                            }
+                        }
+                    },
+                }
+
+                for _ in 0..levels {
+                    buffer.push_str("_array");
+                }
+            }
         }
     }
 
     buffer
 }
 
-fn long_sig(signature: &str) -> String {
-    let desc = match JniDescriptor::new(signature) {
-        Err(_) => { return String::new(); },
-        Ok(d) => d,
-    };
+fn long_sig(descriptor: method::Descriptor) -> String {
+    use method::*;
 
     let mut buffer = String::new();
 
-    for comp in desc {
-        match comp {
-            JniDescriptorSegment::Parameter(param) => {
-                match param {
-                    JniField::Single(JniBasicType::Boolean  ) => { buffer.push_str("_boolean"); },
-                    JniField::Single(JniBasicType::Byte     ) => { buffer.push_str("_byte");    },
-                    JniField::Single(JniBasicType::Char     ) => { buffer.push_str("_char");    },
-                    JniField::Single(JniBasicType::Double   ) => { buffer.push_str("_double");  },
-                    JniField::Single(JniBasicType::Float    ) => { buffer.push_str("_float");   },
-                    JniField::Single(JniBasicType::Int      ) => { buffer.push_str("_int");     },
-                    JniField::Single(JniBasicType::Long     ) => { buffer.push_str("_long");    },
-                    JniField::Single(JniBasicType::Short    ) => { buffer.push_str("_short");   },
-                    JniField::Single(JniBasicType::Void     ) => { buffer.push_str("_void");    },
-                    JniField::Single(JniBasicType::Class(class)) => {
+    for arg in descriptor.arguments() {
+        match arg {
+            Type::Single(BasicType::Boolean  ) => { buffer.push_str("_boolean"); },
+            Type::Single(BasicType::Byte     ) => { buffer.push_str("_byte");    },
+            Type::Single(BasicType::Char     ) => { buffer.push_str("_char");    },
+            Type::Single(BasicType::Double   ) => { buffer.push_str("_double");  },
+            Type::Single(BasicType::Float    ) => { buffer.push_str("_float");   },
+            Type::Single(BasicType::Int      ) => { buffer.push_str("_int");     },
+            Type::Single(BasicType::Long     ) => { buffer.push_str("_long");    },
+            Type::Single(BasicType::Short    ) => { buffer.push_str("_short");   },
+            Type::Single(BasicType::Void     ) => { buffer.push_str("_void");    },
+            Type::Single(BasicType::Class(class)) => {
+                for component in class.iter() {
+                    buffer.push('_');
+                    match component {
+                        IdPart::Namespace(namespace) => { buffer.push_str(namespace); },
+                        IdPart::ContainingClass(cls) => { buffer.push_str(cls); },
+                        IdPart::LeafClass(cls)       => { buffer.push_str(cls); },
+                    }
+                }
+            },
+            Type::Array { levels, inner } => {
+                match inner {
+                    BasicType::Boolean   => { buffer.push_str("_boolean");   },
+                    BasicType::Byte      => { buffer.push_str("_byte");      },
+                    BasicType::Char      => { buffer.push_str("_char");      },
+                    BasicType::Double    => { buffer.push_str("_double");    },
+                    BasicType::Float     => { buffer.push_str("_float");     },
+                    BasicType::Int       => { buffer.push_str("_int");       },
+                    BasicType::Long      => { buffer.push_str("_long");      },
+                    BasicType::Short     => { buffer.push_str("_short");     },
+                    BasicType::Void      => { buffer.push_str("_void");      },
+                    BasicType::Class(class) => {
                         for component in class.iter() {
                             buffer.push('_');
                             match component {
@@ -230,36 +241,12 @@ fn long_sig(signature: &str) -> String {
                             }
                         }
                     },
-                    JniField::Array { levels, inner } => {
-                        match inner {
-                            JniBasicType::Boolean   => { buffer.push_str("_boolean");   },
-                            JniBasicType::Byte      => { buffer.push_str("_byte");      },
-                            JniBasicType::Char      => { buffer.push_str("_char");      },
-                            JniBasicType::Double    => { buffer.push_str("_double");    },
-                            JniBasicType::Float     => { buffer.push_str("_float");     },
-                            JniBasicType::Int       => { buffer.push_str("_int");       },
-                            JniBasicType::Long      => { buffer.push_str("_long");      },
-                            JniBasicType::Short     => { buffer.push_str("_short");     },
-                            JniBasicType::Void      => { buffer.push_str("_void");      },
-                            JniBasicType::Class(class) => {
-                                for component in class.iter() {
-                                    buffer.push('_');
-                                    match component {
-                                        IdPart::Namespace(namespace) => { buffer.push_str(namespace); },
-                                        IdPart::ContainingClass(cls) => { buffer.push_str(cls); },
-                                        IdPart::LeafClass(cls)       => { buffer.push_str(cls); },
-                                    }
-                                }
-                            },
-                        }
-
-                        for _ in 0..levels {
-                            buffer.push_str("_array");
-                        }
-                    }
                 }
-            },
-            JniDescriptorSegment::Return(_) => {}, // Ignore?
+
+                for _ in 0..levels {
+                    buffer.push_str("_array");
+                }
+            }
         }
     }
 

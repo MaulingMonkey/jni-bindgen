@@ -37,14 +37,10 @@ mod identifiers {
     use std::iter::*;
 
     mod field_mangling_style;
-    mod jni_descriptor;
-    mod jni_field;
     mod method_mangling_style;
     mod rust_identifier;
 
     pub use field_mangling_style::*;
-    pub use jni_descriptor::*;
-    pub use jni_field::*;
     pub use method_mangling_style::*;
     pub use rust_identifier::*;
 }

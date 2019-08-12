@@ -1,4 +1,5 @@
 use super::*;
+use jar_parser::method;
 
 pub(crate) struct KnownDocsUrl {
     pub(crate) label:  String,
@@ -37,7 +38,9 @@ impl KnownDocsUrl {
         })
     }
 
-    pub(crate) fn from_method(context: &Context, java_class: &str, java_method: &str, java_descriptor: &str) -> Option<KnownDocsUrl> {
+    pub(crate) fn from_method(context: &Context, java_class: &str, java_method: &str, java_descriptor: method::Descriptor) -> Option<KnownDocsUrl> {
+        use method::*;
+
         let pattern = context.config.doc_patterns.iter().find(|pattern| java_class.starts_with(pattern.jni_prefix.as_str()))?;
         let method_url_pattern = pattern.method_url_pattern.as_ref()?;
 
@@ -61,47 +64,40 @@ impl KnownDocsUrl {
             }
         }
 
-        let java_descriptor = JniDescriptor::new(java_descriptor).ok()?;
-
         let java_class = java_class
             .replace("/", pattern.class_namespace_separator.as_str())
             .replace("$", pattern.class_inner_class_seperator.as_str());
 
         let mut java_args = String::new();
 
-        for component in java_descriptor {
-            match component {
-                JniDescriptorSegment::Parameter(param) => {
-                    if !java_args.is_empty() {
-                        java_args.push_str(&pattern.method_argument_seperator[..]);
-                    }
+        for arg in java_descriptor.arguments() {
+            if !java_args.is_empty() {
+                java_args.push_str(&pattern.method_argument_seperator[..]);
+            }
 
-                    match param {
-                        JniField::Single(JniBasicType::Void)    => { java_args.push_str("void");    },
-                        JniField::Single(JniBasicType::Boolean) => { java_args.push_str("boolean"); },
-                        JniField::Single(JniBasicType::Byte)    => { java_args.push_str("byte");    },
-                        JniField::Single(JniBasicType::Char)    => { java_args.push_str("char");    },
-                        JniField::Single(JniBasicType::Short)   => { java_args.push_str("short");   },
-                        JniField::Single(JniBasicType::Int)     => { java_args.push_str("int");     },
-                        JniField::Single(JniBasicType::Long)    => { java_args.push_str("long");    },
-                        JniField::Single(JniBasicType::Float)   => { java_args.push_str("float");   },
-                        JniField::Single(JniBasicType::Double)  => { java_args.push_str("double");  },
-                        JniField::Single(JniBasicType::Class(class)) => {
-                            let class = class.as_str()
-                                .replace("/", pattern.method_argument_seperator.as_str())
-                                .replace("$", pattern.method_inner_class_seperator.as_str());
-                            java_args.push_str(&class);
-                        }
-                        JniField::Array { .. }                  => {
-                            return None; // XXX
-                        }
-                    }
-                },
-                JniDescriptorSegment::Return(_) => {
-                    // {RETURN} not currently supported.  Yet.
+            match arg {
+                Type::Single(BasicType::Void)    => { java_args.push_str("void");    },
+                Type::Single(BasicType::Boolean) => { java_args.push_str("boolean"); },
+                Type::Single(BasicType::Byte)    => { java_args.push_str("byte");    },
+                Type::Single(BasicType::Char)    => { java_args.push_str("char");    },
+                Type::Single(BasicType::Short)   => { java_args.push_str("short");   },
+                Type::Single(BasicType::Int)     => { java_args.push_str("int");     },
+                Type::Single(BasicType::Long)    => { java_args.push_str("long");    },
+                Type::Single(BasicType::Float)   => { java_args.push_str("float");   },
+                Type::Single(BasicType::Double)  => { java_args.push_str("double");  },
+                Type::Single(BasicType::Class(class)) => {
+                    let class = class.as_str()
+                        .replace("/", pattern.method_argument_seperator.as_str())
+                        .replace("$", pattern.method_inner_class_seperator.as_str());
+                    java_args.push_str(&class);
+                }
+                Type::Array { .. } => {
+                    return None; // XXX
                 }
             }
         }
+
+        // No {RETURN} support... yet?
 
         Some(KnownDocsUrl{
             label:  java_method.to_owned(),
