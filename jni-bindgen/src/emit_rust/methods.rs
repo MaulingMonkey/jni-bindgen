@@ -39,9 +39,9 @@ impl<'a> Method<'a> {
     pub fn emit(&self, context: &Context, indent: &str, out: &mut impl io::Write) -> io::Result<()> {
         let mut emit_reject_reasons = Vec::new();
 
-        let java_class              = format!("{}", &self.class.path);
-        let java_class_method       = format!("{}\x1f{}", &self.class.path, &self.java.name);
-        let java_class_method_sig   = format!("{}\x1f{}\x1f{}", &self.class.path, &self.java.name, &self.java.descriptor);
+        let java_class              = format!("{}", self.class.path.as_str());
+        let java_class_method       = format!("{}\x1f{}", self.class.path.as_str(), &self.java.name);
+        let java_class_method_sig   = format!("{}\x1f{}\x1f{}", self.class.path.as_str(), &self.java.name, &self.java.descriptor);
 
         let ignored =
             context.config.ignore_classes          .contains(&java_class) ||
@@ -224,7 +224,7 @@ impl<'a> Method<'a> {
         if self.java.is_constructor() {
             if ret_method_fragment == "void" {
                 ret_method_fragment = "object";
-                ret_decl = match context.java_to_rust_path(self.class.path.as_str()) {
+                ret_decl = match context.java_to_rust_path(self.class.path.as_id()) {
                     Ok(path) => format!("__jni_bindgen::Local<'env, {}>", path),
                     Err(_) => {
                         emit_reject_reasons.push("Failed to resolve JNI path to Rust path for this type");

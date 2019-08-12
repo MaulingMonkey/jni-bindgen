@@ -1,3 +1,5 @@
+#![forbid(unsafe_code)]
+
 #[macro_use]    mod io;
                 mod attributes;
 pub             mod class;

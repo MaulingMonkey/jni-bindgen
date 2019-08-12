@@ -1,5 +1,7 @@
 use super::*;
 
+use jar_parser::class;
+
 use std::io;
 
 pub struct Field<'a> {
@@ -60,14 +62,14 @@ impl<'a> Field<'a> {
             Ok(JniField::Single(JniBasicType::Int))     => "i32",
             Ok(JniField::Single(JniBasicType::Long))    => "i64",
             Ok(JniField::Single(JniBasicType::Short))   => "i16",
-            Ok(JniField::Single(JniBasicType::Class("java/lang/String"))) if self.rust_const_value.is_some() => "&'static str",
+            Ok(JniField::Single(JniBasicType::Class(class::Id("java/lang/String")))) if self.rust_const_value.is_some() => "&'static str",
             Ok(JniField::Single(JniBasicType::Void)) => {
                 emit_reject_reasons.push("void is not a valid field type");
                 "()"
             },
             Ok(JniField::Single(JniBasicType::Class(class))) => {
                 emit_reject_reasons.push("Haven't yet implemented object field types");
-                class
+                class.as_str()
             },
             Ok(JniField::Array { .. }) => {
                 emit_reject_reasons.push("Haven't yet implemented array field types");

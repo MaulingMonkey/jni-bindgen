@@ -1,6 +1,10 @@
 use super::*;
 
+use jar_parser::class::IdPart;
+
 use serde_derive::*;
+
+
 
 #[serde(rename_all = "snake_case")]
 #[derive(Clone, Copy, Debug, Deserialize, PartialEq, Eq, Hash)]
@@ -149,8 +153,8 @@ fn short_sig(signature: &str) -> String {
                     JniField::Single(JniBasicType::Long     ) => { buffer.push_str("_long");        },
                     JniField::Single(JniBasicType::Short    ) => { buffer.push_str("_short");       },
                     JniField::Single(JniBasicType::Void     ) => { buffer.push_str("_void");        },
-                    JniField::Single(JniBasicType::Class(cl)) => {
-                        if let Some(JniIdentifier::LeafClass(leaf)) = JniPathIter::new(cl).last() {
+                    JniField::Single(JniBasicType::Class(class)) => {
+                        if let Some(IdPart::LeafClass(leaf)) = class.iter().last() {
                             buffer.push('_');
                             buffer.push_str(leaf);
                         } else {
@@ -168,12 +172,12 @@ fn short_sig(signature: &str) -> String {
                             JniBasicType::Long      => { buffer.push_str("_long");      },
                             JniBasicType::Short     => { buffer.push_str("_short");     },
                             JniBasicType::Void      => { buffer.push_str("_void");      },
-                            JniBasicType::Class(cl) => {
-                                for component in JniPathIter::new(cl) {
+                            JniBasicType::Class(class) => {
+                                for component in class.iter() {
                                     match component {
-                                        JniIdentifier::Namespace(_) => {},
-                                        JniIdentifier::ContainingClass(_) => {},
-                                        JniIdentifier::LeafClass(cls) => {
+                                        IdPart::Namespace(_) => {},
+                                        IdPart::ContainingClass(_) => {},
+                                        IdPart::LeafClass(cls) => {
                                             buffer.push('_');
                                             buffer.push_str(cls);
                                         },
@@ -216,13 +220,13 @@ fn long_sig(signature: &str) -> String {
                     JniField::Single(JniBasicType::Long     ) => { buffer.push_str("_long");    },
                     JniField::Single(JniBasicType::Short    ) => { buffer.push_str("_short");   },
                     JniField::Single(JniBasicType::Void     ) => { buffer.push_str("_void");    },
-                    JniField::Single(JniBasicType::Class(cl)) => {
-                        for component in JniPathIter::new(cl) {
+                    JniField::Single(JniBasicType::Class(class)) => {
+                        for component in class.iter() {
                             buffer.push('_');
                             match component {
-                                JniIdentifier::Namespace(namespace) => { buffer.push_str(namespace); },
-                                JniIdentifier::ContainingClass(cls) => { buffer.push_str(cls); },
-                                JniIdentifier::LeafClass(cls)       => { buffer.push_str(cls); },
+                                IdPart::Namespace(namespace) => { buffer.push_str(namespace); },
+                                IdPart::ContainingClass(cls) => { buffer.push_str(cls); },
+                                IdPart::LeafClass(cls)       => { buffer.push_str(cls); },
                             }
                         }
                     },
@@ -237,13 +241,13 @@ fn long_sig(signature: &str) -> String {
                             JniBasicType::Long      => { buffer.push_str("_long");      },
                             JniBasicType::Short     => { buffer.push_str("_short");     },
                             JniBasicType::Void      => { buffer.push_str("_void");      },
-                            JniBasicType::Class(cl) => {
-                                for component in JniPathIter::new(cl) {
+                            JniBasicType::Class(class) => {
+                                for component in class.iter() {
                                     buffer.push('_');
                                     match component {
-                                        JniIdentifier::Namespace(namespace) => { buffer.push_str(namespace); },
-                                        JniIdentifier::ContainingClass(cls) => { buffer.push_str(cls); },
-                                        JniIdentifier::LeafClass(cls)       => { buffer.push_str(cls); },
+                                        IdPart::Namespace(namespace) => { buffer.push_str(namespace); },
+                                        IdPart::ContainingClass(cls) => { buffer.push_str(cls); },
+                                        IdPart::LeafClass(cls)       => { buffer.push_str(cls); },
                                     }
                                 }
                             },

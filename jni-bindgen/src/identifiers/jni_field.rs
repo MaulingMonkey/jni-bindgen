@@ -1,4 +1,5 @@
 use super::*;
+use jar_parser::class::Id;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum JniBasicType<'a> {
@@ -8,7 +9,7 @@ pub enum JniBasicType<'a> {
     Float,
     Int,
     Long,
-    Class(&'a str),
+    Class(Id<'a>),
     Short,
     Boolean,
     Void, // Only really crops up for method return types.
@@ -41,7 +42,7 @@ impl<'a> JniField<'a> {
                     let chars_str = chars.as_str();
                     if let Some(semi) = chars_str.find(';') {
                         *remaining = &chars_str[(semi+1)..];
-                        break JniBasicType::Class(&chars_str[..semi])
+                        break JniBasicType::Class(Id(&chars_str[..semi]))
                     } else {
                         return Err("Unexpected end of string while parsing for terminating ';' of next JNI Field")
                     }
@@ -73,11 +74,11 @@ impl<'a> JniField<'a> {
 #[test] fn jni_field_from_str() {
     // Single values
     assert_eq!(JniField::from_str("F"),                 Ok(JniField::Single(JniBasicType::Float)));
-    assert_eq!(JniField::from_str("Ljava/foo/Bar;"),    Ok(JniField::Single(JniBasicType::Class("java/foo/Bar"))));
+    assert_eq!(JniField::from_str("Ljava/foo/Bar;"),    Ok(JniField::Single(JniBasicType::Class(Id("java/foo/Bar")))));
 
     // Arrays
     assert_eq!(JniField::from_str("[[F"),               Ok(JniField::Array { levels: 2, inner: JniBasicType::Float }));
-    assert_eq!(JniField::from_str("[[[Ljava/foo/Bar;"), Ok(JniField::Array { levels: 3, inner: JniBasicType::Class("java/foo/Bar") }));
+    assert_eq!(JniField::from_str("[[[Ljava/foo/Bar;"), Ok(JniField::Array { levels: 3, inner: JniBasicType::Class(Id("java/foo/Bar")) }));
 
     // Erroneous input
     assert!(JniField::from_str("").is_err());                               // No type
@@ -88,14 +89,14 @@ impl<'a> JniField<'a> {
 
     // Multiple inputs
     let mut class_float = "Ljava/foo/Bar;F";
-    assert_eq!(JniField::read_next(&mut class_float),    Ok(JniField::Single(JniBasicType::Class("java/foo/Bar"))));
+    assert_eq!(JniField::read_next(&mut class_float),    Ok(JniField::Single(JniBasicType::Class(Id("java/foo/Bar")))));
     assert_eq!(JniField::read_next(&mut class_float),    Ok(JniField::Single(JniBasicType::Float)));
     assert_eq!(class_float, "");
     assert!(   JniField::read_next(&mut class_float).is_err());
 
     let mut class_class = "Ljava/foo/Bar;Ljava/foo/Bar;";
-    assert_eq!(JniField::read_next(&mut class_class),    Ok(JniField::Single(JniBasicType::Class("java/foo/Bar"))));
-    assert_eq!(JniField::read_next(&mut class_class),    Ok(JniField::Single(JniBasicType::Class("java/foo/Bar"))));
+    assert_eq!(JniField::read_next(&mut class_class),    Ok(JniField::Single(JniBasicType::Class(Id("java/foo/Bar")))));
+    assert_eq!(JniField::read_next(&mut class_class),    Ok(JniField::Single(JniBasicType::Class(Id("java/foo/Bar")))));
     assert_eq!(class_class, "");
     assert!(   JniField::read_next(&mut class_class).is_err());
 }

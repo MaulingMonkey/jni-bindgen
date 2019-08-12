@@ -6,7 +6,8 @@ pub(crate) struct KnownDocsUrl {
 }
 
 impl KnownDocsUrl {
-    pub(crate) fn from_class(context: &Context, java_class: &str) -> Option<KnownDocsUrl> {
+    pub(crate) fn from_class(context: &Context, java_class: jar_parser::class::Id) -> Option<KnownDocsUrl> {
+        let java_class = java_class.as_str();
         let pattern = context.config.doc_patterns.iter().find(|pattern| java_class.starts_with(pattern.jni_prefix.as_str()))?;
 
         for ch in java_class.chars() {
@@ -86,7 +87,7 @@ impl KnownDocsUrl {
                         JniField::Single(JniBasicType::Float)   => { java_args.push_str("float");   },
                         JniField::Single(JniBasicType::Double)  => { java_args.push_str("double");  },
                         JniField::Single(JniBasicType::Class(class)) => {
-                            let class = class
+                            let class = class.as_str()
                                 .replace("/", pattern.method_argument_seperator.as_str())
                                 .replace("$", pattern.method_inner_class_seperator.as_str());
                             java_args.push_str(&class);

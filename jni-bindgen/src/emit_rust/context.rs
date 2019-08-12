@@ -1,5 +1,7 @@
 use super::*;
 
+use jar_parser::class;
+
 use std::error::Error;
 use std::fmt::Write;
 use std::io;
@@ -17,12 +19,12 @@ impl<'a> Context<'a> {
         }
     }
 
-    pub fn java_to_rust_path(&self, java_class: &str) -> Result<String, Box<dyn Error>> {
+    pub fn java_to_rust_path(&self, java_class: class::Id) -> Result<String, Box<dyn Error>> {
         let mut rust_name = String::from("crate::");
 
-        for component in JniPathIter::new(java_class) {
+        for component in java_class.iter() {
             match component {
-                JniIdentifier::Namespace(id) => {
+                class::IdPart::Namespace(id) => {
                     let id = match RustIdentifier::from_str(id) {
                         RustIdentifier::Identifier(id) => id,
                         RustIdentifier::KeywordRawSafe(id) => id,
@@ -32,7 +34,7 @@ impl<'a> Context<'a> {
 
                     write!(&mut rust_name, "{}::", id)?;
                 },
-                JniIdentifier::ContainingClass(id) => {
+                class::IdPart::ContainingClass(id) => {
                     let id = match RustIdentifier::from_str(id) {
                         RustIdentifier::Identifier(id) => id,
                         RustIdentifier::KeywordRawSafe(id) => id,
@@ -42,7 +44,7 @@ impl<'a> Context<'a> {
 
                     write!(&mut rust_name, "{}_", id)?;
                 },
-                JniIdentifier::LeafClass(id) => {
+                class::IdPart::LeafClass(id) => {
                     let id = match RustIdentifier::from_str(id) {
                         RustIdentifier::Identifier(id) => id,
                         RustIdentifier::KeywordRawSafe(id) => id,
@@ -65,9 +67,9 @@ impl<'a> Context<'a> {
         let mut rust_mod_prefix     = String::from("crate::");
         let mut rust_struct_name    = String::new();
 
-        for component in JniPathIter::new(&class.path) {
+        for component in class.path.iter() {
             match component {
-                JniIdentifier::Namespace(id) => {
+                class::IdPart::Namespace(id) => {
                     let id = match RustIdentifier::from_str(id) {
                         RustIdentifier::Identifier(id) => id,
                         RustIdentifier::KeywordRawSafe(id) => id,
@@ -78,7 +80,7 @@ impl<'a> Context<'a> {
                     write!(&mut rust_mod_prefix, "{}::", id)?;
                     rust_mod = rust_mod.modules.entry(id.to_owned()).or_insert(Default::default());
                 },
-                JniIdentifier::ContainingClass(id) => {
+                class::IdPart::ContainingClass(id) => {
                     let id = match RustIdentifier::from_str(id) {
                         RustIdentifier::Identifier(id) => id,
                         RustIdentifier::KeywordRawSafe(id) => id,
@@ -88,7 +90,7 @@ impl<'a> Context<'a> {
 
                     write!(&mut rust_struct_name, "{}_", id)?;
                 },
-                JniIdentifier::LeafClass(id) => {
+                class::IdPart::LeafClass(id) => {
                     let id = match RustIdentifier::from_str(id) {
                         RustIdentifier::Identifier(id) => id,
                         RustIdentifier::KeywordRawSafe(id) => id,
