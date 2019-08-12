@@ -247,7 +247,7 @@ impl<'a> Method<'a> {
             writeln!(out, "{}/// [{}]({})", indent, url.label, url.url)?;
         }
         writeln!(out, "{}{}{}fn {}<'env>({}) -> __jni_bindgen::Result<{}> {{", indent, attributes, access, method_name, params_decl, ret_decl)?;
-        writeln!(out, "{}    // class.path == {:?}, java.flags == {:?}, .name == {:?}, .descriptor == {:?}", indent, &self.class.path, self.java.flags, &self.java.name, &self.java.descriptor())?;
+        writeln!(out, "{}    // class.path == {:?}, java.flags == {:?}, .name == {:?}, .descriptor == {:?}", indent, &self.class.path, self.java.flags, &self.java.name, &self.java.descriptor().as_str())?;
         writeln!(out, "{}    unsafe {{", indent)?;
         writeln!(out, "{}        let __jni_args = [{}];", indent, params_array)?;
         if self.java.is_constructor() || self.java.is_static() {
