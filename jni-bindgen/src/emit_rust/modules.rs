@@ -36,7 +36,18 @@ impl Module {
             }
 
             if context.config.codegen.shard_structs {
-                writeln!(out, "{}include!({:?});", indent, &structure.rust.sharded_path)?;
+                if context.config.codegen.feature_per_struct {
+                    match Struct::feature_for(context, structure.java.path.as_id()) {
+                        Ok(feature) => write!(out, "{}#[cfg(feature = {:?})] ", indent, feature)?,
+                        Err(e) => {
+                            writeln!(out, "{}// Unable to limit with feature: {:?}", indent, e)?;
+                            write!(out, "{}", indent)?;
+                        },
+                    }
+                } else {
+                    write!(out, "{}", indent)?;
+                }
+                writeln!(out, "include!({:?});", &structure.rust.sharded_path)?;
                 let out_path = context.config.output_dir.join(&structure.rust.sharded_path);
                 if let Some(parent) = out_path.parent() {
                     fs::create_dir_all(parent)?;
@@ -46,6 +57,12 @@ impl Module {
                 writeln!(out, "")?;
                 structure.write(context, "", &mut out)?;
             } else {
+                if context.config.codegen.feature_per_struct {
+                    match Struct::feature_for(context, structure.java.path.as_id()) {
+                        Ok(feature) => writeln!(out, "{}#[cfg(feature = {:?})]", indent, feature)?,
+                        Err(e) => writeln!(out, "{}// Unable to limit with feature: {:?}", indent, e)?,
+                    }
+                }
                 structure.write(context, indent, out)?;
             };
         }

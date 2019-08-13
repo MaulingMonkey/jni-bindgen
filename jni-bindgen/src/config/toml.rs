@@ -58,6 +58,9 @@ pub struct CodeGen {
 
     #[serde(default = "default_true")]
     pub shard_structs: bool,
+
+    #[serde(default = "default_true")]
+    pub feature_per_struct: bool,
 }
 
 impl Default for CodeGen {
@@ -68,6 +71,7 @@ impl Default for CodeGen {
             method_naming_style_collision:  default_method_naming_style_collision(),
             field_naming_style:             Default::default(),
             shard_structs:                  true,
+            feature_per_struct:             true,
         }
     }
 }

@@ -2,12 +2,14 @@ use super::*;
 
 use java::class;
 
+use std::collections::*;
 use std::error::Error;
 use std::io;
 
 pub struct Context<'a> {
-    pub(crate) config: &'a config::runtime::Config,
-    pub(crate) module: Module,
+    pub(crate) config:      &'a config::runtime::Config,
+    pub(crate) module:      Module,
+    pub(crate) features:    BTreeMap<String, BTreeSet<String>>,
 }
 
 impl<'a> Context<'a> {
@@ -15,6 +17,7 @@ impl<'a> Context<'a> {
         Self {
             config,
             module: Default::default(),
+            features: BTreeMap::new(),
         }
     }
 
@@ -27,6 +30,17 @@ impl<'a> Context<'a> {
     pub fn add_struct(&mut self, class: java::Class) -> Result<(), Box<dyn Error>> {
         let s = Struct::new(self, class)?;
         let scope = if let Some(s) = s.rust.local_scope() { s } else { /* !local_scope = not part of this module, skip! */ return Ok(()); };
+
+        if self.config.codegen.feature_per_struct {
+            if let Ok(feature) = Struct::feature_for(self, s.java.path.as_id()) {
+                if let Some(parent) = s.java.super_path.as_ref() {
+                    if let Ok(subfeature) = Struct::feature_for(self, parent.as_id()) {
+                        let subfeatures = self.features.entry(feature).or_insert(BTreeSet::new());
+                        subfeatures.insert(subfeature);
+                    }
+                }
+            }
+        }
 
         let mut rust_mod = &mut self.module;
         for fragment in scope {
