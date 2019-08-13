@@ -55,7 +55,7 @@ pub fn run(config: impl Into<Config>) -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-fn gather_file(context: &mut emit_rust::Context,path: &Path) -> Result<(), Box<dyn Error>> {
+fn gather_file(context: &mut emit_rust::Context, path: &Path) -> Result<(), Box<dyn Error>> {
     println!("reading {}...", path.display());
 
     let ext = if let Some(ext) = path.extension() {
