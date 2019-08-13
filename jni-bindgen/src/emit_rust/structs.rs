@@ -1,18 +1,102 @@
 use super::*;
 
+use java::class;
+
 use std::collections::*;
+use std::error::Error;
+use std::fmt::Write;
 use std::io;
 use std::path::PathBuf;
 
 #[derive(Debug, Default)]
+pub(crate) struct StructPaths {
+    pub mod_prefix:         String,
+    pub struct_name:        String,
+    pub sharded_path: PathBuf,
+}
+
+impl StructPaths {
+    pub(crate) fn new<'ctx>(context: &'ctx Context, class: class::Id) -> Result<Self, Box<dyn Error>> {
+        let mut mod_prefix          = String::from("crate::");
+        let mut struct_name         = String::new();
+        let mut sharded_path  = String::new();
+        if let Some(name) = context.config.output_path.file_stem() {
+            sharded_path = name.to_string_lossy().to_string() + "/";
+        }
+
+        for component in class.iter() {
+            match component {
+                class::IdPart::Namespace(id) => {
+                    let id = match RustIdentifier::from_str(id) {
+                        RustIdentifier::Identifier(id) => id,
+                        RustIdentifier::KeywordRawSafe(id) => id,
+                        RustIdentifier::KeywordUnderscorePostfix(id) => id,
+                        RustIdentifier::NonIdentifier(id) => io_data_err!("Unable to add_struct(): parent java namespace name {:?} has no rust equivalent", id)?,
+                    };
+
+                    write!(&mut mod_prefix, "{}::", id)?;
+                    write!(&mut sharded_path, "{}/", id)?;
+                },
+                class::IdPart::ContainingClass(id) => {
+                    let id = match RustIdentifier::from_str(id) {
+                        RustIdentifier::Identifier(id) => id,
+                        RustIdentifier::KeywordRawSafe(id) => id,
+                        RustIdentifier::KeywordUnderscorePostfix(id) => id,
+                        RustIdentifier::NonIdentifier(id) => io_data_err!("Unable to add_struct(): parent java class name {:?} has no rust equivalent", id)?,
+                    };
+
+                    write!(&mut struct_name, "{}_", id)?;
+                    write!(&mut sharded_path, "{}_", id)?;
+                },
+                class::IdPart::LeafClass(id) => {
+                    let id = match RustIdentifier::from_str(id) {
+                        RustIdentifier::Identifier(id) => id,
+                        RustIdentifier::KeywordRawSafe(id) => id,
+                        RustIdentifier::KeywordUnderscorePostfix(id) => id,
+                        RustIdentifier::NonIdentifier(id) => io_data_err!("Unable to add_struct(): java class name {:?} has no rust equivalent", id)?,
+                    };
+
+                    write!(&mut struct_name, "{}", id)?;
+                    write!(&mut sharded_path, "{}.rs", id)?;
+
+                    return Ok(Self {
+                        mod_prefix,
+                        struct_name,
+                        sharded_path: PathBuf::from(sharded_path),
+                    });
+                },
+            }
+        }
+
+        return io_data_err!("Failed to find LeafClass in {:?}", &class)?;
+    }
+
+    pub(crate) fn local_scope(&self) -> Option<impl Iterator<Item = &str>> {
+        let mut iter = self.mod_prefix.split("::");
+        if iter.next() == Some("crate") {
+            Some(iter.filter(|s| !s.is_empty()))
+        } else {
+            None
+        }
+    }
+}
+
+#[derive(Debug, Default)]
 pub(crate) struct Struct {
-    pub rust_mod_prefix:    String,
-    pub rust_struct_name:   String,
-    pub sharded_class_path: PathBuf,
-    pub java:               java::Class,
+    pub rust:   StructPaths,
+    pub java:   java::Class,
 }
 
 impl Struct {
+    pub(crate) fn new<'ctx>(context: &'ctx mut Context, java: java::Class) -> Result<Self, Box<dyn Error>> {
+        let rust = StructPaths::new(context, java.path.as_id())?;
+
+        return Ok(Self {
+            rust,
+            java,
+        });
+    }
+
     pub(crate) fn write(&self, context: &Context, indent: &str, out: &mut impl io::Write) -> io::Result<()> {
         writeln!(out, "")?;
 
@@ -50,7 +134,7 @@ impl Struct {
         if let Some(url) = KnownDocsUrl::from_class(context, self.java.path.as_id()) {
             writeln!(out, "{}    /// {} {} {}", indent, visibility, keyword, url)?;
         }
-        write!(out, "{}    {}{} {} {} extends {}", indent, attributes, visibility, keyword, &self.rust_struct_name, super_path)?;
+        write!(out, "{}    {}{} {} {} extends {}", indent, attributes, visibility, keyword, &self.rust.struct_name, super_path)?;
         let mut implements = false;
         for interface in &self.java.interfaces {
             write!(out, ", ")?;

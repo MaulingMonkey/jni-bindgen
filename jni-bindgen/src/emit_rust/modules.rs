@@ -30,14 +30,14 @@ impl Module {
 
         for (_, structure) in self.structs.iter() {
             if indent.is_empty() {
-                if structure.rust_struct_name.contains("_") { writeln!(out, "#[allow(non_camel_case_types)] // We map Java inner classes to Outer_Inner")?; }
+                if structure.rust.struct_name.contains("_") { writeln!(out, "#[allow(non_camel_case_types)] // We map Java inner classes to Outer_Inner")?; }
                 if !structure.java.is_public() { writeln!(out, "#[allow(dead_code)] // We generate structs for private Java types too, just in case.")?; }
                 writeln!(out, "#[allow(deprecated)] // We're generating deprecated types/methods")?;
             }
 
             if context.config.codegen.shard_structs {
-                writeln!(out, "{}include!({:?});", indent, &structure.sharded_class_path)?;
-                let out_path = context.config.output_dir.join(&structure.sharded_class_path);
+                writeln!(out, "{}include!({:?});", indent, &structure.rust.sharded_path)?;
+                let out_path = context.config.output_dir.join(&structure.rust.sharded_path);
                 if let Some(parent) = out_path.parent() {
                     fs::create_dir_all(parent)?;
                 }
