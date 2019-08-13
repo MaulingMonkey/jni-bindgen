@@ -12,63 +12,18 @@ use std::path::PathBuf;
 pub(crate) struct StructPaths {
     pub mod_prefix:         String,
     pub struct_name:        String,
-    pub sharded_path: PathBuf,
+    pub feature_name:       String,
+    pub sharded_path:       PathBuf,
 }
 
 impl StructPaths {
     pub(crate) fn new<'ctx>(context: &'ctx Context, class: class::Id) -> Result<Self, Box<dyn Error>> {
-        let mut mod_prefix          = String::from("crate::");
-        let mut struct_name         = String::new();
-        let mut sharded_path  = String::new();
-        if let Some(name) = context.config.output_path.file_stem() {
-            sharded_path = name.to_string_lossy().to_string() + "/";
-        }
-
-        for component in class.iter() {
-            match component {
-                class::IdPart::Namespace(id) => {
-                    let id = match RustIdentifier::from_str(id) {
-                        RustIdentifier::Identifier(id) => id,
-                        RustIdentifier::KeywordRawSafe(id) => id,
-                        RustIdentifier::KeywordUnderscorePostfix(id) => id,
-                        RustIdentifier::NonIdentifier(id) => io_data_err!("Unable to add_struct(): parent java namespace name {:?} has no rust equivalent", id)?,
-                    };
-
-                    write!(&mut mod_prefix, "{}::", id)?;
-                    write!(&mut sharded_path, "{}/", id)?;
-                },
-                class::IdPart::ContainingClass(id) => {
-                    let id = match RustIdentifier::from_str(id) {
-                        RustIdentifier::Identifier(id) => id,
-                        RustIdentifier::KeywordRawSafe(id) => id,
-                        RustIdentifier::KeywordUnderscorePostfix(id) => id,
-                        RustIdentifier::NonIdentifier(id) => io_data_err!("Unable to add_struct(): parent java class name {:?} has no rust equivalent", id)?,
-                    };
-
-                    write!(&mut struct_name, "{}_", id)?;
-                    write!(&mut sharded_path, "{}_", id)?;
-                },
-                class::IdPart::LeafClass(id) => {
-                    let id = match RustIdentifier::from_str(id) {
-                        RustIdentifier::Identifier(id) => id,
-                        RustIdentifier::KeywordRawSafe(id) => id,
-                        RustIdentifier::KeywordUnderscorePostfix(id) => id,
-                        RustIdentifier::NonIdentifier(id) => io_data_err!("Unable to add_struct(): java class name {:?} has no rust equivalent", id)?,
-                    };
-
-                    write!(&mut struct_name, "{}", id)?;
-                    write!(&mut sharded_path, "{}.rs", id)?;
-
-                    return Ok(Self {
-                        mod_prefix,
-                        struct_name,
-                        sharded_path: PathBuf::from(sharded_path),
-                    });
-                },
-            }
-        }
-
-        return io_data_err!("Failed to find LeafClass in {:?}", &class)?;
+        Ok(Self{
+            mod_prefix:     Struct::mod_for(context, class)? + "::",
+            struct_name:    Struct::name_for(context, class)?,
+            feature_name:   Struct::feature_for(context, class)?,
+            sharded_path:   Struct::sharded_path_for(context, class)?,
+        })
     }
 
     pub(crate) fn local_scope(&self) -> Option<impl Iterator<Item = &str>> {
@@ -87,7 +42,70 @@ pub(crate) struct Struct {
     pub java:   java::Class,
 }
 
+fn rust_id<'a>(id: &str) -> Result<&str, Box<dyn Error>> {
+    Ok(match RustIdentifier::from_str(id) {
+        RustIdentifier::Identifier(id) => id,
+        RustIdentifier::KeywordRawSafe(id) => id,
+        RustIdentifier::KeywordUnderscorePostfix(id) => id,
+        RustIdentifier::NonIdentifier(id) => io_data_err!("Unable to add_struct(): java identifier {:?} has no rust equivalent (yet?)", id)?,
+    })
+}
+
 impl Struct {
+    pub(crate) fn feature_for(_context: &Context, class: class::Id) -> Result<String, Box<dyn Error>> {
+        let mut buf = String::new();
+        for component in class.iter() {
+            match component {
+                class::IdPart::Namespace(id)        => write!(&mut buf, "{}-",  rust_id(id)?)?,
+                class::IdPart::ContainingClass(id)  => write!(&mut buf, "{}-",  rust_id(id)?)?,
+                class::IdPart::LeafClass(id)        => write!(&mut buf, "{}",   rust_id(id)?)?,
+            }
+        }
+        Ok(buf)
+    }
+
+    pub(crate) fn mod_for(_context: &Context, class: class::Id) -> Result<String, Box<dyn Error>> {
+        let mut buf = String::from("crate");
+        for component in class.iter() {
+            match component {
+                class::IdPart::Namespace(id)        => write!(&mut buf, "::{}", rust_id(id)?)?,
+                class::IdPart::ContainingClass(_)   => {},
+                class::IdPart::LeafClass(_)         => {},
+            }
+        }
+        Ok(buf)
+    }
+
+    pub(crate) fn name_for(_context: &Context, class: class::Id) -> Result<String, Box<dyn Error>> {
+        let mut buf = String::new();
+        for component in class.iter() {
+            match component {
+                class::IdPart::Namespace(_)         => {},
+                class::IdPart::ContainingClass(id)  => write!(&mut buf, "{}_",  rust_id(id)?)?,
+                class::IdPart::LeafClass(id)        => write!(&mut buf, "{}",   rust_id(id)?)?,
+            }
+        }
+        Ok(buf)
+    }
+
+    pub(crate) fn sharded_path_for(context: &Context, class: class::Id) -> Result<PathBuf, Box<dyn Error>> {
+        let mut buf = String::new();
+
+        if let Some(name) = context.config.output_path.file_stem() {
+            write!(&mut buf, "{}/", name.to_string_lossy())?;
+        }
+
+        for component in class.iter() {
+            match component {
+                class::IdPart::Namespace(id)        => write!(&mut buf, "{}/",    rust_id(id)?)?,
+                class::IdPart::ContainingClass(id)  => write!(&mut buf, "{}_",    rust_id(id)?)?,
+                class::IdPart::LeafClass(id)        => write!(&mut buf, "{}.rs",  rust_id(id)?)?,
+            }
+        }
+
+        Ok(PathBuf::from(buf))
+    }
+
     pub(crate) fn new<'ctx>(context: &'ctx mut Context, java: java::Class) -> Result<Self, Box<dyn Error>> {
         let rust = StructPaths::new(context, java.path.as_id())?;
 

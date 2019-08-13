@@ -19,8 +19,9 @@ impl<'a> Context<'a> {
     }
 
     pub fn java_to_rust_path(&self, java_class: class::Id) -> Result<String, Box<dyn Error>> {
-        let s = StructPaths::new(self, java_class)?;
-        Ok(format!("{}{}", s.mod_prefix, s.struct_name))
+        let m = Struct::mod_for(self, java_class)?;
+        let s = Struct::name_for(self, java_class)?;
+        Ok(format!("{}::{}", m, s))
     }
 
     pub fn add_struct(&mut self, class: java::Class) -> Result<(), Box<dyn Error>> {
