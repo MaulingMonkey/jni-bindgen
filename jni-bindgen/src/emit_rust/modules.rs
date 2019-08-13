@@ -1,7 +1,8 @@
 use super::*;
 
 use std::collections::*;
-use std::io;
+use std::fs::{self, File};
+use std::io::{self, Write};
 
 #[derive(Debug, Default)]
 pub(crate) struct Module {
@@ -11,7 +12,7 @@ pub(crate) struct Module {
 }
 
 impl Module {
-    pub(crate) fn write(&self, context: &Context, indent: &str, out: &mut impl io::Write) -> io::Result<()> {
+    pub(crate) fn write(&self, context: &Context, indent: &str, out: &mut impl Write) -> io::Result<()> {
         let next_indent = format!("{}    ", indent);
 
         for (name, module) in self.modules.iter() {
@@ -27,13 +28,26 @@ impl Module {
             writeln!(out, "{}}}", indent)?;
         }
 
-        for (name, structure) in self.structs.iter() {
+        for (_, structure) in self.structs.iter() {
             if indent.is_empty() {
-                if name.contains("_") { writeln!(out, "#[allow(non_camel_case_types)] // We map Java inner classes to Outer_Inner")?; }
+                if structure.rust_struct_name.contains("_") { writeln!(out, "#[allow(non_camel_case_types)] // We map Java inner classes to Outer_Inner")?; }
                 if !structure.java.is_public() { writeln!(out, "#[allow(dead_code)] // We generate structs for private Java types too, just in case.")?; }
                 writeln!(out, "#[allow(deprecated)] // We're generating deprecated types/methods")?;
             }
-            structure.write(context, indent, out)?;
+
+            if context.config.codegen.shard_structs {
+                writeln!(out, "{}include!({:?});", indent, &structure.sharded_class_path)?;
+                let out_path = context.config.output_dir.join(&structure.sharded_class_path);
+                if let Some(parent) = out_path.parent() {
+                    fs::create_dir_all(parent)?;
+                }
+                let mut out = File::create(out_path)?; // Hide outer out
+                writeln!(out, "// GENERATED WITH jni-bindgen, I DO NOT RECOMMEND EDITING THIS BY HAND")?;
+                writeln!(out, "")?;
+                structure.write(context, "", &mut out)?;
+            } else {
+                structure.write(context, indent, out)?;
+            };
         }
 
         Ok(())

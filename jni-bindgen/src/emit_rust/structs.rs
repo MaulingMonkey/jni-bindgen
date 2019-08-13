@@ -2,22 +2,20 @@ use super::*;
 
 use std::collections::*;
 use std::io;
+use std::path::PathBuf;
 
 #[derive(Debug, Default)]
 pub(crate) struct Struct {
     pub rust_mod_prefix:    String,
     pub rust_struct_name:   String,
+    pub sharded_class_path: PathBuf,
     pub java:               java::Class,
 }
 
 impl Struct {
     pub(crate) fn write(&self, context: &Context, indent: &str, out: &mut impl io::Write) -> io::Result<()> {
         writeln!(out, "")?;
-        self.write_rust_struct(context, indent, out)?;
-        Ok(())
-    }
 
-    fn write_rust_struct(&self, context: &Context, indent: &str, out: &mut impl io::Write) -> io::Result<()> {
         // Ignored access_flags: SUPER, SYNTHETIC, ANNOTATION, ABSTRACT
 
         let keyword = if self.java.is_interface() {

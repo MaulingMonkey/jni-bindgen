@@ -23,6 +23,18 @@ impl Default for StaticEnvStyle {
     fn default() -> Self { StaticEnvStyle::Explicit }
 }
 
+#[serde(rename_all = "snake_case")]
+#[derive(Debug, Clone, Copy, Deserialize, PartialEq, Eq)]
+pub enum CodeShardingStyle {
+    None,
+    PerClass,
+}
+
+impl Default for CodeShardingStyle {
+    fn default() -> Self { CodeShardingStyle::PerClass }
+}
+
+fn default_true() -> bool { true }
 fn default_method_naming_style() -> MethodManglingStyle { MethodManglingStyle::Rustify }
 fn default_method_naming_style_collision() -> MethodManglingStyle { MethodManglingStyle::RustifyShortSignature }
 
@@ -43,6 +55,9 @@ pub struct CodeGen {
 
     #[serde(default = "Default::default")]
     pub field_naming_style: FieldManglingStyle,
+
+    #[serde(default = "default_true")]
+    pub shard_structs: bool,
 }
 
 impl Default for CodeGen {
@@ -52,6 +67,7 @@ impl Default for CodeGen {
             method_naming_style:            default_method_naming_style(),
             method_naming_style_collision:  default_method_naming_style_collision(),
             field_naming_style:             Default::default(),
+            shard_structs:                  true,
         }
     }
 }

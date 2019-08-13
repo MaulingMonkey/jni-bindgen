@@ -44,6 +44,7 @@ pub struct Config {
     pub(crate) doc_patterns:                Vec<DocPattern>,
     pub(crate) input_files:                 Vec<PathBuf>,
     pub(crate) output_path:                 PathBuf,
+    pub(crate) output_dir:                  PathBuf,
     pub(crate) output_reference_path:       Option<PathBuf>,
     pub(crate) logging_verbose:             bool,
 
@@ -94,11 +95,19 @@ impl From<toml::FileWithContext> for Config {
             }
         }
 
+        let output_path = resolve_file(file.output.path, &dir);
+        let output_dir = if let Some(p) = output_path.parent() {
+            p.to_owned()
+        } else {
+            PathBuf::new()
+        };
+
         Self {
             codegen:                file.codegen.clone(),
             doc_patterns:           documentation.patterns.into_iter().map(|pat| pat.into()).collect(),
             input_files:            file.input.files.into_iter().map(|file| resolve_file(file, &dir)).collect(),
-            output_path:            resolve_file(file.output.path, &dir),
+            output_path,
+            output_dir,
             output_reference_path:  file.output.reference_path.map(|p| resolve_file(p, &dir)),
             logging_verbose:        logging.verbose,
             ignore_classes,
