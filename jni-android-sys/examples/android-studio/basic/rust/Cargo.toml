@@ -9,7 +9,7 @@ edition = "2018"
 crate_type = ["dylib"]
 
 [target.'cfg(target_os = "android")'.dependencies]
-jni-android-sys = { path = "../../../..", features = ["api-level-28"] }
+jni-android-sys = { path = "../../../..", features = ["api-level-28", "locally-generate"] }
 jni-glue        = { path = "../../../../../jni-glue", features = [] }
 jni-sys         = "0.3"
 
