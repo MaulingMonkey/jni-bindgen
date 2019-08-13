@@ -1,9 +1,18 @@
 use super::*;
 use java::method;
+use java::field;
+
+use std::fmt::{self, Display, Formatter};
 
 pub(crate) struct KnownDocsUrl {
     pub(crate) label:  String,
     pub(crate) url:    String,
+}
+
+impl Display for KnownDocsUrl {
+    fn fmt(&self, fmt: &mut Formatter) -> fmt::Result {
+        write!(fmt, "[{}]({})", &self.label, &self.url)
+    }
 }
 
 impl KnownDocsUrl {
@@ -105,6 +114,44 @@ impl KnownDocsUrl {
                 .replace("{CLASS}",     java_class.as_str())
                 .replace("{METHOD}",    java_method)
                 .replace("{ARGUMENTS}", java_args.as_str()),
+        })
+    }
+
+    pub(crate) fn from_field(context: &Context, java_class: &str, java_field: &str, _java_descriptor: field::Descriptor) -> Option<KnownDocsUrl> {
+        let pattern = context.config.doc_patterns.iter().find(|pattern| java_class.starts_with(pattern.jni_prefix.as_str()))?;
+        let field_url_pattern = pattern.field_url_pattern.as_ref()?;
+
+        for ch in java_class.chars() {
+            match ch {
+                'a'..='z' => {},
+                'A'..='Z' => {},
+                '0'..='9' => {},
+                '_' | '$' | '/' => {},
+                _ch => return None,
+            }
+        }
+
+        for ch in java_field.chars() {
+            match ch {
+                'a'..='z' => {},
+                'A'..='Z' => {},
+                '0'..='9' => {},
+                '_' => {},
+                _ch => return None,
+            }
+        }
+
+        let java_class = java_class
+            .replace("/", pattern.class_namespace_separator.as_str())
+            .replace("$", pattern.class_inner_class_seperator.as_str());
+
+        // No {RETURN} support... yet?
+
+        Some(KnownDocsUrl{
+            label: java_field.to_owned(),
+            url: field_url_pattern
+                .replace("{CLASS}",     java_class.as_str())
+                .replace("{FIELD}",     java_field),
         })
     }
 }

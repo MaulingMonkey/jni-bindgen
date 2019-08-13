@@ -73,15 +73,27 @@ pub struct DocumentationPattern {
     pub class_url_pattern: String,
 
     /// The URL to use for documenting a given class method.
-    /// `{CLASS}` will be replaced with everything *after* the JNI prefix.
-    /// `{METHOD}` will be replaced with the method name.
-    /// `{ARGUMENTS}` will be replaced with the method arguments.
+    /// 
+    /// * `{CLASS}` will be replaced with everything *after* the JNI prefix.
+    /// * `{METHOD}` will be replaced with the method name.
+    /// * `{ARGUMENTS}` will be replaced with the method arguments.
     /// 
     /// | Given:                | Use this if you want android documentation:   |
     /// | --------------------- | --------------------------------------------- |
     /// | jni_prefix = "java/"  | url_pattern = "https://developer.android.com/reference/java/{CLASS}.html#{METHOD}({ARGUMENTS})"
     /// | jni_prefix = ""       | url_pattern = "https://developer.android.com/reference/{CLASS}.html#{METHOD}({ARGUMENTS})"
     pub method_url_pattern: Option<String>,
+
+    /// The URL to use for documenting a given class field.
+    /// 
+    /// * `{CLASS}` will be replaced with everything *after* the JNI prefix.
+    /// * `{FIELD}` will be replaced with the field name.
+    /// 
+    /// | Given:                | Use this if you want android documentation:   |
+    /// | --------------------- | --------------------------------------------- |
+    /// | jni_prefix = "java/"  | url_pattern = "https://developer.android.com/reference/java/{CLASS}.html#{FIELD}"
+    /// | jni_prefix = ""       | url_pattern = "https://developer.android.com/reference/{CLASS}.html#{FIELD}"
+    pub field_url_pattern: Option<String>,
 
     /// What java class(es) to match against.  This takes the form of a simple prefix to a JNI path with no wildcards.
     /// 

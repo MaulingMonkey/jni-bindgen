@@ -6,53 +6,25 @@ use java::field;
 use std::io;
 
 pub struct Field<'a> {
-    pub class:          &'a java::Class,
-    pub java:           &'a java::Field,
-    rust_name:          Option<String>,
-    rust_const_value:   Option<String>,
+    pub class:      &'a java::Class,
+    pub java:       &'a java::Field,
+    pub rust_names: Result<FieldMangling<'a>, IdentifierManglingError>,
 }
 
 impl<'a> Field<'a> {
     pub fn new(context: &Context, class: &'a java::Class, java: &'a java::Field) -> Self {
-        let mut result = Self {
+        let result = Self {
             class,
             java,
-            rust_name:          None,
-            rust_const_value:   None,
+            rust_names: context.config.codegen.field_naming_style.mangle(java),
         };
-        if context.config.codegen.field_naming_style.const_finals {
-            result.rust_const_value = java.constant.as_ref().map(|c| match c {
-                field::Constant::Double (value) => format!("{}", value),
-                field::Constant::Float  (value) => format!("{}", value),
-                field::Constant::Integer(value) => format!("{}", value),
-                field::Constant::Long   (value) => format!("{}", value),
-                field::Constant::String (value) => format!("{:?}", value),
-            });
-        }
-        result.set_mangling_style(&context.config.codegen.field_naming_style); // rust_name + mangling_style
         result
-    }
-
-    pub fn rust_name(&self) -> Option<&str> {
-        self.rust_name.as_ref().map(|s| s.as_str())
-    }
-
-    pub fn set_mangling_style(&mut self, style: &FieldManglingStyle) {
-        // XXX: Implement
     }
 
     pub fn emit(&self, context: &Context, indent: &str, out: &mut impl io::Write) -> io::Result<()> {
         let mut emit_reject_reasons = Vec::new();
 
         if !self.java.is_public() { emit_reject_reasons.push("Non-public method"); }
-
-        // TODO: context.config.codegen.field_naming_style.rustify_names
-        let rust_name = if let Some(rust_name) = self.rust_name.as_ref() {
-            rust_name
-        } else {
-            emit_reject_reasons.push("Failed to mangle field name");
-            &self.java.name
-        };
 
         let descriptor = self.java.descriptor();
         let rust_type = match descriptor {
@@ -64,7 +36,7 @@ impl<'a> Field<'a> {
             field::Descriptor::Single(field::BasicType::Int)     => "i32",
             field::Descriptor::Single(field::BasicType::Long)    => "i64",
             field::Descriptor::Single(field::BasicType::Short)   => "i16",
-            field::Descriptor::Single(field::BasicType::Class(class::Id("java/lang/String"))) if self.rust_const_value.is_some() => "&'static str",
+            field::Descriptor::Single(field::BasicType::Class(class::Id("java/lang/String"))) if self.java.is_constant() => "&'static str",
             field::Descriptor::Single(field::BasicType::Void) => {
                 emit_reject_reasons.push("void is not a valid field type");
                 "()"
@@ -79,12 +51,23 @@ impl<'a> Field<'a> {
             },
         };
 
-        let rust_getter_name = context.config.codegen.field_naming_style.getter_pattern.replace("{NAME}", rust_name);
-        let rust_setter_name = if self.rust_const_value.is_some() || self.java.is_final() {
-            None
-        } else {
-            Some(context.config.codegen.field_naming_style.setter_pattern.replace("{NAME}", rust_name))
+        let field_fragment = match self.java.descriptor() { // Contents of {get,set}_[static_]..._field
+            field::Descriptor::Single(field::BasicType::Void)        => "void",
+            field::Descriptor::Single(field::BasicType::Boolean)     => "boolean",
+            field::Descriptor::Single(field::BasicType::Byte)        => "byte",
+            field::Descriptor::Single(field::BasicType::Char)        => "char",
+            field::Descriptor::Single(field::BasicType::Short)       => "short",
+            field::Descriptor::Single(field::BasicType::Int)         => "int",
+            field::Descriptor::Single(field::BasicType::Long)        => "long",
+            field::Descriptor::Single(field::BasicType::Float)       => "float",
+            field::Descriptor::Single(field::BasicType::Double)      => "double",
+            field::Descriptor::Single(field::BasicType::Class(_))    => "object",
+            field::Descriptor::Array { .. }                          => "object",
         };
+
+        if self.rust_names.is_err() {
+            emit_reject_reasons.push("Failed to mangle field name(s)");
+        }
 
         let emit_reject_reasons = emit_reject_reasons; // Freeze
         let indent = if emit_reject_reasons.is_empty() {
@@ -108,29 +91,68 @@ impl<'a> Field<'a> {
         for reason in &emit_reject_reasons {
             writeln!(out, "{}// Not emitting: {}", indent, reason)?;
         }
-        writeln!(out, "{}/// {} {}", indent, &keywords, &self.java.name)?; // TODO: Field doc links
 
-        if let Some(rust_const_value) = self.rust_const_value.as_ref() {
-            match descriptor {
-                field::Descriptor::Single(field::BasicType::Char)       => writeln!(out, "{}{}pub const {} : {} = {}({});", indent, &attributes, rust_name, rust_type, rust_type, rust_const_value)?,
-                field::Descriptor::Single(field::BasicType::Boolean)    => writeln!(out, "{}{}pub const {} : {} = {};", indent, &attributes, rust_name, rust_type, if rust_const_value == "0" { "false" } else { "true" })?,
-                _                                                       => writeln!(out, "{}{}pub const {} : {} = {};", indent, &attributes, rust_name, rust_type, rust_const_value)?,
-            }
-        } else if self.java.is_static() {
-            writeln!(out, "{}{}pub fn {}<'env>(env: &'env Env) -> {} {{ ... }}", indent, &attributes, rust_getter_name, rust_type)?;
-        } else {
-            writeln!(out, "{}{}pub fn {}<'env>(&'env self) -> {} {{ ... }}", indent, &attributes, rust_getter_name, rust_type)?;
-        }
+        let env_param = if self.java.is_static() { "env: &'env __jni_bindgen::Env" } else { "&'env self" };
 
-        if let Some(rust_setter_name) = rust_setter_name {
-            writeln!(out, "{}/// {} {}", indent, &keywords, &self.java.name)?; // TODO: Field doc links
-            if self.java.is_static() {
-                writeln!(out, "{}{}pub fn {}<'env>(env: &'env Env) -> {} {{ ... }}", indent, &attributes, rust_setter_name, rust_type)?;
-            } else {
-                writeln!(out, "{}{}pub fn {}<'env>(&'env self) -> {} {{ ... }}", indent, &attributes, rust_setter_name, rust_type)?;
-            }
+        let url = KnownDocsUrl::from_field(context, self.class.path.as_str(), self.java.name.as_str(), self.java.descriptor());
+        let url = url.as_ref();
+
+        match self.rust_names.as_ref() {
+            Ok(FieldMangling::ConstValue(constant, value)) => {
+                let value = *value;
+                if let Some(url) = url {
+                    writeln!(out, "{}/// {} {}", indent, &keywords, url)?;
+                }
+                match descriptor {
+                    field::Descriptor::Single(field::BasicType::Char)       => writeln!(out, "{}{}pub const {} : {} = {}({});", indent, &attributes, constant, rust_type, rust_type, value)?,
+                    field::Descriptor::Single(field::BasicType::Boolean)    => writeln!(out, "{}{}pub const {} : {} = {};", indent, &attributes, constant, rust_type, if value == &field::Constant::Integer(0) { "false" } else { "true" })?,
+                    _                                                       => writeln!(out, "{}{}pub const {} : {} = {};", indent, &attributes, constant, rust_type, value)?,
+                }
+            },
+            Ok(FieldMangling::GetSet(get, set)) => {
+                if let Some(url) = url {
+                    writeln!(out, "{}/// **get** {} {}", indent, &keywords, url)?;
+                }
+                writeln!(out, "{}{}pub fn {}<'env>({}) -> {} {{", indent, &attributes, get, env_param, rust_type)?;
+                writeln!(out, "{}    unsafe {{", indent)?;
+                if !self.java.is_static() {
+                    writeln!(out, "{}        let env = __jni_bindgen::Env::from_ptr(self.0.env);", indent)?;
+                }
+                writeln!(out, "{}        let (class, field) = env.require_class_{}field({}, {}, {});", indent, if self.java.is_static() { "static_" } else { "" }, emit_cstr(self.class.path.as_str()), emit_cstr(self.java.name.as_str()), emit_cstr(self.java.descriptor_str()) )?;
+                writeln!(out, "{}        env.get_{}{}_field(class, field)", indent, if self.java.is_static() { "static_" } else { "" }, field_fragment)?;
+                writeln!(out, "{}    }}", indent)?;
+                writeln!(out, "{}}}", indent)?;
+
+                if !self.java.is_final() {
+                    writeln!(out, "")?;
+                    if let Some(url) = url {
+                        writeln!(out, "{}/// **set** {} {}", indent, &keywords, url)?;
+                    }
+                    writeln!(out, "{}{}pub fn {}<'env>({}, value: {}) {{", indent, &attributes, set, env_param, rust_type)?;
+                    writeln!(out, "{}    unsafe {{", indent)?;
+                    if !self.java.is_static() {
+                        writeln!(out, "{}        let env = __jni_bindgen::Env::from_ptr(self.0.env);", indent)?;
+                    }
+                    writeln!(out, "{}        let (class, field) = env.require_class_{}field({}, {}, {});", indent, if self.java.is_static() { "static_" } else { "" }, emit_cstr(self.class.path.as_str()), emit_cstr(self.java.name.as_str()), emit_cstr(self.java.descriptor_str()) )?;
+                    writeln!(out, "{}        env.set_{}{}_field(class, field, value)", indent, if self.java.is_static() { "static_" } else { "" }, field_fragment)?;
+                    writeln!(out, "{}    }}", indent)?;
+                    writeln!(out, "{}}}", indent)?;
+                }
+            },
+            Err(_) => {
+                writeln!(out, "{}{}pub fn get_{:?}<'env>({}) -> {} {{ ... }}", indent, &attributes, self.java.name.as_str(), env_param, rust_type)?;
+                if !self.java.is_final() {
+                    writeln!(out, "{}{}pub fn set_{:?}<'env>({}) -> {} {{ ... }}", indent, &attributes, self.java.name.as_str(), env_param, rust_type)?;
+                }
+            },
         }
 
         Ok(())
     }
+}
+
+fn emit_cstr(s: &str) -> String {
+    let mut s = format!("{:?}", s); // XXX
+    s.insert_str(s.len() - 1, "\\0");
+    s
 }

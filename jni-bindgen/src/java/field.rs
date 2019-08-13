@@ -5,6 +5,7 @@ use crate::java::io::*;
 
 use bitflags::bitflags;
 
+use std::fmt::{self, Debug, Display, Formatter};
 use std::io::{self, Read};
 
 
@@ -40,13 +41,34 @@ impl Flags {
     }
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq, PartialOrd)]
 pub enum Constant {
     Integer(i32),
     Long(i64),
     Float(f32),
     Double(f64),
     String(String),
+}
+
+impl Display for Constant {
+    fn fmt(&self, fmt: &mut Formatter) -> fmt::Result {
+        match self {
+            Constant::Integer(value) => write!(fmt, "{}", value),
+            Constant::Long(value) => write!(fmt, "{}i64", value),
+
+            Constant::Float(value) if value.is_infinite() && *value < 0.0   => write!(fmt, "__jni_bindgen::std::f32::NEG_INFINITY"),
+            Constant::Float(value) if value.is_infinite()                   => write!(fmt, "__jni_bindgen::std::f32::INFINITY"),
+            Constant::Float(value) if value.is_nan()                        => write!(fmt, "__jni_bindgen::std::f32::NAN"),
+            Constant::Float(value)                                          => write!(fmt, "{}f32", value),
+
+            Constant::Double(value) if value.is_infinite() && *value < 0.0  => write!(fmt, "__jni_bindgen::std::f64::NEG_INFINITY"),
+            Constant::Double(value) if value.is_infinite()                  => write!(fmt, "__jni_bindgen::std::f64::INFINITY"),
+            Constant::Double(value) if value.is_nan()                       => write!(fmt, "__jni_bindgen::std::f64::NAN"),
+            Constant::Double(value)                                         => write!(fmt, "{}f64", value),
+
+            Constant::String(value) => Debug::fmt(value, fmt)
+        }
+    }
 }
 
 
@@ -76,6 +98,7 @@ impl Field {
         })
     }
 
+    pub fn descriptor_str(&self) -> &str { self.descriptor.as_str() }
     pub fn descriptor(&self) -> Descriptor { Descriptor::from_str(self.descriptor.as_str()).unwrap() } // Was already validated in Field::new / Field::read_one
 
     pub fn is_public(&self)     -> bool { self.flags.contains(Flags::PUBLIC) }

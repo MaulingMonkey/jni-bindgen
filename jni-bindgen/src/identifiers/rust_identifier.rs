@@ -135,3 +135,155 @@ fn is_rust_identifier(s: &str) -> bool {
 
     true
 }
+
+
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub enum IdentifierManglingError {
+    NotApplicable(&'static str),
+    EmptyString,
+    NotRustSafe,
+    UnexpectedCharacter(char),
+}
+
+impl std::error::Error for IdentifierManglingError {}
+impl std::fmt::Display for IdentifierManglingError { fn fmt(&self, fmt: &mut std::fmt::Formatter) -> std::fmt::Result { std::fmt::Debug::fmt(self, fmt) } }
+
+
+
+pub fn javaify_identifier(name: &str) -> Result<String, IdentifierManglingError> {
+    if name == "_" {
+        return Ok(String::from("__"));
+    } else {
+        let mut chars = name.chars();
+
+        // First character
+        if let Some(ch) = chars.next() {
+            match ch {
+                'a'..='z'   => {},
+                'A'..='Z'   => {},
+                '_'         => {},
+                _           => { return Err(IdentifierManglingError::UnexpectedCharacter(ch)); },
+            }
+        }
+
+        // Subsequent characters
+        while let Some(ch) = chars.next() {
+            match ch {
+                'a'..='z'   => {},
+                'A'..='Z'   => {},
+                '0'..='9'   => {},
+                '_'         => {},
+                _           => { return Err(IdentifierManglingError::UnexpectedCharacter(ch)); },
+            }
+        }
+
+        match RustIdentifier::from_str(name) {
+            RustIdentifier::Identifier(_)               => Ok(name.to_owned()),
+            RustIdentifier::NonIdentifier(_)            => Err(IdentifierManglingError::NotRustSafe),
+            RustIdentifier::KeywordRawSafe(s)           => Ok(s.to_owned()),
+            RustIdentifier::KeywordUnderscorePostfix(s) => Ok(s.to_owned()),
+        }
+    }
+}
+
+pub fn rustify_identifier(name: &str) -> Result<String, IdentifierManglingError> {
+    if name == "_" {
+        return Ok(String::from("__"));
+    } else {
+        let mut chars = name.chars();
+        let mut buffer = String::new();
+        let mut uppercase = 0;
+
+        // First character
+        if let Some(ch) = chars.next() {
+            match ch {
+                'a'..='z'   => buffer.push(ch),
+                'A'..='Z'   => { buffer.push(ch.to_ascii_lowercase()); uppercase = 1; },
+                '_'         => buffer.push(ch),
+                _           => { return Err(IdentifierManglingError::UnexpectedCharacter(ch)); },
+            }
+        }
+
+        // Subsequent characters
+        while let Some(ch) = chars.next() {
+            if ch.is_ascii_uppercase() {
+                if uppercase == 0 && !buffer.ends_with('_') {
+                    buffer.push('_');
+                }
+                buffer.push(ch.to_ascii_lowercase());
+                uppercase += 1;
+            } else if ch.is_ascii_alphanumeric() {
+                if uppercase > 1 {
+                    buffer.insert(buffer.len()-1, '_');
+                }
+                buffer.push(ch);
+                uppercase = 0;
+            } else if ch == '_' {
+                buffer.push(ch);
+                uppercase = 0;
+            } else {
+                return Err(IdentifierManglingError::UnexpectedCharacter(ch));
+            }
+        }
+
+        match RustIdentifier::from_str(&buffer) {
+            RustIdentifier::Identifier(_)               => Ok(buffer),
+            RustIdentifier::NonIdentifier(_)            => Err(IdentifierManglingError::NotRustSafe),
+            RustIdentifier::KeywordRawSafe(s)           => Ok(s.to_owned()),
+            RustIdentifier::KeywordUnderscorePostfix(s) => Ok(s.to_owned()),
+        }
+    }
+}
+
+pub fn constify_identifier(name: &str) -> Result<String, IdentifierManglingError> {
+    if name == "_" {
+        return Ok(String::from("__"));
+    } else {
+        let mut chars = name.chars();
+        let mut buffer = String::new();
+        let mut uppercase = 0;
+        let mut lowercase = 0;
+
+        // First character
+        if let Some(ch) = chars.next() {
+            match ch {
+                'a'..='z'   => { buffer.push(ch.to_ascii_uppercase()); lowercase = 1; },
+                'A'..='Z'   => { buffer.push(ch); uppercase = 1; },
+                '_'         => buffer.push(ch),
+                _           => { return Err(IdentifierManglingError::UnexpectedCharacter(ch)); },
+            }
+        }
+
+        // Subsequent characters
+        while let Some(ch) = chars.next() {
+            let is_upper   = ch.is_ascii_uppercase();
+            let is_lower   = ch.is_ascii_lowercase();
+            let is_numeric = ch.is_numeric();
+
+            if is_lower && uppercase > 1 {
+                buffer.insert(buffer.len()-1, '_');
+            } else if is_upper && lowercase > 0 {
+                buffer.push('_');
+            }
+
+            uppercase = if is_upper { uppercase + 1 } else { 0 };
+            lowercase = if is_lower { lowercase + 1 } else { 0 };
+
+            if is_lower {
+                buffer.push(ch.to_ascii_uppercase());
+            } else if is_upper || is_numeric || ch == '_' {
+                buffer.push(ch);
+            } else {
+                return Err(IdentifierManglingError::UnexpectedCharacter(ch));
+            }
+        }
+
+        match RustIdentifier::from_str(&buffer) {
+            RustIdentifier::Identifier(_)               => Ok(buffer),
+            RustIdentifier::NonIdentifier(_)            => Err(IdentifierManglingError::NotRustSafe),
+            RustIdentifier::KeywordRawSafe(s)           => Ok(s.to_owned()),
+            RustIdentifier::KeywordUnderscorePostfix(s) => Ok(s.to_owned()),
+        }
+    }
+}

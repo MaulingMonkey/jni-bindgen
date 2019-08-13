@@ -94,6 +94,28 @@ impl Env {
         method
     }
 
+    pub unsafe fn require_field(&self, class: jclass, field: &str, descriptor: &str) -> jfieldID {
+        debug_assert!(field.ends_with('\0'));
+        debug_assert!(field.ends_with('\0'));
+
+        let env = &self.0 as *const JNIEnv as *mut JNIEnv;
+        let field = (**env).GetFieldID.unwrap()(env, class, field.as_ptr() as *const c_char, descriptor.as_ptr() as *const c_char);
+        assert!(!field.is_null());
+        field
+    }
+
+    pub unsafe fn require_static_field(&self, class: jclass, field: &str, descriptor: &str) -> jfieldID {
+        debug_assert!(field.ends_with('\0'));
+        debug_assert!(field.ends_with('\0'));
+
+        let env = &self.0 as *const JNIEnv as *mut JNIEnv;
+        let field = (**env).GetStaticFieldID.unwrap()(env, class, field.as_ptr() as *const c_char, descriptor.as_ptr() as *const c_char);
+        assert!(!field.is_null());
+        field
+    }
+
+    // Multi-Query Methods
+
     pub unsafe fn require_class_method(&self, class: &str, method: &str, descriptor: &str) -> (jclass, jmethodID) {
         let class = self.require_class(class);
         (class, self.require_method(class, method, descriptor))
@@ -102,6 +124,16 @@ impl Env {
     pub unsafe fn require_class_static_method(&self, class: &str, method: &str, descriptor: &str) -> (jclass, jmethodID) {
         let class = self.require_class(class);
         (class, self.require_static_method(class, method, descriptor))
+    }
+
+    pub unsafe fn require_class_field(&self, class: &str, method: &str, descriptor: &str) -> (jclass, jfieldID) {
+        let class = self.require_class(class);
+        (class, self.require_field(class, method, descriptor))
+    }
+
+    pub unsafe fn require_class_static_field(&self, class: &str, method: &str, descriptor: &str) -> (jclass, jfieldID) {
+        let class = self.require_class(class);
+        (class, self.require_static_field(class, method, descriptor))
     }
 
     // Constructor Methods
@@ -365,5 +397,215 @@ impl Env {
         } else {
             Ok(result)
         }
+    }
+
+    // Instance Fields
+
+    pub unsafe fn get_object_field<'env, T: AsValidJObjectAndEnv>(&'env self, this: jobject, field: jfieldID) -> Option<Local<'env, T>> {
+        let env = &self.0 as *const JNIEnv as *mut JNIEnv;
+        let result = (**env).GetObjectField.unwrap()(env, this, field);
+        if result.is_null() {
+            None
+        } else {
+            Some(Local::from_env_object(env, result))
+        }
+    }
+
+    pub unsafe fn get_boolean_field(&self, this: jobject, field: jfieldID) -> bool {
+        let env = &self.0 as *const JNIEnv as *mut JNIEnv;
+        let result = (**env).GetBooleanField.unwrap()(env, this, field);
+        result != JNI_FALSE
+    }
+
+    pub unsafe fn get_byte_field(&self, this: jobject, field: jfieldID) -> jbyte {
+        let env = &self.0 as *const JNIEnv as *mut JNIEnv;
+        let result = (**env).GetByteField.unwrap()(env, this, field);
+        result
+    }
+
+    pub unsafe fn get_char_field(&self, this: jobject, field: jfieldID) -> jchar {
+        let env = &self.0 as *const JNIEnv as *mut JNIEnv;
+        let result = (**env).GetCharField.unwrap()(env, this, field);
+        jchar(result)
+    }
+
+    pub unsafe fn get_short_field(&self, this: jobject, field: jfieldID) -> jshort {
+        let env = &self.0 as *const JNIEnv as *mut JNIEnv;
+        let result = (**env).GetShortField.unwrap()(env, this, field);
+        result
+    }
+
+    pub unsafe fn get_int_field(&self, this: jobject, field: jfieldID) -> jint {
+        let env = &self.0 as *const JNIEnv as *mut JNIEnv;
+        let result = (**env).GetIntField.unwrap()(env, this, field);
+        result
+    }
+
+    pub unsafe fn get_long_field(&self, this: jobject, field: jfieldID) -> jlong {
+        let env = &self.0 as *const JNIEnv as *mut JNIEnv;
+        let result = (**env).GetLongField.unwrap()(env, this, field);
+        result
+    }
+
+    pub unsafe fn get_float_field(&self, this: jobject, field: jfieldID) -> jfloat {
+        let env = &self.0 as *const JNIEnv as *mut JNIEnv;
+        let result = (**env).GetFloatField.unwrap()(env, this, field);
+        result
+    }
+
+    pub unsafe fn get_double_field(&self, this: jobject, field: jfieldID) -> jdouble {
+        let env = &self.0 as *const JNIEnv as *mut JNIEnv;
+        let result = (**env).GetDoubleField.unwrap()(env, this, field);
+        result
+    }
+
+    pub unsafe fn set_object_field<'env, T: AsValidJObjectAndEnv>(&'env self, this: jobject, field: jfieldID, value: jobject) {
+        let env = &self.0 as *const JNIEnv as *mut JNIEnv;
+        (**env).SetObjectField.unwrap()(env, this, field, value);
+    }
+
+    pub unsafe fn set_boolean_field(&self, this: jobject, field: jfieldID, value: bool) {
+        let env = &self.0 as *const JNIEnv as *mut JNIEnv;
+        (**env).SetBooleanField.unwrap()(env, this, field, if value { JNI_TRUE } else { JNI_FALSE });
+    }
+
+    pub unsafe fn set_byte_field(&self, this: jobject, field: jfieldID, value: jbyte) {
+        let env = &self.0 as *const JNIEnv as *mut JNIEnv;
+        (**env).SetByteField.unwrap()(env, this, field, value);
+    }
+
+    pub unsafe fn set_char_field(&self, this: jobject, field: jfieldID, value: jchar) {
+        let env = &self.0 as *const JNIEnv as *mut JNIEnv;
+        (**env).SetCharField.unwrap()(env, this, field, value.0);
+    }
+
+    pub unsafe fn set_short_field(&self, this: jobject, field: jfieldID, value: jshort) {
+        let env = &self.0 as *const JNIEnv as *mut JNIEnv;
+        (**env).SetShortField.unwrap()(env, this, field, value);
+    }
+
+    pub unsafe fn set_int_field(&self, this: jobject, field: jfieldID, value: jint) {
+        let env = &self.0 as *const JNIEnv as *mut JNIEnv;
+        (**env).SetIntField.unwrap()(env, this, field, value);
+    }
+
+    pub unsafe fn set_long_field(&self, this: jobject, field: jfieldID, value: jlong) {
+        let env = &self.0 as *const JNIEnv as *mut JNIEnv;
+        (**env).SetLongField.unwrap()(env, this, field, value);
+    }
+
+    pub unsafe fn set_float_field(&self, this: jobject, field: jfieldID, value: jfloat) {
+        let env = &self.0 as *const JNIEnv as *mut JNIEnv;
+        (**env).SetFloatField.unwrap()(env, this, field, value);
+    }
+
+    pub unsafe fn set_double_field(&self, this: jobject, field: jfieldID, value: jdouble) {
+        let env = &self.0 as *const JNIEnv as *mut JNIEnv;
+        (**env).SetDoubleField.unwrap()(env, this, field, value);
+    }
+
+    // Static Fields
+
+    pub unsafe fn get_static_object_field<'env, T: AsValidJObjectAndEnv>(&'env self, class: jclass, field: jfieldID) -> Option<Local<'env, T>> {
+        let env = &self.0 as *const JNIEnv as *mut JNIEnv;
+        let result = (**env).GetStaticObjectField.unwrap()(env, class, field);
+        if result.is_null() {
+            None
+        } else {
+            Some(Local::from_env_object(env, result))
+        }
+    }
+
+    pub unsafe fn get_static_boolean_field(&self, class: jclass, field: jfieldID) -> bool {
+        let env = &self.0 as *const JNIEnv as *mut JNIEnv;
+        let result = (**env).GetStaticBooleanField.unwrap()(env, class, field);
+        result != JNI_FALSE
+    }
+
+    pub unsafe fn get_static_byte_field(&self, class: jclass, field: jfieldID) -> jbyte {
+        let env = &self.0 as *const JNIEnv as *mut JNIEnv;
+        let result = (**env).GetStaticByteField.unwrap()(env, class, field);
+        result
+    }
+
+    pub unsafe fn get_static_char_field(&self, class: jclass, field: jfieldID) -> jchar {
+        let env = &self.0 as *const JNIEnv as *mut JNIEnv;
+        let result = (**env).GetStaticCharField.unwrap()(env, class, field);
+        jchar(result)
+    }
+
+    pub unsafe fn get_static_short_field(&self, class: jclass, field: jfieldID) -> jshort {
+        let env = &self.0 as *const JNIEnv as *mut JNIEnv;
+        let result = (**env).GetStaticShortField.unwrap()(env, class, field);
+        result
+    }
+
+    pub unsafe fn get_static_int_field(&self, class: jclass, field: jfieldID) -> jint {
+        let env = &self.0 as *const JNIEnv as *mut JNIEnv;
+        let result = (**env).GetStaticIntField.unwrap()(env, class, field);
+        result
+    }
+
+    pub unsafe fn get_static_long_field(&self, class: jclass, field: jfieldID) -> jlong {
+        let env = &self.0 as *const JNIEnv as *mut JNIEnv;
+        let result = (**env).GetStaticLongField.unwrap()(env, class, field);
+        result
+    }
+
+    pub unsafe fn get_static_float_field(&self, class: jclass, field: jfieldID) -> jfloat {
+        let env = &self.0 as *const JNIEnv as *mut JNIEnv;
+        let result = (**env).GetStaticFloatField.unwrap()(env, class, field);
+        result
+    }
+
+    pub unsafe fn get_static_double_field(&self, class: jclass, field: jfieldID) -> jdouble {
+        let env = &self.0 as *const JNIEnv as *mut JNIEnv;
+        let result = (**env).GetStaticDoubleField.unwrap()(env, class, field);
+        result
+    }
+
+    pub unsafe fn set_static_object_field<'env, T: AsValidJObjectAndEnv>(&'env self, class: jclass, field: jfieldID, value: jobject) {
+        let env = &self.0 as *const JNIEnv as *mut JNIEnv;
+        (**env).SetStaticObjectField.unwrap()(env, class, field, value);
+    }
+
+    pub unsafe fn set_static_boolean_field(&self, class: jclass, field: jfieldID, value: bool) {
+        let env = &self.0 as *const JNIEnv as *mut JNIEnv;
+        (**env).SetStaticBooleanField.unwrap()(env, class, field, if value { JNI_TRUE } else { JNI_FALSE });
+    }
+
+    pub unsafe fn set_static_byte_field(&self, class: jclass, field: jfieldID, value: jbyte) {
+        let env = &self.0 as *const JNIEnv as *mut JNIEnv;
+        (**env).SetStaticByteField.unwrap()(env, class, field, value);
+    }
+
+    pub unsafe fn set_static_char_field(&self, class: jclass, field: jfieldID, value: jchar) {
+        let env = &self.0 as *const JNIEnv as *mut JNIEnv;
+        (**env).SetStaticCharField.unwrap()(env, class, field, value.0);
+    }
+
+    pub unsafe fn set_static_short_field(&self, class: jclass, field: jfieldID, value: jshort) {
+        let env = &self.0 as *const JNIEnv as *mut JNIEnv;
+        (**env).SetStaticShortField.unwrap()(env, class, field, value);
+    }
+
+    pub unsafe fn set_static_int_field(&self, class: jclass, field: jfieldID, value: jint) {
+        let env = &self.0 as *const JNIEnv as *mut JNIEnv;
+        (**env).SetStaticIntField.unwrap()(env, class, field, value);
+    }
+
+    pub unsafe fn set_static_long_field(&self, class: jclass, field: jfieldID, value: jlong) {
+        let env = &self.0 as *const JNIEnv as *mut JNIEnv;
+        (**env).SetStaticLongField.unwrap()(env, class, field, value);
+    }
+
+    pub unsafe fn set_static_float_field(&self, class: jclass, field: jfieldID, value: jfloat) {
+        let env = &self.0 as *const JNIEnv as *mut JNIEnv;
+        (**env).SetStaticFloatField.unwrap()(env, class, field, value);
+    }
+
+    pub unsafe fn set_static_double_field(&self, class: jclass, field: jfieldID, value: jdouble) {
+        let env = &self.0 as *const JNIEnv as *mut JNIEnv;
+        (**env).SetStaticDoubleField.unwrap()(env, class, field, value);
     }
 }

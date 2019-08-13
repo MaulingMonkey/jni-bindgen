@@ -50,7 +50,7 @@ impl Struct {
 
         writeln!(out, "{}__jni_bindgen! {{", indent)?;
         if let Some(url) = KnownDocsUrl::from_class(context, self.java.path.as_id()) {
-            writeln!(out, "{}    /// {} {} [{}]({})", indent, visibility, keyword, url.label, url.url)?;
+            writeln!(out, "{}    /// {} {} {}", indent, visibility, keyword, url)?;
         }
         write!(out, "{}    {}{} {} {} extends {}", indent, attributes, visibility, keyword, &self.rust_struct_name, super_path)?;
         let mut implements = false;
@@ -78,8 +78,13 @@ impl Struct {
 
         for field in &fields {
             if !field.java.is_public() { continue; } // Skip private/protected fields
-            if let Some(name) = field.rust_name() {
-                *id_repeats.entry(name.to_owned()).or_insert(0) += 1;
+            match field.rust_names.as_ref() {
+                Ok(FieldMangling::ConstValue(name, _)) => { *id_repeats.entry(name.to_owned()).or_insert(0) += 1; },
+                Ok(FieldMangling::GetSet(get, set)) => {
+                    *id_repeats.entry(get.to_owned()).or_insert(0) += 1;
+                    *id_repeats.entry(set.to_owned()).or_insert(0) += 1;
+                },
+                Err(_) => {},
             }
         }
 
@@ -96,14 +101,6 @@ impl Struct {
         }
 
         for field in &mut fields {
-            //if let Some(name) = field.rust_name() {
-            //    let repeats = *id_repeats.get(name).unwrap_or(&0);
-            //    let overloaded = repeats > 1;
-            //    if overloaded {
-            //        field.set_mangling_style(context.config.codegen.field_naming_style_collision);
-            //    }
-            //}
-
             field.emit(context, indent, out)?;
         }
 

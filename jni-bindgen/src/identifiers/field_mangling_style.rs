@@ -1,5 +1,14 @@
+use super::*;
 use crate::java::*;
+
 use serde_derive::*;
+
+
+
+pub enum FieldMangling<'a> {
+    ConstValue(String, &'a field::Constant),
+    GetSet(String, String),
+}
 
 #[derive(Clone, Debug, Deserialize, PartialEq, Eq, Hash)]
 pub struct FieldManglingStyle {
@@ -20,21 +29,29 @@ impl Default for FieldManglingStyle {
     }
 }
 
-// TODO: tests
-
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
-pub enum FieldManglingError {
-    NotYetImplemented, // XXX: Remove
-    EmptyString,
-    NotRustSafe,
-    UnexpectedCharacter(char),
-}
-
-impl std::error::Error for FieldManglingError {}
-impl std::fmt::Display for FieldManglingError { fn fmt(&self, fmt: &mut std::fmt::Formatter) -> std::fmt::Result { std::fmt::Debug::fmt(self, fmt) } }
-
 impl FieldManglingStyle {
-    pub fn mangle(&self, flags: field::Flags, name: &str, signature: &str) -> Result<String, FieldManglingError> {
-        Err(FieldManglingError::NotYetImplemented)
+    pub fn mangle<'a>(&self, field: &'a Field) -> Result<FieldMangling<'a>, IdentifierManglingError> {
+        if let (Some(value), true) = (field.constant.as_ref(), self.const_finals) {
+            let name = if self.rustify_names {
+                constify_identifier(field.name.as_str())
+            } else {
+                javaify_identifier(field.name.as_str())
+            }?;
+
+            Ok(FieldMangling::ConstValue(name, value))
+        } else {
+            Ok(FieldMangling::GetSet(
+                self.mangle_identifier(self.getter_pattern.replace("{NAME}", field.name.as_str()).as_str())?,
+                self.mangle_identifier(self.setter_pattern.replace("{NAME}", field.name.as_str()).as_str())?
+            ))
+        }
+    }
+
+    fn mangle_identifier(&self, ident: &str) -> Result<String, IdentifierManglingError> {
+        if self.rustify_names {
+            rustify_identifier(ident)
+        } else {
+            javaify_identifier(ident)
+        }
     }
 }

@@ -11,6 +11,7 @@ use std::path::*;
 pub(crate) struct DocPattern {
     pub(crate) class_url_pattern:               String,
     pub(crate) method_url_pattern:              Option<String>,
+    pub(crate) field_url_pattern:               Option<String>,
     pub(crate) jni_prefix:                      String,
     pub(crate) class_namespace_separator:       String,
     pub(crate) class_inner_class_seperator:     String,
@@ -24,6 +25,7 @@ impl From<toml::DocumentationPattern> for DocPattern {
         Self {
             class_url_pattern:              file.class_url_pattern,
             method_url_pattern:             file.method_url_pattern,
+            field_url_pattern:              file.field_url_pattern,
             jni_prefix:                     file.jni_prefix,
             class_namespace_separator:      file.class_namespace_separator,
             class_inner_class_seperator:    file.class_inner_class_seperator,

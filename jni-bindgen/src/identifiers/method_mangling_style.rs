@@ -73,17 +73,6 @@ pub enum MethodManglingStyle {
     RustifyLongSignature,
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
-pub enum MethodManglingError {
-    StaticCtor,
-    EmptyString,
-    NotRustSafe,
-    UnexpectedCharacter(char),
-}
-
-impl std::error::Error for MethodManglingError {}
-impl std::fmt::Display for MethodManglingError { fn fmt(&self, fmt: &mut std::fmt::Formatter) -> std::fmt::Result { std::fmt::Debug::fmt(self, fmt) } }
-
 #[test] fn method_mangling_style_mangle_test() {
     for &(name,    sig,                     java,     java_short,      java_long,                 rust,      rust_short,       rust_long                  ) in &[
         ("getFoo", "()V",                   "getFoo", "getFoo",        "getFoo",                  "get_foo", "get_foo",        "get_foo"                  ),
@@ -114,22 +103,22 @@ impl std::fmt::Display for MethodManglingError { fn fmt(&self, fmt: &mut std::fm
 }
 
 impl MethodManglingStyle {
-    pub fn mangle(&self, name: &str, descriptor: method::Descriptor) -> Result<String, MethodManglingError> {
+    pub fn mangle(&self, name: &str, descriptor: method::Descriptor) -> Result<String, IdentifierManglingError> {
         let name = match name {
-            ""          => { return Err(MethodManglingError::EmptyString); },
+            ""          => { return Err(IdentifierManglingError::EmptyString); },
             "<init>"    => "new",
-            "<clinit>"  => { return Err(MethodManglingError::StaticCtor); },
+            "<clinit>"  => { return Err(IdentifierManglingError::NotApplicable("Static type ctor")); },
             name        => name,
         };
 
         match self {
-            MethodManglingStyle::Java                   => Ok(String::from(javaify_method_name(name)?)),
-            MethodManglingStyle::JavaShortSignature     => Ok(String::from(javaify_method_name(&format!("{}{}", name, short_sig(descriptor) )[..])?)),
-            MethodManglingStyle::JavaLongSignature      => Ok(String::from(javaify_method_name(&format!("{}{}", name, long_sig(descriptor)  )[..])?)),
+            MethodManglingStyle::Java                   => Ok(javaify_identifier(name)?),
+            MethodManglingStyle::JavaShortSignature     => Ok(javaify_identifier(&format!("{}{}", name, short_sig(descriptor) )[..])?),
+            MethodManglingStyle::JavaLongSignature      => Ok(javaify_identifier(&format!("{}{}", name, long_sig(descriptor)  )[..])?),
 
-            MethodManglingStyle::Rustify                => Ok(rustify_method_name(name)?),
-            MethodManglingStyle::RustifyShortSignature  => Ok(rustify_method_name(&format!("{}{}", name, short_sig(descriptor) )[..])?),
-            MethodManglingStyle::RustifyLongSignature   => Ok(rustify_method_name(&format!("{}{}", name, long_sig(descriptor)  )[..])?),
+            MethodManglingStyle::Rustify                => Ok(rustify_identifier(name)?),
+            MethodManglingStyle::RustifyShortSignature  => Ok(rustify_identifier(&format!("{}{}", name, short_sig(descriptor) )[..])?),
+            MethodManglingStyle::RustifyLongSignature   => Ok(rustify_identifier(&format!("{}{}", name, long_sig(descriptor)  )[..])?),
         }
     }
 }
@@ -250,89 +239,4 @@ fn long_sig(descriptor: method::Descriptor) -> String {
     }
 
     buffer
-}
-
-fn javaify_method_name(name: &str) -> Result<String, MethodManglingError> {
-    if name == "_" {
-        return Ok(String::from("__"));
-    } else {
-        let mut chars = name.chars();
-
-        // First character
-        if let Some(ch) = chars.next() {
-            match ch {
-                'a'..='z'   => {},
-                'A'..='Z'   => {},
-                '_'         => {},
-                _           => { return Err(MethodManglingError::UnexpectedCharacter(ch)); },
-            }
-        }
-
-        // Subsequent characters
-        while let Some(ch) = chars.next() {
-            match ch {
-                'a'..='z'   => {},
-                'A'..='Z'   => {},
-                '0'..='9'   => {},
-                '_'         => {},
-                _           => { return Err(MethodManglingError::UnexpectedCharacter(ch)); },
-            }
-        }
-
-        match RustIdentifier::from_str(name) {
-            RustIdentifier::Identifier(_)               => Ok(name.to_owned()),
-            RustIdentifier::NonIdentifier(_)            => Err(MethodManglingError::NotRustSafe),
-            RustIdentifier::KeywordRawSafe(s)           => Ok(s.to_owned()),
-            RustIdentifier::KeywordUnderscorePostfix(s) => Ok(s.to_owned()),
-        }
-    }
-}
-
-fn rustify_method_name(name: &str) -> Result<String, MethodManglingError> {
-    if name == "_" {
-        return Ok(String::from("__"));
-    } else {
-        let mut chars = name.chars();
-        let mut buffer = String::new();
-        let mut uppercase = 0;
-
-        // First character
-        if let Some(ch) = chars.next() {
-            match ch {
-                'a'..='z'   => buffer.push(ch),
-                'A'..='Z'   => { buffer.push(ch.to_ascii_lowercase()); uppercase = 1; },
-                '_'         => buffer.push(ch),
-                _           => { return Err(MethodManglingError::UnexpectedCharacter(ch)); },
-            }
-        }
-
-        // Subsequent characters
-        while let Some(ch) = chars.next() {
-            if ch.is_ascii_uppercase() {
-                if uppercase == 0 && !buffer.ends_with('_') {
-                    buffer.push('_');
-                }
-                buffer.push(ch.to_ascii_lowercase());
-                uppercase += 1;
-            } else if ch.is_ascii_alphanumeric() {
-                if uppercase > 1 {
-                    buffer.insert(buffer.len()-1, '_');
-                }
-                buffer.push(ch);
-                uppercase = 0;
-            } else if ch == '_' {
-                buffer.push(ch);
-                uppercase = 0;
-            } else {
-                return Err(MethodManglingError::UnexpectedCharacter(ch));
-            }
-        }
-
-        match RustIdentifier::from_str(&buffer) {
-            RustIdentifier::Identifier(_)               => Ok(buffer),
-            RustIdentifier::NonIdentifier(_)            => Err(MethodManglingError::NotRustSafe),
-            RustIdentifier::KeywordRawSafe(s)           => Ok(s.to_owned()),
-            RustIdentifier::KeywordUnderscorePostfix(s) => Ok(s.to_owned()),
-        }
-    }
 }

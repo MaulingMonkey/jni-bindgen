@@ -1,6 +1,7 @@
 [[documentation.pattern]]
-class_url_pattern = "https://developer.android.com/reference/{CLASS}.html"
+class_url_pattern  = "https://developer.android.com/reference/{CLASS}.html"
 method_url_pattern = "https://developer.android.com/reference/{CLASS}.html#{METHOD}({ARGUMENTS})"
+field_url_pattern  = "https://developer.android.com/reference/{CLASS}.html#{FIELD}"
 method_argument_seperator = ",%2520"
 
 [input]

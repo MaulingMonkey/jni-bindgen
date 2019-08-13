@@ -244,7 +244,7 @@ impl<'a> Method<'a> {
             writeln!(out, "{}// Not emitting: {}", indent, reason)?;
         }
         if let Some(url) = KnownDocsUrl::from_method(context, self.class.path.as_str(), self.java.name.as_str(), self.java.descriptor()) {
-            writeln!(out, "{}/// [{}]({})", indent, url.label, url.url)?;
+            writeln!(out, "{}/// {}", indent, url)?;
         }
         writeln!(out, "{}{}{}fn {}<'env>({}) -> __jni_bindgen::Result<{}> {{", indent, attributes, access, method_name, params_decl, ret_decl)?;
         writeln!(out, "{}    // class.path == {:?}, java.flags == {:?}, .name == {:?}, .descriptor == {:?}", indent, &self.class.path, self.java.flags, &self.java.name, &self.java.descriptor_str())?;
