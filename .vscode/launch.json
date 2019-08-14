@@ -1,42 +1,31 @@
 {
     "version": "0.2.0",
-    "inputs": [
-        {
-            "id": "example",
-            "type": "pickString",
-            "description": "Pick an example",
-            "options": [
-                "android-28-sys",
-            ],
-            "default": "android-28-sys"
-        }
-    ],
     "configurations": [
         {
             "name": "Debug x86_64-pc-windows-msvc", "type": "cppvsdbg", "request": "launch",
             "preLaunchTask": "cargo build --target=x86_64-pc-windows-msvc",
-            "cwd": "${workspaceRoot}/examples/${input:example}", "program": "",
+            "cwd": "${workspaceRoot}/jni-android-sys", "program": "",
             "windows": { "program": "${workspaceRoot}/target/x86_64-pc-windows-msvc/debug/jni-bindgen.exe" },
             "internalConsoleOptions": "openOnSessionStart", "externalConsole": false,
         },
         {
             "name": "Debug i686-pc-windows-msvc", "type": "cppvsdbg", "request": "launch",
             "preLaunchTask": "cargo build --target=i686-pc-windows-msvc",
-            "cwd": "${workspaceRoot}/examples/${input:example}", "program": "",
+            "cwd": "${workspaceRoot}/jni-android-sys", "program": "",
             "windows": { "program": "${workspaceRoot}/target/i686-pc-windows-msvc/debug/jni-bindgen.exe" },
             "internalConsoleOptions": "openOnSessionStart", "externalConsole": false,
         },
         {
             "name": "Release x86_64-pc-windows-msvc", "type": "cppvsdbg", "request": "launch",
             "preLaunchTask": "cargo build --target=x86_64-pc-windows-msvc --release",
-            "cwd": "${workspaceRoot}/examples/${input:example}", "program": "",
+            "cwd": "${workspaceRoot}/jni-android-sys", "program": "",
             "windows": { "program": "${workspaceRoot}/target/x86_64-pc-windows-msvc/release/jni-bindgen.exe" },
             "internalConsoleOptions": "openOnSessionStart", "externalConsole": false,
         },
         {
             "name": "Release i686-pc-windows-msvc", "type": "cppvsdbg", "request": "launch",
             "preLaunchTask": "cargo build --target=i686-pc-windows-msvc --release",
-            "cwd": "${workspaceRoot}/examples/${input:example}", "program": "",
+            "cwd": "${workspaceRoot}/jni-android-sys", "program": "",
             "windows": { "program": "${workspaceRoot}/target/i686-pc-windows-msvc/release/jni-bindgen.exe" },
             "internalConsoleOptions": "openOnSessionStart", "externalConsole": false,
         },

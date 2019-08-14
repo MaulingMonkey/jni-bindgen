@@ -25,11 +25,10 @@ pub fn run(config: impl Into<Config>) -> Result<(), Box<dyn Error>> {
         gather_file(&mut context, file)?;
     }
 
-    println!("writing: {}...", config.output_path.display());
-
     {
-        let mut out = File::create(&config.output_path).unwrap();
+        let mut out = util::GeneratedFile::new(&config.output_path).unwrap();
         context.write(&mut out)?;
+        context.completed_file(out)?;
     }
 
     Ok(())

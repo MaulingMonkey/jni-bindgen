@@ -80,6 +80,7 @@ fn load_config_file(api_level: i32) -> FileWithContext {
     };
 
     let mut config_file = jni_bindgen::config::toml::File::from_current_directory().unwrap();
+    config_file.file.input.files.clear();
     config_file.file.input.files.push(PathBuf::from(sdk_android_jar));
     config_file
 }

@@ -11,7 +11,7 @@ pub mod config { // Part of the actual official API of this crate.
 }
 
 /// Rust generation logic
-pub(crate) mod emit_rust {
+mod emit_rust {
     #[allow(unused_imports)] use super::*;
 
     mod context;
@@ -55,6 +55,15 @@ mod run {
 
     pub use run::run;
 }
+
+mod util {
+    #[allow(unused_imports)] use super::*;
+
+    mod generated_file;
+
+    pub use generated_file::GeneratedFile;
+}
+
 
 pub(crate) use identifiers::*;
 pub use run::run;
