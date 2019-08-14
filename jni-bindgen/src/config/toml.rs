@@ -168,9 +168,6 @@ pub struct Input {
 pub struct Output {
     /// Target `.rs` file to generate.
     pub path: PathBuf,
-
-    /// Reference `.rs` file to compare generated result against.  If set, run will panic if there's a mismatch.
-    pub reference_path: Option<PathBuf>,
 }
 
 /// The \[logging\] section.

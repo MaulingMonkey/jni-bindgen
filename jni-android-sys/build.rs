@@ -53,13 +53,11 @@ fn main() {
 
     if cfg!(feature = "locally-verify") {
         let mut config_file = load_config_file(api_level);
-        config_file.file.output.path            = PathBuf::from(format!("src/locally-generated/api-level-{}.rs", api_level));
-        config_file.file.output.reference_path  = Some(PathBuf::from(format!("src/reference/api-level-{}.rs", api_level)));
+        config_file.file.output.path = PathBuf::from(format!("src/locally-generated/api-level-{}.rs", api_level));
         jni_bindgen::run(config_file).unwrap();
     } else if cfg!(feature = "locally-generate") {
         let mut config_file = load_config_file(api_level);
-        config_file.file.output.path            = PathBuf::from(format!("src/locally-generated/api-level-{}.rs", api_level));
-        config_file.file.output.reference_path  = None;
+        config_file.file.output.path = PathBuf::from(format!("src/locally-generated/api-level-{}.rs", api_level));
         jni_bindgen::run(config_file).unwrap();
     } else {
         // Do nothing

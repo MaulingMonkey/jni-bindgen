@@ -5,7 +5,7 @@ use java::*;
 use std::result::Result;
 use std::error::Error;
 use std::fs::*;
-use std::io::{self, BufRead, BufReader};
+use std::io;
 use std::path::*;
 use std::time::*;
 
@@ -30,26 +30,6 @@ pub fn run(config: impl Into<Config>) -> Result<(), Box<dyn Error>> {
     {
         let mut out = File::create(&config.output_path).unwrap();
         context.write(&mut out)?;
-    }
-
-    if let Some(reference) = config.output_reference_path.as_ref() {
-        let mut output    = BufReader::new(File::open(&config.output_path).map_err(|e| format!("Unable to open output at {}: {:?}", config.output_path.display(), e))?);
-        let mut reference = BufReader::new(File::open(&reference).map_err(|e| format!("Unable to open reference at {}: {:?}", reference.display(), e))?);
-        let mut output_line    = String::new();
-        let mut reference_line = String::new();
-
-        let mut line_no = 0;
-        loop {
-            line_no += 1;
-            match (output.read_line(&mut output_line)?, reference.read_line(&mut reference_line)?) {
-                (0, 0) => { break; },
-                _ => {
-                    if output_line != reference_line {
-                        Err(format!("line {}: Expected output to match reference:\n    Output:    {}\n    Reference: {}\n", line_no, &output_line, &reference_line))?;
-                    }
-                },
-            }
-        }
     }
 
     Ok(())

@@ -45,7 +45,6 @@ pub struct Config {
     pub(crate) input_files:                 Vec<PathBuf>,
     pub(crate) output_path:                 PathBuf,
     pub(crate) output_dir:                  PathBuf,
-    pub(crate) output_reference_path:       Option<PathBuf>,
     pub(crate) logging_verbose:             bool,
 
     pub(crate) ignore_classes:              HashSet<String>,
@@ -108,7 +107,6 @@ impl From<toml::FileWithContext> for Config {
             input_files:            file.input.files.into_iter().map(|file| resolve_file(file, &dir)).collect(),
             output_path,
             output_dir,
-            output_reference_path:  file.output.reference_path.map(|p| resolve_file(p, &dir)),
             logging_verbose:        logging.verbose,
             ignore_classes,
             ignore_class_methods,
