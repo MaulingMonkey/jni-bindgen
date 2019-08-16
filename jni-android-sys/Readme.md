@@ -13,7 +13,7 @@ Not recently tested... might work!
 
 ```toml
 [dependencies]
-jni-android-sys = { version = "0.0.3", features = ["api-level-28", "android::view::KeyEvent"] }
+jni-android-sys = { version = "0.0.5", features = ["api-level-28", "android::view::KeyEvent"] }
 ```
 
 ### MainActivity.java

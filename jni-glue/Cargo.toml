@@ -1,10 +1,10 @@
 [package]
 name = "jni-glue"
-version = "0.0.3"
+version = "0.0.5"
 authors = ["MaulingMonkey <git@maulingmonkey.com>"]
 edition = "2018"
 description = "Manually written glue code to accompany the jni-bindgen code generator for binding to JVM APIs from Rust"
-documentation = "https://docs.rs/jni-bindgen/"
+documentation = "https://docs.rs/jni-glue/"
 repository = "https://github.com/MaulingMonkey/jni-bindgen"
 keywords = ["jvm", "jni", "bindgen", "android"]
 categories = ["external-ffi-bindings"]
