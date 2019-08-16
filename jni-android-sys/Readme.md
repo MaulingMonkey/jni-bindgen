@@ -83,5 +83,3 @@ dual licensed as above, without any additional terms or conditions.
 | ----------------- | ------------- |
 | api-level-28      | Define all android APIs defined in API level 28 or greater
 | force-define      | Define android APIs on non-android targets
-| locally-generate  | Requires the appropriate Android Platform SDK.  Generate the source code locally instead of using the included version.
-| locally-verify    | Requires the appropriate Android Platform SDK.  Generate the source code locally, and verify the included version matches.
