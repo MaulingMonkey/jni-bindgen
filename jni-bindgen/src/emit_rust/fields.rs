@@ -26,6 +26,8 @@ impl<'a> Field<'a> {
 
         if !self.java.is_public() { emit_reject_reasons.push("Non-public method"); }
 
+        let mut required_feature = None;
+
         let descriptor = self.java.descriptor();
         let rust_type = match descriptor {
             field::Descriptor::Single(field::BasicType::Boolean) => "bool",
@@ -42,6 +44,11 @@ impl<'a> Field<'a> {
                 "()"
             },
             field::Descriptor::Single(field::BasicType::Class(class)) => {
+                if let Ok(feature) = Struct::feature_for(context, class) {
+                    required_feature = Some(feature);
+                } else {
+                    emit_reject_reasons.push("Unable to resolve class feature");
+                }
                 emit_reject_reasons.push("Haven't yet implemented object field types");
                 class.as_str()
             },
@@ -103,6 +110,11 @@ impl<'a> Field<'a> {
                 if let Some(url) = url {
                     writeln!(out, "{}/// {} {}", indent, &keywords, url)?;
                 }
+                if let Some(required_feature) = required_feature.as_ref() {
+                    writeln!(out, "{}///", indent)?;
+                    writeln!(out, "{}/// Required feature: {}", indent, required_feature)?;
+                    writeln!(out, "{}#[cfg(any(feature = \"*\", feature = {:?}))]", indent, required_feature)?;
+                }
                 match descriptor {
                     field::Descriptor::Single(field::BasicType::Char)       => writeln!(out, "{}{}pub const {} : {} = {}({});", indent, &attributes, constant, rust_type, rust_type, value)?,
                     field::Descriptor::Single(field::BasicType::Boolean)    => writeln!(out, "{}{}pub const {} : {} = {};", indent, &attributes, constant, rust_type, if value == &field::Constant::Integer(0) { "false" } else { "true" })?,
@@ -112,6 +124,13 @@ impl<'a> Field<'a> {
             Ok(FieldMangling::GetSet(get, set)) => {
                 if let Some(url) = url {
                     writeln!(out, "{}/// **get** {} {}", indent, &keywords, url)?;
+                } else {
+                    writeln!(out, "{}/// **get** {} {}", indent, &keywords, self.java.name.as_str())?;
+                }
+                if let Some(required_feature) = required_feature.as_ref() {
+                    writeln!(out, "{}///", indent)?;
+                    writeln!(out, "{}/// Required feature: {}", indent, required_feature)?;
+                    writeln!(out, "{}#[cfg(any(feature = \"*\", feature = {:?}))]", indent, required_feature)?;
                 }
                 writeln!(out, "{}{}pub fn {}<'env>({}) -> {} {{", indent, &attributes, get, env_param, rust_type)?;
                 writeln!(out, "{}    unsafe {{", indent)?;
@@ -127,6 +146,13 @@ impl<'a> Field<'a> {
                     writeln!(out, "")?;
                     if let Some(url) = url {
                         writeln!(out, "{}/// **set** {} {}", indent, &keywords, url)?;
+                    } else {
+                        writeln!(out, "{}/// **set** {} {}", indent, &keywords, self.java.name.as_str())?;
+                    }
+                    if let Some(required_feature) = required_feature.as_ref() {
+                        writeln!(out, "{}///", indent)?;
+                        writeln!(out, "{}/// Required feature: {}", indent, required_feature)?;
+                        writeln!(out, "{}#[cfg(any(feature = \"*\", feature = {:?}))]", indent, required_feature)?;
                     }
                     writeln!(out, "{}{}pub fn {}<'env>({}, value: {}) {{", indent, &attributes, set, env_param, rust_type)?;
                     writeln!(out, "{}    unsafe {{", indent)?;

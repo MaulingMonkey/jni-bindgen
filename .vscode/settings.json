@@ -10,5 +10,6 @@
         "**/android-studio/**/gradle": true,
         "**/android-studio/**/basic.iml": true,
         "**/android-studio/**/local.properties": true,
+        "jni-android-sys/src/**/.tmp*.rs.tmp": true,
     }
 }

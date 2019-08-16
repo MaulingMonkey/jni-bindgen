@@ -66,7 +66,7 @@ impl<'a> GeneratedFile<'a> {
         };
 
         let rewrite = tempfile::Builder::new()
-            .suffix(".rs")
+            .suffix(".rs.tmp")
             .tempfile_in(dir)?;
 
         Ok(GeneratedFile{ context, path, original, rewrite })

@@ -13,7 +13,7 @@ Not recently tested... might work!
 
 ```toml
 [dependencies]
-jni-android-sys = { version = "0.0.3", features = ["api-level-28"] }
+jni-android-sys = { version = "0.0.3", features = ["api-level-28", "android::view::KeyEvent"] }
 ```
 
 ### MainActivity.java
@@ -79,7 +79,10 @@ dual licensed as above, without any additional terms or conditions.
 
 ## Build Features
 
-| feature           | description   |
-| ----------------- | ------------- |
-| api-level-28      | Define all android APIs defined in API level 28 or greater
-| force-define      | Define android APIs on non-android targets
+| feature                               | description   |
+| ------------------------------------- | ------------- |
+| `"api-level-28"`                      | Define android APIs as they were defined in API level 28 or greater
+| `"force-define"`                      | Define android APIs on non-android targets
+| `"android::view::KeyEvent"`           | Define the android.view.[KeyEvent](https://developer.android.com/reference/android/view/KeyEvent.html) class
+| `"android::view::KeyEvent_Callback"`  | Define the android.view.[KeyEvent.Callback](https://developer.android.com/reference/android/view/KeyEvent.Callback.html) interface
+| `"*"`                                 | Define all the available android/java APIs

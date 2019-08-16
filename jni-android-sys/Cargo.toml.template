@@ -12,8 +12,7 @@ repository = "https://github.com/MaulingMonkey/jni-bindgen"
 keywords = ["jvm", "jni", "bindgen", "android"]
 categories = ["external-ffi-bindings", "os"]
 license = "MIT OR Apache-2.0"
-include = ["/build.rs", "/jni-bindgen.toml", "/src/lib.rs", "/src/reference/*", "/Cargo.toml", "../LICENSE-MIT", "../LICENSE-APACHE", "Readme.md"]
-build = "build.rs"
+include = ["/jni-bindgen.toml", "/src/**.rs", "/Cargo.toml", "../LICENSE-MIT", "../LICENSE-APACHE", "Readme.md"]
 
 [dependencies]
 cfg-if      = "0.1.9"
