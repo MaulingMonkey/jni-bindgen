@@ -5,15 +5,11 @@
 Uses [jni-bindgen](https://github.com/MaulingMonkey/jni-bindgen) to export Android's Java APIs to Rust.
 Only tested against Android API level 28 so far.
 
-## Quick Start
-
-Not recently tested... might work!
-
 ### Cargo.toml
 
 ```toml
 [dependencies]
-jni-android-sys = { version = "0.0.7", features = ["api-level-28", "android::view::KeyEvent"] }
+jni-android-sys = { version = "0.0.7", features = ["api-level-28", "android-view-KeyEvent"] }
 ```
 
 ### MainActivity.java
@@ -85,4 +81,5 @@ dual licensed as above, without any additional terms or conditions.
 | `"force-define"`                      | Define android APIs on non-android targets
 | `"android-view-KeyEvent"`             | Define the android.view.[KeyEvent](https://developer.android.com/reference/android/view/KeyEvent.html) class
 | `"android-view-KeyEvent_Callback"`    | Define the android.view.[KeyEvent.Callback](https://developer.android.com/reference/android/view/KeyEvent.Callback.html) interface
+| ...thousands of other features...     | Define other android.\*, androidx.\*, dalvik.\*, java.\*, javax.\*, and org.\* APIs.
 | `"all"`                               | Define all the available android/java APIs
