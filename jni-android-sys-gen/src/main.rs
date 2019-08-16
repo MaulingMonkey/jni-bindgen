@@ -120,7 +120,7 @@ fn generate_toml(directory: &Path, api_levels: RangeInclusive<i32>, result: &jni
 
                 // Wildcard feature "*".  While it's tempting to make this depend on all other features, this
                 // causes problems on windows where we run into command line length limits invoking rustc.
-                write!(out, "\"*\" = []")?;
+                writeln!(out, "\"*\" = []")?;
                 writeln!(out, "{}:END", line)?;
             },
             "# PLACEHOLDER:FEATURES:docs.rs" => {
