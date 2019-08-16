@@ -1,6 +1,6 @@
 [package]
 name = "jni-android-sys-gen"
-version = "0.0.6"
+version = "0.0.7"
 publish = false
 authors = ["MaulingMonkey <git@maulingmonkey.com>"]
 edition = "2018"
@@ -10,6 +10,6 @@ license = "MIT OR Apache-2.0"
 
 [dependencies]
 bugsalot    = { version = "0.1.4" }
-jni-glue    = { version = "=0.0.6", path = "../jni-glue" }
-jni-bindgen = { version = "=0.0.6", path = "../jni-bindgen" }
+jni-glue    = { version = "=0.0.7", path = "../jni-glue" }
+jni-bindgen = { version = "=0.0.7", path = "../jni-bindgen" }
 clap        = { version = "2.33.0", features = ["yaml"] }
