@@ -83,6 +83,6 @@ dual licensed as above, without any additional terms or conditions.
 | ------------------------------------- | ------------- |
 | `"api-level-28"`                      | Define android APIs as they were defined in API level 28 or greater
 | `"force-define"`                      | Define android APIs on non-android targets
-| `"android::view::KeyEvent"`           | Define the android.view.[KeyEvent](https://developer.android.com/reference/android/view/KeyEvent.html) class
-| `"android::view::KeyEvent_Callback"`  | Define the android.view.[KeyEvent.Callback](https://developer.android.com/reference/android/view/KeyEvent.Callback.html) interface
-| `"*"`                                 | Define all the available android/java APIs
+| `"android-view-KeyEvent"`             | Define the android.view.[KeyEvent](https://developer.android.com/reference/android/view/KeyEvent.html) class
+| `"android-view-KeyEvent_Callback"`    | Define the android.view.[KeyEvent.Callback](https://developer.android.com/reference/android/view/KeyEvent.Callback.html) interface
+| `"all"`                               | Define all the available android/java APIs

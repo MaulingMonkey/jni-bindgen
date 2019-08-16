@@ -56,7 +56,7 @@ impl Struct {
         let mut buf = String::new();
         for component in class.iter() {
             match component {
-                class::IdPart::Namespace(id)        => write!(&mut buf, "{}::", rust_id(id)?)?,
+                class::IdPart::Namespace(id)        => write!(&mut buf, "{}-",  rust_id(id)?)?,
                 class::IdPart::ContainingClass(id)  => write!(&mut buf, "{}_",  rust_id(id)?)?,
                 class::IdPart::LeafClass(id)        => write!(&mut buf, "{}",   rust_id(id)?)?,
             }
@@ -157,7 +157,7 @@ impl Struct {
         if let Ok(required_feature) = Struct::feature_for(context, self.java.path.as_id()) {
             writeln!(out, "{}    ///", indent)?;
             writeln!(out, "{}    /// Required feature: {}", indent, required_feature)?;
-            writeln!(out, "{}    #[cfg(any(feature = \"*\", feature = {:?}))]", indent, required_feature)?;
+            writeln!(out, "{}    #[cfg(any(feature = \"all\", feature = {:?}))]", indent, required_feature)?;
         }
         write!(out, "{}    {}{} {} {} extends {}", indent, attributes, visibility, keyword, &self.rust.struct_name, super_path)?;
         let mut implements = false;

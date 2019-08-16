@@ -292,7 +292,7 @@ impl<'a> Method<'a> {
             writeln!(out, "")?;
 
             // Feature cfgs
-            write!(out, "{}#[cfg(any(feature = \"*\", all(", indent)?;
+            write!(out, "{}#[cfg(any(feature = \"all\", all(", indent)?;
             for (idx, feature) in required_features.iter().enumerate() {
                 if idx != 0 {
                     write!(out, ", ")?;

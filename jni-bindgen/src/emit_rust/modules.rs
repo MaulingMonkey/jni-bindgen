@@ -38,7 +38,7 @@ impl Module {
             if context.config.codegen.shard_structs {
                 if context.config.codegen.feature_per_struct {
                     match Struct::feature_for(context, structure.java.path.as_id()) {
-                        Ok(feature) => write!(out, "{}#[cfg(any(feature = \"*\", feature = {:?}))] ", indent, feature)?,
+                        Ok(feature) => write!(out, "{}#[cfg(any(feature = \"all\", feature = {:?}))] ", indent, feature)?,
                         Err(e) => {
                             writeln!(out, "{}// Unable to limit with feature: {:?}", indent, e)?;
                             write!(out, "{}", indent)?;

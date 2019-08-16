@@ -124,8 +124,8 @@
     @cd jni-android-sys-gen
     ..\target\%CONFIG%\jni-android-sys-gen generate
     @cd ../jni-android-sys
-    @call :try-cargo +%CHANNEL% build            --features "* api-level-28 force-define" %CARGO_FLAGS% || goto :build-one-error
-    @call :try-cargo +%CHANNEL% doc   --no-deps  --features "* api-level-28 force-define" %CARGO_FLAGS% || goto :build-one-error
+    @call :try-cargo +%CHANNEL% build            --features "all api-level-28 force-define" %CARGO_FLAGS% || goto :build-one-error
+    @call :try-cargo +%CHANNEL% doc   --no-deps  --features "all api-level-28 force-define" %CARGO_FLAGS% || goto :build-one-error
     @goto :build-one-successful
 :skip-windows
 

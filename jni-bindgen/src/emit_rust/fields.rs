@@ -113,7 +113,7 @@ impl<'a> Field<'a> {
                 if let Some(required_feature) = required_feature.as_ref() {
                     writeln!(out, "{}///", indent)?;
                     writeln!(out, "{}/// Required feature: {}", indent, required_feature)?;
-                    writeln!(out, "{}#[cfg(any(feature = \"*\", feature = {:?}))]", indent, required_feature)?;
+                    writeln!(out, "{}#[cfg(any(feature = \"all\", feature = {:?}))]", indent, required_feature)?;
                 }
                 match descriptor {
                     field::Descriptor::Single(field::BasicType::Char)       => writeln!(out, "{}{}pub const {} : {} = {}({});", indent, &attributes, constant, rust_type, rust_type, value)?,
@@ -130,7 +130,7 @@ impl<'a> Field<'a> {
                 if let Some(required_feature) = required_feature.as_ref() {
                     writeln!(out, "{}///", indent)?;
                     writeln!(out, "{}/// Required feature: {}", indent, required_feature)?;
-                    writeln!(out, "{}#[cfg(any(feature = \"*\", feature = {:?}))]", indent, required_feature)?;
+                    writeln!(out, "{}#[cfg(any(feature = \"all\", feature = {:?}))]", indent, required_feature)?;
                 }
                 writeln!(out, "{}{}pub fn {}<'env>({}) -> {} {{", indent, &attributes, get, env_param, rust_type)?;
                 writeln!(out, "{}    unsafe {{", indent)?;
@@ -152,7 +152,7 @@ impl<'a> Field<'a> {
                     if let Some(required_feature) = required_feature.as_ref() {
                         writeln!(out, "{}///", indent)?;
                         writeln!(out, "{}/// Required feature: {}", indent, required_feature)?;
-                        writeln!(out, "{}#[cfg(any(feature = \"*\", feature = {:?}))]", indent, required_feature)?;
+                        writeln!(out, "{}#[cfg(any(feature = \"all\", feature = {:?}))]", indent, required_feature)?;
                     }
                     writeln!(out, "{}{}pub fn {}<'env>({}, value: {}) {{", indent, &attributes, set, env_param, rust_type)?;
                     writeln!(out, "{}    unsafe {{", indent)?;
