@@ -132,39 +132,42 @@
 
 
 @if /i not "%PLATFORM%" == "android" goto :skip-platform-android
-@set ANDROID_AVD_NAME=Nexus_5X_API_29_x86
-@set JAVA_HOME=%ProgramFiles%\Android\Android Studio\jre\
-@set PATH=%LOCALAPPDATA%\Android\Sdk\platform-tools\;%PATH%
-@set PATH=%LOCALAPPDATA%\Android\Sdk\ndk-bundle\toolchains\llvm\prebuilt\windows-x86_64\bin;%PATH%
-adb start-server
-start "" /B "%LOCALAPPDATA%\Android\Sdk\emulator\emulator" -no-audio -no-window -no-snapshot -no-boot-anim @%ANDROID_AVD_NAME%
-:: -no-snapshot:  loading one would speed things up, but this can cause problems in terminated emulators.  Saving is undesired too.
-adb wait-for-local-device
-@for /f "tokens=1" %%d in ('adb devices ^| findstr emulator-') do @set EMULATOR_DEVICE=%%d
-@adb -s %EMULATOR_DEVICE% shell getprop ro.product.cpu.abi | findstr x86_64 && set "NATIVE_ARCH=x86_64" || set "NATIVE_ARCH=i686"
-@pushd "%~dp0windows-android"
-@set ANDROID_ERROR=0
-call :try-cargo +%CHANNEL% build --all --tests %CARGO_FLAGS% --target=%NATIVE_ARCH%-linux-android || set ANDROID_ERROR=1
-@popd
-@if not "%ANDROID_ERROR%" == "0" goto :build-one-error
-@pushd "%~dp0..\target\%NATIVE_ARCH%-linux-android\%CONFIG%"
-@set ANDROID_TEST_NAME=
-@for /f "" %%n in ('dir /OD /B gamepads-* ^| findstr /v \.d') do @set "ANDROID_TEST_NAME=%%n"
-@if not defined ANDROID_TEST_NAME set ANDROID_TEST_NAME=could_not_find_android_test
-adb -s %EMULATOR_DEVICE% push "%ANDROID_TEST_NAME%" /data/local/tmp/gamepads_unit_tests || set ANDROID_ERROR=1
-@popd
-adb -s %EMULATOR_DEVICE% shell chmod 755 /data/local/tmp/gamepads_unit_tests || set ANDROID_ERROR=1
-adb -s %EMULATOR_DEVICE% shell /data/local/tmp/gamepads_unit_tests || set ANDROID_ERROR=1
-@taskkill /FI "WINDOWTITLE eq Android Emulator - %ANDROID_AVD_NAME%:*" 2>NUL
-::@taskkill /F /IM "emulator.exe"
-@if not "%ANDROID_ERROR%" == "0" goto :build-one-error
-@goto :build-one-successful
+    @set ANDROID_AVD_NAME=Nexus_5X_API_29_x86
+    @set JAVA_HOME=%ProgramFiles%\Android\Android Studio\jre\
+    @set PATH=%LOCALAPPDATA%\Android\Sdk\platform-tools\;%PATH%
+    @set PATH=%LOCALAPPDATA%\Android\Sdk\ndk-bundle\toolchains\llvm\prebuilt\windows-x86_64\bin;%PATH%
+    adb start-server
+    start "" /B "%LOCALAPPDATA%\Android\Sdk\emulator\emulator" -no-audio -no-window -no-snapshot -no-boot-anim @%ANDROID_AVD_NAME%
+    :: -no-snapshot:  loading one would speed things up, but this can cause problems in terminated emulators.  Saving is undesired too.
+    adb wait-for-local-device
+    @for /f "tokens=1" %%d in ('adb devices ^| findstr emulator-') do @set EMULATOR_DEVICE=%%d
+    @adb -s %EMULATOR_DEVICE% shell getprop ro.product.cpu.abi | findstr x86_64 && set "NATIVE_ARCH=x86_64" || set "NATIVE_ARCH=i686"
+    @pushd "%~dp0windows-android"
+    @set ANDROID_ERROR=0
+    call :try-cargo +%CHANNEL% build --all --tests %CARGO_FLAGS% --target=%NATIVE_ARCH%-linux-android || set ANDROID_ERROR=1
+    @popd
+    @if not "%ANDROID_ERROR%" == "0" goto :build-one-error
+    @pushd "%~dp0..\target\%NATIVE_ARCH%-linux-android\%CONFIG%"
+    @set ANDROID_TEST_NAME=
+    @for /f "" %%n in ('dir /OD /B gamepads-* ^| findstr /v \.d') do @set "ANDROID_TEST_NAME=%%n"
+    @if not defined ANDROID_TEST_NAME set ANDROID_TEST_NAME=could_not_find_android_test
+    adb -s %EMULATOR_DEVICE% push "%ANDROID_TEST_NAME%" /data/local/tmp/gamepads_unit_tests || set ANDROID_ERROR=1
+    @popd
+    adb -s %EMULATOR_DEVICE% shell chmod 755 /data/local/tmp/gamepads_unit_tests || set ANDROID_ERROR=1
+    adb -s %EMULATOR_DEVICE% shell /data/local/tmp/gamepads_unit_tests || set ANDROID_ERROR=1
+    @taskkill /FI "WINDOWTITLE eq Android Emulator - %ANDROID_AVD_NAME%:*" 2>NUL
+    ::@taskkill /F /IM "emulator.exe"
+    @if not "%ANDROID_ERROR%" == "0" goto :build-one-error
+    @goto :build-one-successful
 :skip-platform-android
 
 
-@if /i "%PLATFORM%" == "linux" call :try-linux-bash cargo +%CHANNEL% test             %CARGO_FLAGS% || goto :build-one-error
-@if /i "%PLATFORM%" == "linux" call :try-linux-bash cargo +%CHANNEL% build --examples %CARGO_FLAGS% || goto :build-one-error
-@if /i "%PLATFORM%" == "linux" goto :build-one-successful
+
+@if /i not "%PLATFORM%" == "android" goto :skip-platform-linux
+    @call :try-linux-bash cargo +%CHANNEL% test             %CARGO_FLAGS% || goto :build-one-error
+    @call :try-linux-bash cargo +%CHANNEL% build --examples %CARGO_FLAGS% || goto :build-one-error
+    @goto :build-one-successful
+:skip-platform-linux
 
 
 
