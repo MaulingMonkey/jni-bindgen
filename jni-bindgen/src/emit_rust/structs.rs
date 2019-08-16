@@ -51,14 +51,23 @@ fn rust_id<'a>(id: &str) -> Result<&str, Box<dyn Error>> {
     })
 }
 
+fn feature_id<'a>(id: &str) -> Result<&str, Box<dyn Error>> {
+    Ok(match RustIdentifier::from_str(id) {
+        RustIdentifier::Identifier(id) => id,
+        RustIdentifier::KeywordRawSafe(_) => id,
+        RustIdentifier::KeywordUnderscorePostfix(_) => id,
+        RustIdentifier::NonIdentifier(id) => io_data_err!("Unable to add_struct(): java identifier {:?} has no rust equivalent (yet?)", id)?,
+    })
+}
+
 impl Struct {
     pub(crate) fn feature_for(_context: &Context, class: class::Id) -> Result<String, Box<dyn Error>> {
         let mut buf = String::new();
         for component in class.iter() {
             match component {
-                class::IdPart::Namespace(id)        => write!(&mut buf, "{}-",  rust_id(id)?)?,
-                class::IdPart::ContainingClass(id)  => write!(&mut buf, "{}_",  rust_id(id)?)?,
-                class::IdPart::LeafClass(id)        => write!(&mut buf, "{}",   rust_id(id)?)?,
+                class::IdPart::Namespace(id)        => write!(&mut buf, "{}-",  feature_id(id)?)?,
+                class::IdPart::ContainingClass(id)  => write!(&mut buf, "{}_",  feature_id(id)?)?,
+                class::IdPart::LeafClass(id)        => write!(&mut buf, "{}",   feature_id(id)?)?,
             }
         }
         Ok(buf)
