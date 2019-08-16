@@ -1,0 +1,15 @@
+[package]
+name = "jni-android-sys-gen"
+version = "0.0.0"
+publish = false
+authors = ["MaulingMonkey <git@maulingmonkey.com>"]
+edition = "2018"
+description = "Autogenerate jni-android-sys, glue code for access Android JVM APIs from Rust"
+repository = "https://github.com/MaulingMonkey/jni-bindgen"
+license = "MIT OR Apache-2.0"
+
+[dependencies]
+bugsalot    = { version = "0.1.4" }
+jni-glue    = { version = "=0.0.3", path = "../jni-glue" }
+jni-bindgen = { version = "=0.0.3", path = "../jni-bindgen", features = ["unstable"] }
+clap        = { version = "2.33.0", features = ["yaml"] }

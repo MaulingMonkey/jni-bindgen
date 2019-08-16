@@ -60,8 +60,10 @@ mod util {
     #[allow(unused_imports)] use super::*;
 
     mod generated_file;
+    mod progress;
 
     pub use generated_file::GeneratedFile;
+    pub use progress::Progress;
 }
 
 

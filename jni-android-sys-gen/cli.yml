@@ -1,0 +1,39 @@
+name: jni-android-sys-gen
+version: "0.0.0"
+author: MaulingMonkey <git@maulingmonkey.com>
+about: Autogenerate jni-android-sys, glue code for access Android JVM APIs from Rust
+args:
+    - help:
+        long: help
+        help: Prints help information
+
+    - directory:
+        long: directory
+        help: Sets a custom directory
+        value_name: DIR
+        takes_value: true
+
+    - verbose:
+        long: verbose
+        help: Log in more detail
+
+    - min-api-level:
+        long: min-api-level
+        help: The minimum Android API level to generate/verify
+        value_name: API_LEVEL
+        takes_value: true
+
+    - max-api-level:
+        long: max-api-level
+        help: The maximum Android API level to generate/verify
+        value_name: API_LEVEL
+        takes_value: true
+
+subcommands:
+    - generate:
+        about: Generates jni-android-sys
+    #- verify:
+    #    about: Verifies an existing jni-android-sys matches exactly
+    #    args:
+    #        - debug:
+    #            short: d

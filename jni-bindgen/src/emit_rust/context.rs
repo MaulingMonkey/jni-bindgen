@@ -5,11 +5,14 @@ use java::class;
 use std::collections::*;
 use std::error::Error;
 use std::io;
+use std::time::*;
+use std::sync::Mutex;
 
 pub struct Context<'a> {
     pub(crate) config:      &'a config::runtime::Config,
     pub(crate) module:      Module,
     pub(crate) features:    BTreeMap<String, BTreeSet<String>>,
+    pub(crate) progress:    Mutex<util::Progress>,
 }
 
 impl<'a> Context<'a> {
@@ -18,6 +21,7 @@ impl<'a> Context<'a> {
             config,
             module: Default::default(),
             features: BTreeMap::new(),
+            progress: Mutex::new(util::Progress::with_duration(Duration::from_millis(if config.logging_verbose { 0 } else { 300 }))),
         }
     }
 

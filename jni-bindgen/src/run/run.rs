@@ -7,7 +7,6 @@ use std::error::Error;
 use std::fs::*;
 use std::io;
 use std::path::*;
-use std::time::*;
 
 /// The core function of this library: Generate Rust code to access Java APIs.
 pub fn run(config: impl Into<Config>) -> Result<(), Box<dyn Error>> {
@@ -26,7 +25,7 @@ pub fn run(config: impl Into<Config>) -> Result<(), Box<dyn Error>> {
     }
 
     {
-        let mut out = util::GeneratedFile::new(&config.output_path).unwrap();
+        let mut out = util::GeneratedFile::new(&context, &config.output_path).unwrap();
         context.write(&mut out)?;
         context.completed_file(out)?;
     }
@@ -35,7 +34,7 @@ pub fn run(config: impl Into<Config>) -> Result<(), Box<dyn Error>> {
 }
 
 fn gather_file(context: &mut emit_rust::Context, path: &Path) -> Result<(), Box<dyn Error>> {
-    println!("reading {}...", path.display());
+    context.progress.lock().unwrap().update(format!("reading {}...", path.display()).as_str());
 
     let ext = if let Some(ext) = path.extension() {
         ext
@@ -53,14 +52,11 @@ fn gather_file(context: &mut emit_rust::Context, path: &Path) -> Result<(), Box<
             let mut jar = File::open(path)?;
             let mut jar = zip::ZipArchive::new(&mut jar)?;
             let n = jar.len();
-            let mut next_log = Instant::now() + Duration::from_secs(1);
+
             for i in 0..n {
                 let mut file = jar.by_index(i)?;
                 if !file.name().ends_with(".class") { continue; }
-                if context.config.logging_verbose || Instant::now() > next_log {
-                    println!("  reading {:3}/{}: {}...", i, n, file.name());
-                    next_log = Instant::now() + Duration::from_secs(1);
-                }
+                context.progress.lock().unwrap().update(format!("  reading {:3}/{}: {}...", i, n, file.name()).as_str());
                 let class = Class::read(&mut file)?;
                 context.add_struct(class)?;
             }

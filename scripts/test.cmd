@@ -118,11 +118,14 @@
 :: Build
 
 @if /i not "%PLATFORM%" == "windows" goto :skip-windows
-    @call :try-cargo +%CHANNEL% test  -p jni-bindgen -p jni-glue            %CARGO_FLAGS% || goto :build-one-error
-    @call :try-cargo +%CHANNEL% doc   -p jni-bindgen -p jni-glue --no-deps  %CARGO_FLAGS% || goto :build-one-error
-    @cd jni-android-sys
-    @call :try-cargo +%CHANNEL% build            --features "api-level-28 locally-generate force-define" || goto :build-one-error
-    @call :try-cargo +%CHANNEL% doc   --no-deps  --features "api-level-28 locally-generate force-define" || goto :build-one-error
+    @call :try-cargo +%CHANNEL% build --all             %CARGO_FLAGS% || goto :build-one-error
+    @call :try-cargo +%CHANNEL% test  --all             %CARGO_FLAGS% || goto :build-one-error
+    @call :try-cargo +%CHANNEL% doc   --all --no-deps   %CARGO_FLAGS% || goto :build-one-error
+    @cd jni-android-sys-gen
+    ..\target\%CONFIG%\jni-android-sys-gen generate
+    @cd ../jni-android-sys
+    @call :try-cargo +%CHANNEL% build            --features "api-level-28 force-define" %CARGO_FLAGS% || goto :build-one-error
+    @call :try-cargo +%CHANNEL% doc   --no-deps  --features "api-level-28 force-define" %CARGO_FLAGS% || goto :build-one-error
     @goto :build-one-successful
 :skip-windows
 

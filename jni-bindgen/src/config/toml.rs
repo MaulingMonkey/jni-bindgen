@@ -308,10 +308,16 @@ impl File {
     }
 
     /// Search the current directory - or failing that, it's ancestors - until we find "jni-bindgen.toml" or reach the
-    /// filesystem and cannot continue.
+    /// root of the filesystem and cannot continue.
     pub fn from_current_directory() -> io::Result<FileWithContext> {
-        let cwd = std::env::current_dir()?;
-        let mut path = cwd.clone();
+        Self::from_directory(std::env::current_dir()?.as_path())
+    }
+
+    /// Search the specified directory - or failing that, it's ancestors - until we find "jni-bindgen.toml" or reach the
+    /// root of the filesystem and cannot continue.
+    pub fn from_directory(path: &Path) -> io::Result<FileWithContext> {
+        let original = path;
+        let mut path = path.to_owned();
         loop {
             path.push("jni-bindgen.toml");
             println!("cargo:rerun-if-changed={}", path.display());
@@ -321,7 +327,7 @@ impl File {
                 return Ok(FileWithContext { file, directory: path });
             }
             if !path.pop() || !path.pop() {
-                Err(io::Error::new(io::ErrorKind::NotFound, format!("Failed to find jni-bindgen.toml in \"{}\" or any of it's parent directories.", cwd.display())))?;
+                Err(io::Error::new(io::ErrorKind::NotFound, format!("Failed to find jni-bindgen.toml in \"{}\" or any of it's parent directories.", original.display())))?;
             }
         }
     }
