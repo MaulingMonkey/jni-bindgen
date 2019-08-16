@@ -8,7 +8,7 @@ method_argument_seperator = ",%2520"
 files = ["%LOCALAPPDATA%/Android/Sdk/platforms/android-28/android.jar"] # NOTE: Overridden by build.rs
 
 [output]
-path = "src/locally-generated/api-level-28.rs" # NOTE:  Overridden by build.rs
+path = "src/generated/api-level-28.rs" # NOTE:  Overridden by build.rs
 
 [logging]
 # verbose = true

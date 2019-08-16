@@ -37,7 +37,7 @@ fn main() {
     match subcommand {
         "generate" => {
             let mut config_file = load_config_file(directory, api_levels.clone());
-            config_file.file.output.path = PathBuf::from(format!("src/locally-generated/api-level-{}.rs", max_api_level));
+            config_file.file.output.path = PathBuf::from(format!("src/generated/api-level-{}.rs", max_api_level));
             jni_bindgen::run(config_file).unwrap();
 
             if let Err(e) = generate_toml(directory, api_levels.clone()) {
