@@ -54,6 +54,7 @@ mod run {
     mod run;
 
     pub use run::run;
+    pub use run::RunResult;
 }
 
 mod util {
@@ -69,3 +70,4 @@ mod util {
 
 pub(crate) use identifiers::*;
 pub use run::run;
+pub use run::RunResult;

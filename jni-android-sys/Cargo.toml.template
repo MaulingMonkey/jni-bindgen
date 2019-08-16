@@ -24,8 +24,9 @@ jni-bindgen = { version = "=0.0.3", path = "../jni-bindgen" }
 
 [features]
 default         = []
-locally-verify  = [] # Requires the appropriate Android SDK version be installed.  Generate the source code locally, and verify the included version matches.
 force-define    = [] # By default, the JNI APIs are only compiled against android targets, but this will force them to be defined on windows, linux, OS X, etc. for documentation purpouses.
+
+
 
 # The android API level to use.  Note that only api-level-28 is properly tested/supported for now.
 # https://developer.android.com/guide/topics/manifest/uses-sdk-element#ApiLevels
@@ -33,14 +34,13 @@ force-define    = [] # By default, the JNI APIs are only compiled against androi
 # That is, if you specify api-level-7 and api-level-13, you'll get all the APIs in 13 defined.
 # PLACEHOLDER:FEATURES:api-level-NN
 
+
+
+# The android class(es) to define.
 # PLACEHOLDER:FEATURES:sharded-api
 
-# WHEN ADDING A NEW API LEVEL:
-# - [ ] Add the feature here, obviously.
-# - [ ] Make sure to modify REQUESTED_API_LEVEL in build.rs!
-# - [ ] Make sure to modify the includes of "reference-NN.rs"!
-# - [ ] Make sure to modify the includes of "locally-generated-NN.rs"!
+
 
 [package.metadata.docs.rs]
-features = [ "api-level-28", "force-define" ]
+# PLACEHOLDER:FEATURES:docs.rs
 default-target = "x86_64-unknown-linux-gnu" # Doesn't matter too much, but at least this kinda looks like Android.

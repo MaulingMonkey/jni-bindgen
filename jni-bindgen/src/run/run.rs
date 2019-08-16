@@ -2,14 +2,19 @@ use super::*;
 use config::runtime::*;
 use java::*;
 
-use std::result::Result;
+use std::collections::*;
 use std::error::Error;
 use std::fs::*;
 use std::io;
 use std::path::*;
+use std::result::Result;
+
+pub struct RunResult {
+    pub features: BTreeMap<String, BTreeSet<String>>,
+}
 
 /// The core function of this library: Generate Rust code to access Java APIs.
-pub fn run(config: impl Into<Config>) -> Result<(), Box<dyn Error>> {
+pub fn run(config: impl Into<Config>) -> Result<RunResult, Box<dyn Error>> {
     let config : Config = config.into();
     if config.logging_verbose {
         println!("output: {}", config.output_path.display());
@@ -30,7 +35,9 @@ pub fn run(config: impl Into<Config>) -> Result<(), Box<dyn Error>> {
         context.completed_file(out)?;
     }
 
-    Ok(())
+    Ok(RunResult{
+        features: context.features.clone(),
+    })
 }
 
 fn gather_file(context: &mut emit_rust::Context, path: &Path) -> Result<(), Box<dyn Error>> {

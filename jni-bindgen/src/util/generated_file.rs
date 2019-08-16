@@ -22,6 +22,16 @@ pub struct Difference {
     pub rewrite:    String,
 }
 
+impl Difference {
+    pub fn original_missing() -> Self {
+        Self {
+            line_no:    0,
+            original:   String::new(),
+            rewrite:    String::new(),
+        }
+    }
+}
+
 impl<'a> GeneratedFile<'a> {
     pub fn new(context: &'a crate::emit_rust::Context, path: &'a impl AsRef<Path>) -> io::Result<GeneratedFile<'a>> {
         let path = path.as_ref();
@@ -64,13 +74,21 @@ impl<'a> GeneratedFile<'a> {
 
     /// Persist the generated file, clobbering the old version if it existed.
     pub fn clobber(mut self) -> io::Result<&'a Path> {
-        if self.find_difference()?.is_none() {
-            self.context.progress.lock().unwrap().update(format!("unchanged: {}...", self.path.display()).as_str());
-            return Ok(self.path);
+        let difference = self.find_difference()?;
+        let Self { context, path, original, rewrite } = self;
+        match difference {
+            None => {
+                context.progress.lock().unwrap().update(format!("unchanged: {}...", path.display()).as_str());
+                return Ok(path);
+            }
+            Some(Difference { line_no: 0, .. }) => {
+                context.progress.lock().unwrap().update(format!("NEW: {}", path.display()).as_str());
+            },
+            Some(_difference) => {
+                context.progress.lock().unwrap().update(format!("MODIFIED: {}", path.display()).as_str());
+            },
         }
 
-        let Self { context, path, rewrite, original } = self;
-        context.progress.lock().unwrap().update(format!("MODIFIED: {}", path.display()).as_str());
         std::mem::drop(original);
         rewrite.persist(path)?;
         Ok(path)
@@ -78,7 +96,7 @@ impl<'a> GeneratedFile<'a> {
 
     /// **WARNING**: leaves self in an inconsistent state on Err.
     pub fn find_difference(&mut self) -> io::Result<Option<Difference>> {
-        let original = if let Some(f) = self.original.as_mut() { f } else { return Ok(None); }; // If there was no original file, there are no differences.
+        let original = if let Some(f) = self.original.as_mut() { f } else { return Ok(Some(Difference::original_missing())); }; // If there was no original file, there are no differences.
         let mut rewrite = BufReader::new(&mut self.rewrite);
 
         original.seek(SeekFrom::Start(0))?;

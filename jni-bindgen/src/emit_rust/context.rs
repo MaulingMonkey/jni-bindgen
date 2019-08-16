@@ -37,11 +37,15 @@ impl<'a> Context<'a> {
 
         if self.config.codegen.feature_per_struct {
             if let Ok(feature) = Struct::feature_for(self, s.java.path.as_id()) {
+                let mut subfeature = None;
                 if let Some(parent) = s.java.super_path.as_ref() {
-                    if let Ok(subfeature) = Struct::feature_for(self, parent.as_id()) {
-                        let subfeatures = self.features.entry(feature).or_insert(BTreeSet::new());
-                        subfeatures.insert(subfeature);
+                    if let Ok(sf) = Struct::feature_for(self, parent.as_id()) {
+                        subfeature = Some(sf);
                     }
+                }
+                let subfeatures = self.features.entry(feature).or_insert(BTreeSet::new());
+                if let Some(subfeature) = subfeature {
+                    subfeatures.insert(subfeature);
                 }
             }
         }

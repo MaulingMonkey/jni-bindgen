@@ -1,4 +1,4 @@
-use bugsalot::debugger::break_if_attached;
+use bugsalot::debugger;
 
 use clap::load_yaml;
 
@@ -38,21 +38,21 @@ fn main() {
         "generate" => {
             let mut config_file = load_config_file(directory, api_levels.clone());
             config_file.file.output.path = PathBuf::from(format!("src/generated/api-level-{}.rs", max_api_level));
-            jni_bindgen::run(config_file).unwrap();
+            let result = jni_bindgen::run(config_file).unwrap();
 
-            if let Err(e) = generate_toml(directory, api_levels.clone()) {
+            if let Err(e) = generate_toml(directory, api_levels.clone(), &result) {
                 eprintln!("ERROR:  Failed to regenerate Cargo.toml:\n    {:?}", e);
                 exit(1);
             }
         },
         "verify" => {
             eprintln!("verify not yet implemented");
-            break_if_attached();
+            debugger::break_if_attached();
             exit(1);
         },
         unknown => {
             eprintln!("Unexpected subcommand: {}", unknown);
-            break_if_attached();
+            debugger::break_if_attached();
             exit(1);
         },
     }
@@ -81,7 +81,7 @@ fn load_config_file(directory: &Path, api_levels: RangeInclusive<i32>) -> FileWi
     config_file
 }
 
-fn generate_toml(directory: &Path, api_levels: RangeInclusive<i32>) -> io::Result<()> {
+fn generate_toml(directory: &Path, api_levels: RangeInclusive<i32>, result: &jni_bindgen::RunResult) -> io::Result<()> {
     // XXX: Check that Cargo.toml is marked as generated
 
     let template    = BufReader::new(File::open(directory.join("Cargo.toml.template"))?);
@@ -106,8 +106,24 @@ fn generate_toml(directory: &Path, api_levels: RangeInclusive<i32>) -> io::Resul
                 writeln!(out, "{}:END", line)?;
             },
             "# PLACEHOLDER:FEATURES:sharded-api" => {
-                writeln!(out, "{}", line)?;
+                writeln!(out, "{}:BEGIN", line)?;
+                for (feature, dependencies) in result.features.iter() {
+                    write!(out, "{:?} = [", feature)?;
+                    for (idx, dependency) in dependencies.iter().enumerate() {
+                        if idx != 0 {
+                            write!(out, ", ")?;
+                        }
+                        write!(out, "{:?}", dependency)?;
+                    }
+                    writeln!(out, "]")?;
+                }
+                writeln!(out, "{}:END", line)?;
             },
+            "# PLACEHOLDER:FEATURES:docs.rs" => {
+                writeln!(out, "{}:BEGIN", line)?;
+                writeln!(out, "features = [\"api-level-{}\", \"force-define\"]", api_levels.end())?;
+                writeln!(out, "{}:END", line)?;
+            }
             line => {
                 if line.starts_with("# PLACEHOLDER:") {
                     eprintln!("WARNING:  Unexpected Cargo.toml placeholder:\n    {}", line);
