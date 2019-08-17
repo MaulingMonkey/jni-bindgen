@@ -157,6 +157,9 @@ impl Struct {
             "()".to_owned() // This might only happen for java.lang.Object
         };
 
+        if let Ok(required_feature) = Struct::feature_for(context, self.java.path.as_id()) {
+            writeln!(out, "{}#[cfg(any(feature = \"all\", feature = {:?}))]", indent, required_feature)?;
+        }
         writeln!(out, "{}__jni_bindgen! {{", indent)?;
         if let Some(url) = KnownDocsUrl::from_class(context, self.java.path.as_id()) {
             writeln!(out, "{}    /// {} {} {}", indent, visibility, keyword, url)?;
@@ -166,7 +169,6 @@ impl Struct {
         if let Ok(required_feature) = Struct::feature_for(context, self.java.path.as_id()) {
             writeln!(out, "{}    ///", indent)?;
             writeln!(out, "{}    /// Required feature: {}", indent, required_feature)?;
-            writeln!(out, "{}    #[cfg(any(feature = \"all\", feature = {:?}))]", indent, required_feature)?;
         }
         write!(out, "{}    {}{} {} {} extends {}", indent, attributes, visibility, keyword, &self.rust.struct_name, super_path)?;
         let mut implements = false;
