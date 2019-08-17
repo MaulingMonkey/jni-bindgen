@@ -1,4 +1,5 @@
 use super::*;
+
 use std::marker::*;
 use std::ops::*;
 
@@ -71,12 +72,13 @@ pub trait PrimitiveArray<T> where Self : Sized + AsValidJObjectAndEnv, T : Clone
 }
 
 macro_rules! primitive_array {
-    (#[repr(transparent)] pub struct $name:ident = $type:ident { $new_array:ident $set_region:ident $get_region:ident } ) => {
+    (#[repr(transparent)] pub struct $name:ident = $type_str:expr, $type:ident { $new_array:ident $set_region:ident $get_region:ident } ) => {
         /// A [PrimitiveArray](trait.PrimitiveArray.html) implementation.
         #[repr(transparent)] pub struct $name(ObjectAndEnv);
 
         unsafe impl AsValidJObjectAndEnv for $name {}
         unsafe impl AsJValue for $name { fn as_jvalue(&self) -> jni_sys::jvalue { jni_sys::jvalue { l: self.0.object } } }
+        unsafe impl JniType for $name { fn static_with_jni_type<R>(callback: impl FnOnce(&str) -> R) -> R { callback($type_str) } }
 
         impl PrimitiveArray<$type> for $name {
             fn new<'env>(env: &'env Env, size: usize) -> Local<'env, Self> {
@@ -137,13 +139,102 @@ macro_rules! primitive_array {
     };
 }
 
-primitive_array! { #[repr(transparent)] pub struct BooleanArray = bool    { NewBooleanArray SetBooleanArrayRegion GetBooleanArrayRegion } }
-primitive_array! { #[repr(transparent)] pub struct ByteArray    = jbyte   { NewByteArray    SetByteArrayRegion    GetByteArrayRegion    } }
-primitive_array! { #[repr(transparent)] pub struct CharArray    = jchar   { NewCharArray    SetCharArrayRegion    GetCharArrayRegion    } }
-primitive_array! { #[repr(transparent)] pub struct ShortArray   = jshort  { NewShortArray   SetShortArrayRegion   GetShortArrayRegion   } }
-primitive_array! { #[repr(transparent)] pub struct IntArray     = jint    { NewIntArray     SetIntArrayRegion     GetIntArrayRegion     } }
-primitive_array! { #[repr(transparent)] pub struct LongArray    = jlong   { NewLongArray    SetLongArrayRegion    GetLongArrayRegion    } }
-primitive_array! { #[repr(transparent)] pub struct FloatArray   = jfloat  { NewFloatArray   SetFloatArrayRegion   GetFloatArrayRegion   } }
-primitive_array! { #[repr(transparent)] pub struct DoubleArray  = jdouble { NewDoubleArray  SetDoubleArrayRegion  GetDoubleArrayRegion  } }
+primitive_array! { #[repr(transparent)] pub struct BooleanArray = "[Z\0", bool    { NewBooleanArray SetBooleanArrayRegion GetBooleanArrayRegion } }
+primitive_array! { #[repr(transparent)] pub struct ByteArray    = "[B\0", jbyte   { NewByteArray    SetByteArrayRegion    GetByteArrayRegion    } }
+primitive_array! { #[repr(transparent)] pub struct CharArray    = "[C\0", jchar   { NewCharArray    SetCharArrayRegion    GetCharArrayRegion    } }
+primitive_array! { #[repr(transparent)] pub struct ShortArray   = "[S\0", jshort  { NewShortArray   SetShortArrayRegion   GetShortArrayRegion   } }
+primitive_array! { #[repr(transparent)] pub struct IntArray     = "[I\0", jint    { NewIntArray     SetIntArrayRegion     GetIntArrayRegion     } }
+primitive_array! { #[repr(transparent)] pub struct LongArray    = "[J\0", jlong   { NewLongArray    SetLongArrayRegion    GetLongArrayRegion    } }
+primitive_array! { #[repr(transparent)] pub struct FloatArray   = "[F\0", jfloat  { NewFloatArray   SetFloatArrayRegion   GetFloatArrayRegion   } }
+primitive_array! { #[repr(transparent)] pub struct DoubleArray  = "[D\0", jdouble { NewDoubleArray  SetDoubleArrayRegion  GetDoubleArrayRegion  } }
 
-// TODO: ObjectArray - this is *not* a primitive array.
+#[repr(transparent)]
+pub struct ObjectArray<T: AsValidJObjectAndEnv>(ObjectAndEnv, PhantomData<T>);
+
+unsafe impl<T: AsValidJObjectAndEnv> AsValidJObjectAndEnv for ObjectArray<T> {}
+
+unsafe impl<T: AsValidJObjectAndEnv> JniType for ObjectArray<T> {
+    fn static_with_jni_type<R>(callback: impl FnOnce(&str) -> R) -> R {
+        T::static_with_jni_type(|inner| callback(format!("[{}", inner).as_str()))
+    }
+}
+
+unsafe impl<T: AsValidJObjectAndEnv> AsJValue for ObjectArray<T> {
+    fn as_jvalue(&self) -> jni_sys::jvalue {
+        jni_sys::jvalue { l: self.0.object }
+    }
+}
+
+impl<T: AsValidJObjectAndEnv> ObjectArray<T> {
+    pub fn new<'env>(env: &'env Env, size: usize) -> Local<'env, Self> {
+        assert!(size <= std::i32::MAX as usize); // jsize == jint == i32
+        let class = Self::static_with_jni_type(|t| unsafe { env.require_class(t) });
+        let size = size as jsize;
+        let env = env.as_jni_env();
+        unsafe {
+            let fill = null_mut();
+            let object = (**env).NewObjectArray.unwrap()(env, size, class, fill);
+            let exception = (**env).ExceptionOccurred.unwrap()(env);
+            assert!(exception.is_null()); // Only sane exception here is an OOM exception
+            Local::from_env_object(env, object)
+        }
+    }
+
+    pub fn from<'env>(env: &'env Env, elements: impl 'env + ExactSizeIterator + Iterator<Item = impl Into<Option<&'env T>>>) -> Local<'env, Self> {
+        let size    = elements.len();
+        let array   = Self::new(env, size);
+        let env     = array.0.env as *mut JNIEnv;
+        let this    = array.0.object;
+        let set     = unsafe { (**env) }.SetObjectArrayElement.unwrap();
+
+        for (index, element) in elements.enumerate() {
+            assert!(index < size); // Should only be violated by an invalid ExactSizeIterator implementation.
+            let value = element.into().map(|v| unsafe { AsJValue::as_jvalue(v.into()).l }).unwrap_or(null_mut());
+            unsafe { set(env, this, index as jsize, value) };
+        }
+        array
+    }
+
+    pub fn len(&self) -> usize {
+        unsafe { (**self.0.env).GetArrayLength.unwrap()(self.0.env as *mut _, self.0.object) as usize }
+    }
+
+    /// XXX: Expose this via std::ops::Index
+    pub fn get<'env>(&'env self, index: usize) -> Result<Option<Local<'env, T>>> {
+        assert!(index <= std::i32::MAX as usize); // jsize == jint == i32 XXX: Should maybe be treated as an exception?
+        let index   = index as jsize;
+        let env     = self.0.env as *mut JNIEnv;
+        let this    = self.0.object;
+        unsafe {
+            let result = (**env).GetObjectArrayElement.unwrap()(env, this, index);
+            let exception = (**env).ExceptionOccurred.unwrap()(env);
+            if !exception.is_null() {
+                (**env).ExceptionClear.unwrap()(env);
+                Err(exception)
+            } else if result.is_null() {
+                Ok(None)
+            } else {
+                Ok(Some(Local::from_env_object(env, result)))
+            }
+        }
+    }
+
+    /// XXX: I don't think there's a way to expose this via std::ops::IndexMut sadly?
+    pub fn set<'a>(&'a self, index: usize, value: impl Into<Option<&'a T>>) -> Result<()> {
+        assert!(index <= std::i32::MAX as usize); // jsize == jint == i32 XXX: Should maybe be treated as an exception?
+        let value   = value.into().map(|v| unsafe { AsJValue::as_jvalue(v.into()).l }).unwrap_or(null_mut());
+        let index   = index as jsize;
+        let env     = self.0.env as *mut JNIEnv;
+        let this    = self.0.object;
+        unsafe {
+            (**env).SetObjectArrayElement.unwrap()(env, this, index, value);
+            let exception = (**env).ExceptionOccurred.unwrap()(env);
+            if !exception.is_null() {
+                (**env).ExceptionClear.unwrap()(env);
+                Err(exception)
+            } else {
+                Ok(())
+            }
+        }
+    }
+}

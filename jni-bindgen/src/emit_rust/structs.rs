@@ -170,7 +170,7 @@ impl Struct {
             writeln!(out, "{}    ///", indent)?;
             writeln!(out, "{}    /// Required feature: {}", indent, required_feature)?;
         }
-        write!(out, "{}    {}{} {} {} extends {}", indent, attributes, visibility, keyword, &self.rust.struct_name, super_path)?;
+        write!(out, "{}    {}{} {} {} ({:?}) extends {}", indent, attributes, visibility, keyword, &self.rust.struct_name, self.java.path.as_str(), super_path)?;
         let mut implements = false;
         for interface in &self.java.interfaces {
             write!(out, ", ")?;
