@@ -1,5 +1,8 @@
 use super::*;
 
+/// Represents a Java "UTF16" code unit.  This is not guaranteed to actually be a valid code unit, and should be treated
+/// much like wchar_t is treated by Rust - encoded possibly as WTF8 rather than UTF8, laden with error checking when
+/// converting to Rust character/string types, etc.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[allow(non_camel_case_types)]
 #[repr(transparent)] pub struct jchar(pub jni_sys::jchar);
