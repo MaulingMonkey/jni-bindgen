@@ -43,6 +43,18 @@ class = "java/io/DataOutput"
 method = "write"
 signature = "(I)V"
 
+# https://developer.android.com/reference/java/util/Collections
+# emptyList/emptyMap/emptySet already exists, do the same thing, and are potentially better typed.
+[[ignore]]
+class = "java/util/Collections"
+field = "EMPTY_LIST"
+[[ignore]]
+class = "java/util/Collections"
+field = "EMPTY_MAP"
+[[ignore]]
+class = "java/util/Collections"
+field = "EMPTY_SET"
+
 
 
 # https://developer.android.com/reference/java/lang/Long

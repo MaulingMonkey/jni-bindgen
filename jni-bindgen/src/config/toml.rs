@@ -181,6 +181,7 @@ pub struct Logging {
 #[derive(Debug, Clone, Deserialize, Default)]
 pub struct Ignore {
     pub class:     String,
+    pub field:     Option<String>,
     pub method:    Option<String>,
     pub signature: Option<String>,
 }
@@ -190,6 +191,7 @@ pub struct Ignore {
 pub struct Rename {
     pub to:         String,
     pub class:      String,
+    pub field:      Option<String>,
     pub method:     Option<String>,
     pub signature:  Option<String>,
 }

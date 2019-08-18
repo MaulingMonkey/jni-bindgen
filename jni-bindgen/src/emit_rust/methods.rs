@@ -45,17 +45,14 @@ impl<'a> Method<'a> {
         let mut emit_reject_reasons = Vec::new();
         let mut required_features = BTreeSet::new();
 
-        let java_class              = format!("{}", self.class.path.as_str());
         let java_class_method       = format!("{}\x1f{}", self.class.path.as_str(), &self.java.name);
         let java_class_method_sig   = format!("{}\x1f{}\x1f{}", self.class.path.as_str(), &self.java.name, self.java.descriptor_str());
 
         let ignored =
-            context.config.ignore_classes          .contains(&java_class) ||
             context.config.ignore_class_methods    .contains(&java_class_method) ||
             context.config.ignore_class_method_sigs.contains(&java_class_method_sig);
 
-        let renamed_to = context.config.rename_classes          .get(&java_class)
-            .or_else(||  context.config.rename_class_methods    .get(&java_class_method))
+        let renamed_to = context.config.rename_class_methods    .get(&java_class_method)
             .or_else(||  context.config.rename_class_method_sigs.get(&java_class_method_sig));
 
         let descriptor = self.java.descriptor();
@@ -73,7 +70,7 @@ impl<'a> Method<'a> {
         if self.java.is_varargs()       { emit_reject_reasons.push("Marked as varargs - haven't decided on how I want to handle this."); }
         if self.java.is_bridge()        { emit_reject_reasons.push("Bridge method - type erasure"); }
         if self.java.is_static_init()   { emit_reject_reasons.push("Static class constructor - never needs to be called by Rust."); }
-        if ignored      { emit_reject_reasons.push("[[ignore]]d"); }
+        if ignored                      { emit_reject_reasons.push("[[ignore]]d"); }
 
         // Parameter names may or may not be available as extra debug information.  Example:
         // https://docs.oracle.com/javase/tutorial/reflect/member/methodparameterreflection.html
