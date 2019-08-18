@@ -459,7 +459,7 @@ impl Env {
         result
     }
 
-    pub unsafe fn set_object_field<'a, T: 'a + AsValidJObjectAndEnv>(&'a self, this: jobject, field: jfieldID, value: impl Into<Option<&'a T>>) {
+    pub unsafe fn set_object_field<'env, 'obj, T: 'obj + AsValidJObjectAndEnv>(&'env self, this: jobject, field: jfieldID, value: impl Into<Option<&'obj T>>) {
         let value = value.into().map(|v| AsJValue::as_jvalue(v.into()).l).unwrap_or(null_mut());
         let env = &self.0 as *const JNIEnv as *mut JNIEnv;
         (**env).SetObjectField.unwrap()(env, this, field, value);
@@ -565,7 +565,7 @@ impl Env {
         result
     }
 
-    pub unsafe fn set_static_object_field<'a, T: 'a + AsValidJObjectAndEnv>(&'a self, class: jclass, field: jfieldID, value: impl Into<Option<&'a T>>) {
+    pub unsafe fn set_static_object_field<'env, 'obj, T: 'obj + AsValidJObjectAndEnv>(&'env self, class: jclass, field: jfieldID, value: impl Into<Option<&'obj T>>) {
         let value = value.into().map(|v| AsJValue::as_jvalue(v.into()).l).unwrap_or(null_mut());
         let env = &self.0 as *const JNIEnv as *mut JNIEnv;
         (**env).SetStaticObjectField.unwrap()(env, class, field, value);
