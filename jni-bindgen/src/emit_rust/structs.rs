@@ -97,6 +97,18 @@ impl Struct {
         Ok(buf)
     }
 
+    pub(crate) fn fqn_for(_context: &Context, class: class::Id) -> Result<String, Box<dyn Error>> {
+        let mut buf = String::from("crate::");
+        for component in class.iter() {
+            match component {
+                class::IdPart::Namespace(id)        => write!(&mut buf, "{}::", rust_id(id)?)?,
+                class::IdPart::ContainingClass(id)  => write!(&mut buf, "{}_",  rust_id(id)?)?,
+                class::IdPart::LeafClass(id)        => write!(&mut buf, "{}",   rust_id(id)?)?,
+            }
+        }
+        Ok(buf)
+    }
+
     pub(crate) fn sharded_path_for(context: &Context, class: class::Id) -> Result<PathBuf, Box<dyn Error>> {
         let mut buf = String::new();
 

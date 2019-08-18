@@ -29,19 +29,21 @@ impl<'a> Field<'a> {
         let mut required_feature = None;
 
         let descriptor = self.java.descriptor();
-        let rust_type = match descriptor {
-            field::Descriptor::Single(field::BasicType::Boolean) => "bool",
-            field::Descriptor::Single(field::BasicType::Byte)    => "i8",
-            field::Descriptor::Single(field::BasicType::Char)    => "__jni_bindgen::jchar",
-            field::Descriptor::Single(field::BasicType::Double)  => "f64",
-            field::Descriptor::Single(field::BasicType::Float)   => "f32",
-            field::Descriptor::Single(field::BasicType::Int)     => "i32",
-            field::Descriptor::Single(field::BasicType::Long)    => "i64",
-            field::Descriptor::Single(field::BasicType::Short)   => "i16",
-            field::Descriptor::Single(field::BasicType::Class(class::Id("java/lang/String"))) if self.java.is_constant() => "&'static str",
+        let rust_set_type_buffer;
+        let rust_get_type_buffer;
+        let (rust_set_type, rust_get_type) = match descriptor {
+            field::Descriptor::Single(field::BasicType::Boolean) => ("bool", "bool"),
+            field::Descriptor::Single(field::BasicType::Byte)    => ("i8", "i8"),
+            field::Descriptor::Single(field::BasicType::Char)    => ("__jni_bindgen::jchar", "__jni_bindgen::jchar"),
+            field::Descriptor::Single(field::BasicType::Double)  => ("f64", "f64"),
+            field::Descriptor::Single(field::BasicType::Float)   => ("f32", "f32"),
+            field::Descriptor::Single(field::BasicType::Int)     => ("i32", "i32"),
+            field::Descriptor::Single(field::BasicType::Long)    => ("i64", "i64"),
+            field::Descriptor::Single(field::BasicType::Short)   => ("i16", "i16"),
+            field::Descriptor::Single(field::BasicType::Class(class::Id("java/lang/String"))) if self.java.is_constant() => ("&'static str", "&'static str"),
             field::Descriptor::Single(field::BasicType::Void) => {
                 emit_reject_reasons.push("void is not a valid field type");
-                "()"
+                ("()", "()")
             },
             field::Descriptor::Single(field::BasicType::Class(class)) => {
                 if let Ok(feature) = Struct::feature_for(context, class) {
@@ -49,12 +51,19 @@ impl<'a> Field<'a> {
                 } else {
                     emit_reject_reasons.push("Unable to resolve class feature");
                 }
-                emit_reject_reasons.push("Haven't yet implemented object field types");
-                class.as_str()
+
+                if let Ok(fqn) = Struct::fqn_for(context, class) {
+                    rust_set_type_buffer = format!("impl __jni_bindgen::std::convert::Into<__jni_bindgen::std::option::Option<&'obj {}>>", &fqn);
+                    rust_get_type_buffer = format!("__jni_bindgen::std::option::Option<__jni_bindgen::Local<'env, {}>>", &fqn);
+                    (rust_set_type_buffer.as_str(), rust_get_type_buffer.as_str())
+                } else {
+                    emit_reject_reasons.push("Unable to resolve class FQN");
+                    ("???", "???")
+                }
             },
             field::Descriptor::Array { .. } => {
                 emit_reject_reasons.push("Haven't yet implemented array field types");
-                "???"
+                ("???", "???")
             },
         };
 
@@ -116,12 +125,13 @@ impl<'a> Field<'a> {
                     writeln!(out, "{}#[cfg(any(feature = \"all\", feature = {:?}))]", indent, required_feature)?;
                 }
                 match descriptor {
-                    field::Descriptor::Single(field::BasicType::Char)       => writeln!(out, "{}{}pub const {} : {} = {}({});", indent, &attributes, constant, rust_type, rust_type, value)?,
-                    field::Descriptor::Single(field::BasicType::Boolean)    => writeln!(out, "{}{}pub const {} : {} = {};", indent, &attributes, constant, rust_type, if value == &field::Constant::Integer(0) { "false" } else { "true" })?,
-                    _                                                       => writeln!(out, "{}{}pub const {} : {} = {};", indent, &attributes, constant, rust_type, value)?,
+                    field::Descriptor::Single(field::BasicType::Char)       => writeln!(out, "{}{}pub const {} : {} = {}({});", indent, &attributes, constant, rust_get_type, rust_get_type, value)?,
+                    field::Descriptor::Single(field::BasicType::Boolean)    => writeln!(out, "{}{}pub const {} : {} = {};", indent, &attributes, constant, rust_get_type, if value == &field::Constant::Integer(0) { "false" } else { "true" })?,
+                    _                                                       => writeln!(out, "{}{}pub const {} : {} = {};", indent, &attributes, constant, rust_get_type, value)?,
                 }
             },
             Ok(FieldMangling::GetSet(get, set)) => {
+                // Getter
                 if let Some(url) = url {
                     writeln!(out, "{}/// **get** {} {}", indent, &keywords, url)?;
                 } else {
@@ -132,7 +142,7 @@ impl<'a> Field<'a> {
                     writeln!(out, "{}/// Required feature: {}", indent, required_feature)?;
                     writeln!(out, "{}#[cfg(any(feature = \"all\", feature = {:?}))]", indent, required_feature)?;
                 }
-                writeln!(out, "{}{}pub fn {}<'env>({}) -> {} {{", indent, &attributes, get, env_param, rust_type)?;
+                writeln!(out, "{}{}pub fn {}<'env>({}) -> {} {{", indent, &attributes, get, env_param, rust_get_type)?;
                 writeln!(out, "{}    unsafe {{", indent)?;
                 if !self.java.is_static() {
                     writeln!(out, "{}        let env = __jni_bindgen::Env::from_ptr(self.0.env);", indent)?;
@@ -142,7 +152,10 @@ impl<'a> Field<'a> {
                 writeln!(out, "{}    }}", indent)?;
                 writeln!(out, "{}}}", indent)?;
 
+                // Setter
                 if !self.java.is_final() {
+                    let lifetimes = if field_fragment == "object" { "'env, 'obj" } else { "'env" };
+
                     writeln!(out, "")?;
                     if let Some(url) = url {
                         writeln!(out, "{}/// **set** {} {}", indent, &keywords, url)?;
@@ -154,7 +167,7 @@ impl<'a> Field<'a> {
                         writeln!(out, "{}/// Required feature: {}", indent, required_feature)?;
                         writeln!(out, "{}#[cfg(any(feature = \"all\", feature = {:?}))]", indent, required_feature)?;
                     }
-                    writeln!(out, "{}{}pub fn {}<'env>({}, value: {}) {{", indent, &attributes, set, env_param, rust_type)?;
+                    writeln!(out, "{}{}pub fn {}<{}>({}, value: {}) {{", indent, &attributes, set, lifetimes, env_param, rust_set_type)?;
                     writeln!(out, "{}    unsafe {{", indent)?;
                     if !self.java.is_static() {
                         writeln!(out, "{}        let env = __jni_bindgen::Env::from_ptr(self.0.env);", indent)?;
@@ -166,9 +179,9 @@ impl<'a> Field<'a> {
                 }
             },
             Err(_) => {
-                writeln!(out, "{}{}pub fn get_{:?}<'env>({}) -> {} {{ ... }}", indent, &attributes, self.java.name.as_str(), env_param, rust_type)?;
+                writeln!(out, "{}{}pub fn get_{:?}<'env>({}) -> {} {{ ... }}", indent, &attributes, self.java.name.as_str(), env_param, rust_get_type)?;
                 if !self.java.is_final() {
-                    writeln!(out, "{}{}pub fn set_{:?}<'env>({}) -> {} {{ ... }}", indent, &attributes, self.java.name.as_str(), env_param, rust_type)?;
+                    writeln!(out, "{}{}pub fn set_{:?}<'env>({}) -> {} {{ ... }}", indent, &attributes, self.java.name.as_str(), env_param, rust_set_type)?;
                 }
             },
         }
