@@ -32,11 +32,12 @@ hand-written bindings is an exercise in boredom, soundness bugs, and pain.
 | [jni-bindgen](https://github.com/MaulingMonkey/jni-bindgen/tree/master/jni-bindgen)                   | [![Crates.io](https://img.shields.io/crates/v/jni-bindgen.svg)](https://crates.io/crates/jni-bindgen)         | [![Docs](https://docs.rs/jni-bindgen/badge.svg)](https://docs.rs/jni-bindgen/)            | Generator of Java API bindings
 | [jni-glue](https://github.com/MaulingMonkey/jni-bindgen/tree/master/jni-glue)                         | [![Crates.io](https://img.shields.io/crates/v/jni-glue.svg)](https://crates.io/crates/jni-glue)               | [![Docs](https://docs.rs/jni-glue/badge.svg)](https://docs.rs/jni-glue/)                  | Utility functions for Java API bindings
 
-## External Crates
+## External Crates / Plugins
 
-| [github.com](https://github.com)                                                              | [crates.io](https://crates.io)                                                                                | [docs.rs](https://docs.rs)                                                                | License |
-| --------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- | ------- |
-| [jni-sys](https://github.com/sfackler/rust-jni-sys)                                           | [![Crates.io](https://img.shields.io/crates/v/jni-sys.svg)](https://crates.io/crates/jni-sys)                 | [![Docs](https://docs.rs/jni-sys/badge.svg)](https://docs.rs/jni-sys/)                    | [![License](https://img.shields.io/crates/l/jni-sys.svg)](https://github.com/MaulingMonkey/jni-sys)
+| [github.com](https://github.com) | package | docs | License | Where |
+| -------------------------------- | ------- | ---- | ------- | ----- |
+| [jni-sys](https://github.com/sfackler/rust-jni-sys) | [![Crates.io](https://img.shields.io/crates/v/jni-sys.svg)](https://crates.io/crates/jni-sys) | [![Docs](https://docs.rs/jni-sys/badge.svg)](https://docs.rs/jni-sys/) | [![License](https://img.shields.io/crates/l/jni-sys.svg)](https://github.com/sfackler/rust-jni-sys/blob/master/README.md#license)
+| [rust-android-gradle](https://github.com/mozilla/rust-android-gradle) | [![gradle.org](https://img.shields.io/maven-metadata/v/https/plugins.gradle.org/m2/org/mozilla/rust-android-gradle/rust-android/org.mozilla.rust-android-gradle.rust-android.gradle.plugin/maven-metadata.xml.svg?label=gradle.org&colorB=brightgreen)](https://plugins.gradle.org/plugin/org.mozilla.rust-android-gradle.rust-android)   | [README.md](https://github.com/mozilla/rust-android-gradle/blob/master/README.md) | [![License](https://img.shields.io/github/license/mozilla/rust-android-gradle)](https://github.com/MaulingMonkey/rust-android-gradle/blob/master/LICENSE) | Examples
 
 ## License
 
