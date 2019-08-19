@@ -128,7 +128,11 @@ impl<'a> Field<'a> {
         };
 
         if self.rust_names.is_err() {
-            emit_reject_reasons.push("ERROR:  Failed to mangle field name(s)");
+            emit_reject_reasons.push(match self.java.name.as_str() {
+                "$VALUES"                   => "Failed to mangle field name: enum $VALUES", // Expected
+                s if s.starts_with("this$") => "Failed to mangle field name: this$N outer class pointer", // Expected
+                _                           => "ERROR:  Failed to mangle field name(s)",
+            });
         }
 
         let emit_reject_reasons = emit_reject_reasons; // Freeze
