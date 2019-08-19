@@ -62,7 +62,7 @@ impl<'a> Method<'a> {
         } else if let Some(name) = self.rust_name() {
             name.to_owned()
         } else {
-            emit_reject_reasons.push("Failed to mangle method name");
+            emit_reject_reasons.push("ERROR:  Failed to mangle method name");
             self.java.name.to_owned()
         };
 
@@ -82,11 +82,11 @@ impl<'a> Method<'a> {
             match context.config.codegen.static_env {
                 config::toml::StaticEnvStyle::Explicit => String::from("__jni_env: &'env __jni_bindgen::Env"),
                 config::toml::StaticEnvStyle::Implicit => {
-                    emit_reject_reasons.push("StaticEnvStyle::Implicit not yet implemented");
+                    emit_reject_reasons.push("ERROR:  StaticEnvStyle::Implicit not yet implemented");
                     String::new()
                 },
                 config::toml::StaticEnvStyle::__NonExhaustive => {
-                    emit_reject_reasons.push("StaticEnvStyle::__NonExhaustive is invalid, silly goose!");
+                    emit_reject_reasons.push("ERROR:  StaticEnvStyle::__NonExhaustive is invalid, silly goose!");
                     String::new()
                 },
             }
@@ -101,8 +101,8 @@ impl<'a> Method<'a> {
 
             let arg_type = match arg {
                 method::Type::Single(method::BasicType::Void) => {
-                    emit_reject_reasons.push("Void arguments aren't a thing");
-                    "???".to_owned()
+                    emit_reject_reasons.push("ERROR:  Void arguments aren't a thing");
+                    "()".to_owned()
                 },
                 method::Type::Single(method::BasicType::Boolean)     => "bool".to_owned(),
                 method::Type::Single(method::BasicType::Byte)        => "i8".to_owned(),
@@ -116,20 +116,20 @@ impl<'a> Method<'a> {
                     if let Ok(feature) = Struct::feature_for(context, class) {
                         required_features.insert(feature);
                     } else {
-                        emit_reject_reasons.push("Unable to resolve class feature");
+                        emit_reject_reasons.push("ERROR:  Unable to resolve class feature");
                     }
                     param_is_object = true;
                     match context.java_to_rust_path(class) {
                         Ok(path) => format!("impl __jni_bindgen::std::convert::Into<__jni_bindgen::std::option::Option<&'env {}>>", path),
                         Err(_) => {
-                            emit_reject_reasons.push("Failed to resolve JNI path to Rust path for argument type");
+                            emit_reject_reasons.push("ERROR:  Failed to resolve JNI path to Rust path for argument type");
                             format!("{:?}", class)
                         }
                     }
                 },
                 method::Type::Array { levels: 1, inner: method::BasicType::Void      } => {
                     emit_reject_reasons.push("Accepting arrays of void isn't a thing");
-                    "???".to_owned()
+                    "&[()]".to_owned()
                 }
                 method::Type::Array { levels: 1, inner: method::BasicType::Boolean   } => { param_is_object = true; "impl __jni_bindgen::std::convert::Into<__jni_bindgen::std::option::Option<&'env __jni_bindgen::BooleanArray>>".to_owned() },
                 method::Type::Array { levels: 1, inner: method::BasicType::Byte      } => { param_is_object = true; "impl __jni_bindgen::std::convert::Into<__jni_bindgen::std::option::Option<&'env __jni_bindgen::ByteArray   >>".to_owned() },
@@ -143,15 +143,15 @@ impl<'a> Method<'a> {
                     if let Ok(feature) = Struct::feature_for(context, class) {
                         required_features.insert(feature);
                     } else {
-                        emit_reject_reasons.push("Unable to resolve class feature");
+                        emit_reject_reasons.push("ERROR:  Unable to resolve class feature");
                     }
                     param_is_object = true;
-                    emit_reject_reasons.push("Passing in arrays of objects is not yet supported");
+                    emit_reject_reasons.push("ERROR:  Passing in arrays of objects is not yet supported");
                     format!("{:?}", arg)
                 },
                 method::Type::Array { .. } => {
                     param_is_object = true;
-                    emit_reject_reasons.push("Passing in arrays of arrays is not yet supported");
+                    emit_reject_reasons.push("ERROR:  Passing in arrays of arrays is not yet supported");
                     format!("{:?}", arg)
                 },
             };
@@ -189,18 +189,18 @@ impl<'a> Method<'a> {
                 if let Ok(feature) = Struct::feature_for(context, class) {
                     required_features.insert(feature);
                 } else {
-                    emit_reject_reasons.push("Unable to resolve class feature");
+                    emit_reject_reasons.push("ERROR:  Unable to resolve class feature");
                 }
                 match context.java_to_rust_path(class) {
                     Ok(path) => format!("__jni_bindgen::std::option::Option<__jni_bindgen::Local<'env, {}>>", path),
                     Err(_) => {
-                        emit_reject_reasons.push("Failed to resolve JNI path to Rust path for return type");
+                        emit_reject_reasons.push("ERROR:  Failed to resolve JNI path to Rust path for return type");
                         format!("{:?}", class)
                     },
                 }
             },
             method::Type::Array { levels: 1, inner: method::BasicType::Void      } => {
-                emit_reject_reasons.push("Returning arrays of void isn't a thing");
+                emit_reject_reasons.push("ERROR:  Returning arrays of void isn't a thing");
                 "???".to_owned()
             }
             method::Type::Array { levels: 1, inner: method::BasicType::Boolean   } => "__jni_bindgen::std::option::Option<__jni_bindgen::Local<'env, __jni_bindgen::BooleanArray>>".to_owned(),
@@ -215,13 +215,13 @@ impl<'a> Method<'a> {
                 if let Ok(feature) = Struct::feature_for(context, class) {
                     required_features.insert(feature);
                 } else {
-                    emit_reject_reasons.push("Unable to resolve class feature");
+                    emit_reject_reasons.push("ERROR:  Unable to resolve class feature");
                 }
-                emit_reject_reasons.push("Returning arrays of objects not yet supported");
+                emit_reject_reasons.push("ERROR:  Returning arrays of objects not yet supported");
                 format!("{:?}", descriptor.return_type())
             }
             method::Type::Array { .. } => {
-                emit_reject_reasons.push("Returning arrays of arrays not yet supported");
+                emit_reject_reasons.push("ERROR:  Returning arrays of arrays not yet supported");
                 format!("{:?}", descriptor.return_type())
             }
         };
@@ -246,12 +246,12 @@ impl<'a> Method<'a> {
                 ret_decl = match context.java_to_rust_path(self.class.path.as_id()) {
                     Ok(path) => format!("__jni_bindgen::Local<'env, {}>", path),
                     Err(_) => {
-                        emit_reject_reasons.push("Failed to resolve JNI path to Rust path for this type");
+                        emit_reject_reasons.push("ERROR:  Failed to resolve JNI path to Rust path for this type");
                         format!("{:?}", self.class.path.as_str())
                     },
                 };
             } else {
-                emit_reject_reasons.push("Constructor should've returned void");
+                emit_reject_reasons.push("ERROR:  Constructor should've returned void");
             }
         }
 

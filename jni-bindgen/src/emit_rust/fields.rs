@@ -49,14 +49,14 @@ impl<'a> Field<'a> {
             field::Descriptor::Single(field::BasicType::Short)   => ("i16", "i16"),
             field::Descriptor::Single(field::BasicType::Class(class::Id("java/lang/String"))) if self.java.is_constant() => ("&'static str", "&'static str"),
             field::Descriptor::Single(field::BasicType::Void) => {
-                emit_reject_reasons.push("void is not a valid field type");
+                emit_reject_reasons.push("ERROR:  void is not a valid field type");
                 ("()", "()")
             },
             field::Descriptor::Single(field::BasicType::Class(class)) => {
                 if let Ok(feature) = Struct::feature_for(context, class) {
                     required_feature = Some(feature);
                 } else {
-                    emit_reject_reasons.push("Unable to resolve class feature");
+                    emit_reject_reasons.push("ERROR:  Unable to resolve class feature");
                 }
 
                 if let Ok(fqn) = Struct::fqn_for(context, class) {
@@ -64,12 +64,12 @@ impl<'a> Field<'a> {
                     rust_get_type_buffer = format!("__jni_bindgen::std::option::Option<__jni_bindgen::Local<'env, {}>>", &fqn);
                     (rust_set_type_buffer.as_str(), rust_get_type_buffer.as_str())
                 } else {
-                    emit_reject_reasons.push("Unable to resolve class FQN");
+                    emit_reject_reasons.push("ERROR:  Unable to resolve class FQN");
                     ("???", "???")
                 }
             },
             field::Descriptor::Array { .. } => {
-                emit_reject_reasons.push("Haven't yet implemented array field types");
+                emit_reject_reasons.push("ERROR:  Haven't yet implemented array field types");
                 ("???", "???")
             },
         };
@@ -89,7 +89,7 @@ impl<'a> Field<'a> {
         };
 
         if self.rust_names.is_err() {
-            emit_reject_reasons.push("Failed to mangle field name(s)");
+            emit_reject_reasons.push("ERROR:  Failed to mangle field name(s)");
         }
 
         let emit_reject_reasons = emit_reject_reasons; // Freeze
