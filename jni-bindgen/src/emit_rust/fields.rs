@@ -68,9 +68,48 @@ impl<'a> Field<'a> {
                     ("???", "???")
                 }
             },
-            field::Descriptor::Array { .. } => {
-                emit_reject_reasons.push("ERROR:  Haven't yet implemented array field types");
-                ("???", "???")
+            field::Descriptor::Array { levels, inner } => {
+                let mut buffer = String::new();
+                for _ in 0..(levels-1) {
+                    buffer.push_str("__jni_bindgen::ObjectArray<");
+                }
+                match inner {
+                    field::BasicType::Boolean      => buffer.push_str("__jni_bindgen::BooleanArray"),
+                    field::BasicType::Byte         => buffer.push_str("__jni_bindgen::ByteArray"),
+                    field::BasicType::Char         => buffer.push_str("__jni_bindgen::CharArray"),
+                    field::BasicType::Short        => buffer.push_str("__jni_bindgen::ShortArray"),
+                    field::BasicType::Int          => buffer.push_str("__jni_bindgen::IntArray"),
+                    field::BasicType::Long         => buffer.push_str("__jni_bindgen::LongArray"),
+                    field::BasicType::Float        => buffer.push_str("__jni_bindgen::FloatArray"),
+                    field::BasicType::Double       => buffer.push_str("__jni_bindgen::DoubleArray"),
+                    field::BasicType::Class(class) => {
+                        if let Ok(feature) = Struct::feature_for(context, class) {
+                            required_feature = Some(feature);
+                        } else {
+                            emit_reject_reasons.push("ERROR:  Unable to resolve class feature");
+                        }
+                        buffer.push_str("__jni_bindgen::ObjectArray<");
+                        match context.java_to_rust_path(class) {
+                            Ok(path) => buffer.push_str(path.as_str()),
+                            Err(_) => {
+                                emit_reject_reasons.push("ERROR:  Failed to resolve JNI path to Rust path for argument type");
+                                buffer.push_str("???");
+                            }
+                        }
+                        buffer.push_str(">");
+                    },
+                    field::BasicType::Void => {
+                        emit_reject_reasons.push("ERROR:  Arrays of void isn't a thing");
+                        buffer.push_str("[()]");
+                    },
+                }
+                for _ in 0..(levels-1) {
+                    buffer.push_str(">"); // ObjectArray s
+                }
+
+                rust_set_type_buffer = format!("impl __jni_bindgen::std::convert::Into<__jni_bindgen::std::option::Option<&'obj {}>>", &buffer);
+                rust_get_type_buffer = format!("__jni_bindgen::std::option::Option<__jni_bindgen::Local<'env, {}>>", &buffer);
+                (rust_set_type_buffer.as_str(), rust_get_type_buffer.as_str())
             },
         };
 
