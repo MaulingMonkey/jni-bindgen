@@ -69,7 +69,7 @@ impl<'a> Method<'a> {
         if !self.java.is_public()       { emit_reject_reasons.push("Non-public method"); }
         if self.java.is_varargs()       { emit_reject_reasons.push("Marked as varargs - haven't decided on how I want to handle this."); }
         if self.java.is_bridge()        { emit_reject_reasons.push("Bridge method - type erasure"); }
-        if self.java.is_static_init()   { emit_reject_reasons.push("Static class constructor - never needs to be called by Rust."); }
+        if self.java.is_static_init()   { emit_reject_reasons.push("Static class constructor - never needs to be called by Rust."); return Ok(()); }
         if ignored                      { emit_reject_reasons.push("[[ignore]]d"); }
 
         // Parameter names may or may not be available as extra debug information.  Example:
