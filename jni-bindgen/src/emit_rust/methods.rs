@@ -219,27 +219,47 @@ impl<'a> Method<'a> {
                 emit_reject_reasons.push("ERROR:  Returning arrays of void isn't a thing");
                 "???".to_owned()
             }
-            method::Type::Array { levels: 1, inner: method::BasicType::Boolean   } => "__jni_bindgen::std::option::Option<__jni_bindgen::Local<'env, __jni_bindgen::BooleanArray>>".to_owned(),
-            method::Type::Array { levels: 1, inner: method::BasicType::Byte      } => "__jni_bindgen::std::option::Option<__jni_bindgen::Local<'env, __jni_bindgen::ByteArray   >>".to_owned(),
-            method::Type::Array { levels: 1, inner: method::BasicType::Char      } => "__jni_bindgen::std::option::Option<__jni_bindgen::Local<'env, __jni_bindgen::CharArray   >>".to_owned(),
-            method::Type::Array { levels: 1, inner: method::BasicType::Short     } => "__jni_bindgen::std::option::Option<__jni_bindgen::Local<'env, __jni_bindgen::ShortArray  >>".to_owned(),
-            method::Type::Array { levels: 1, inner: method::BasicType::Int       } => "__jni_bindgen::std::option::Option<__jni_bindgen::Local<'env, __jni_bindgen::IntArray    >>".to_owned(),
-            method::Type::Array { levels: 1, inner: method::BasicType::Long      } => "__jni_bindgen::std::option::Option<__jni_bindgen::Local<'env, __jni_bindgen::LongArray   >>".to_owned(),
-            method::Type::Array { levels: 1, inner: method::BasicType::Float     } => "__jni_bindgen::std::option::Option<__jni_bindgen::Local<'env, __jni_bindgen::FloatArray  >>".to_owned(),
-            method::Type::Array { levels: 1, inner: method::BasicType::Double    } => "__jni_bindgen::std::option::Option<__jni_bindgen::Local<'env, __jni_bindgen::DoubleArray >>".to_owned(),
-            method::Type::Array { levels: 1, inner: method::BasicType::Class(class) } => {
-                if let Ok(feature) = Struct::feature_for(context, class) {
-                    required_features.insert(feature);
-                } else {
-                    emit_reject_reasons.push("ERROR:  Unable to resolve class feature");
+            method::Type::Array { levels, inner } => {
+                let mut buffer = "__jni_bindgen::std::option::Option<__jni_bindgen::Local<'env, ".to_owned();
+                for _ in 0..(levels-1) {
+                    buffer.push_str("__jni_bindgen::ObjectArray<");
                 }
-                emit_reject_reasons.push("ERROR:  Returning arrays of objects not yet supported");
-                format!("{:?}", descriptor.return_type())
-            }
-            method::Type::Array { .. } => {
-                emit_reject_reasons.push("ERROR:  Returning arrays of arrays not yet supported");
-                format!("{:?}", descriptor.return_type())
-            }
+                match inner {
+                    method::BasicType::Boolean      => buffer.push_str("__jni_bindgen::BooleanArray"),
+                    method::BasicType::Byte         => buffer.push_str("__jni_bindgen::ByteArray"),
+                    method::BasicType::Char         => buffer.push_str("__jni_bindgen::CharArray"),
+                    method::BasicType::Short        => buffer.push_str("__jni_bindgen::ShortArray"),
+                    method::BasicType::Int          => buffer.push_str("__jni_bindgen::IntArray"),
+                    method::BasicType::Long         => buffer.push_str("__jni_bindgen::LongArray"),
+                    method::BasicType::Float        => buffer.push_str("__jni_bindgen::FloatArray"),
+                    method::BasicType::Double       => buffer.push_str("__jni_bindgen::DoubleArray"),
+                    method::BasicType::Class(class) => {
+                        if let Ok(feature) = Struct::feature_for(context, class) {
+                            required_features.insert(feature);
+                        } else {
+                            emit_reject_reasons.push("ERROR:  Unable to resolve class feature");
+                        }
+                        buffer.push_str("__jni_bindgen::ObjectArray<");
+                        match context.java_to_rust_path(class) {
+                            Ok(path) => buffer.push_str(path.as_str()),
+                            Err(_) => {
+                                emit_reject_reasons.push("ERROR:  Failed to resolve JNI path to Rust path for argument type");
+                                buffer.push_str("???");
+                            }
+                        }
+                        buffer.push_str(">");
+                    },
+                    method::BasicType::Void => {
+                        emit_reject_reasons.push("ERROR:  Arrays of void isn't a thing");
+                        buffer.push_str("[()]");
+                    },
+                }
+                for _ in 0..(levels-1) {
+                    buffer.push_str(">"); // ObjectArray s
+                }
+                buffer.push_str(">>"); // Local, Option
+                buffer
+            },
         };
 
         let mut ret_method_fragment = match descriptor.return_type() { // Contents of call_..._method_a
