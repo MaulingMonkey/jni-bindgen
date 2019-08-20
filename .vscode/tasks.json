@@ -45,6 +45,7 @@
         { "label": "Open travis",                               "windows": { "command": "start \"\" https://travis-ci.org/MaulingMonkey/jni-bindgen" } },
         { "label": "Open github",                               "windows": { "command": "start \"\" https://github.com/MaulingMonkey/jni-bindgen" } },
         { "label": "Open issues",                               "windows": { "command": "start \"\" https://github.com/MaulingMonkey/jni-bindgen/issues" } },
+        { "label": "Open generated code",                       "command": "code \"${workspaceFolder}/jni-android-sys/src/generated\"" },
 
         { "label": "Open crates.io (jni-android-sys)",          "windows": { "command": "start \"\" https://crates.io/crates/jni-android-sys" } },
         { "label": "Open crates.io (jni-bindgen)",              "windows": { "command": "start \"\" https://crates.io/crates/jni-bindgen" } },
