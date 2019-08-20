@@ -2,7 +2,7 @@
 class_url_pattern  = "https://developer.android.com/reference/{CLASS}.html"
 method_url_pattern = "https://developer.android.com/reference/{CLASS}.html#{METHOD}({ARGUMENTS})"
 field_url_pattern  = "https://developer.android.com/reference/{CLASS}.html#{FIELD}"
-method_argument_seperator = ",%2520"
+method_argument_seperator = ",%20"
 
 [input]
 files = ["%LOCALAPPDATA%/Android/Sdk/platforms/android-28/android.jar"] # NOTE: Overridden by build.rs
