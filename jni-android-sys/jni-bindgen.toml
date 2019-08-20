@@ -10,6 +10,16 @@ files = ["%LOCALAPPDATA%/Android/Sdk/platforms/android-28/android.jar"] # NOTE: 
 [output]
 path = "src/generated/api-level-28.rs" # NOTE:  Overridden by build.rs
 
+[codegen]
+method_naming_style             = "java"
+method_naming_style_collision   = "java_short_signature" # collisions in short signatures manually resolved bellow
+
+[codegen.field_naming_style]
+const_finals    = true
+rustify_names   = false
+getter_pattern  = "{NAME}"
+setter_pattern  = "set_{NAME}"
+
 [logging]
 # verbose = true
 
@@ -43,155 +53,175 @@ class = "java/io/DataOutput"
 method = "write"
 signature = "(I)V"
 
-# https://developer.android.com/reference/java/util/Collections
-# emptyList/emptyMap/emptySet already exists, do the same thing, and are potentially better typed.
-[[ignore]]
-class = "java/util/Collections"
-field = "EMPTY_LIST"
-[[ignore]]
-class = "java/util/Collections"
-field = "EMPTY_MAP"
-[[ignore]]
-class = "java/util/Collections"
-field = "EMPTY_SET"
+## Only necessary when rustified
+## https://developer.android.com/reference/java/util/Collections
+## emptyList/emptyMap/emptySet already exists, do the same thing, and are potentially better typed.
+#[[ignore]]
+#class = "java/util/Collections"
+#field = "EMPTY_LIST"
+#[[ignore]]
+#class = "java/util/Collections"
+#field = "EMPTY_MAP"
+#[[ignore]]
+#class = "java/util/Collections"
+#field = "EMPTY_SET"
 
 
 
 # https://developer.android.com/reference/java/lang/Long
-[[rename]]
-class       = "java/lang/Long"
-method      = "getLong"
-signature   = "(Ljava/lang/String;Ljava/lang/Long;)Ljava/lang/Long;"
-to          = "get_long_string_long_object"
+#[[rename]]
+#class      = "java/lang/Long"
+#method     = "getLong"
+#signature  = "(Ljava/lang/String;Ljava/lang/Long;)Ljava/lang/Long;"
+#to         = "get_long_string_long_object" # rustified
 
 
 
 # https://developer.android.com/reference/java/net/URLConnection
 [[rename]]
-class     = "java/net/URLConnection"
-method    = "getHeaderField"
-signature = "(I)Ljava/lang/String;"
-to        = "get_header_field_by_index"
+class       = "java/net/URLConnection"
+method      = "getHeaderField"
+signature   = "(I)Ljava/lang/String;"
+#to         = "get_header_field_by_index" # rustified
+to          = "getHeaderFieldByIndex"
 
 [[rename]]
-class     = "java/net/URLConnection"
-method    = "getHeaderField"
-signature = "(Ljava/lang/String;)Ljava/lang/String;"
-to        = "get_header_field_by_name"
+class       = "java/net/URLConnection"
+method      = "getHeaderField"
+signature   = "(Ljava/lang/String;)Ljava/lang/String;"
+#to         = "get_header_field_by_name" # rustified
+to          = "getHeaderFieldByName"
 
 
 
 # https://developer.android.com/reference/java/nio/ByteBuffer
 [[rename]]
-class     = "java/nio/ByteBuffer"
-method    = "get"
-signature = "(I)B"
-to        = "get_at"
+class       = "java/nio/ByteBuffer"
+method      = "get"
+signature   = "(I)B"
+#to         = "get_at" # rustified
+to          = "getAt"
 
 
 
 # There are two BigDecimal s:  One for java.math.BigDecimal (hereafter: java_big_decimal), one for android.icu.math.BigDecimal (hereafter: big_decimal).
 # https://developer.android.com/reference/android/icu/text/NumberFormat
 [[rename]]
-class     = "android/icu/text/NumberFormat"
-method    = "format"
-signature = "(Ljava/math/BigDecimal;)Ljava/lang/String;"
-to        = "format_java_big_decimal"
+class       = "android/icu/text/NumberFormat"
+method      = "format"
+signature   = "(Ljava/math/BigDecimal;)Ljava/lang/String;"
+#to         = "format_java_big_decimal" # rustified
+to          = "format_javaBigDecimal"
 
 [[rename]]
-class     = "android/icu/text/NumberFormat"
-method    = "format"
-signature = "(Landroid/icu/math/BigDecimal;)Ljava/lang/String;"
-to        = "format_big_decimal"
+class       = "android/icu/text/NumberFormat"
+method      = "format"
+signature   = "(Landroid/icu/math/BigDecimal;)Ljava/lang/String;"
+#to         = "format_big_decimal" # rustified
+to          = "format_BigDecimal"
 
 [[rename]]
-class     = "android/icu/text/NumberFormat"
-method    = "format"
-signature = "(Ljava/math/BigDecimal;Ljava/lang/StringBuffer;Ljava/text/FieldPosition;)Ljava/lang/StringBuffer;"
-to        = "format_java_big_decimal_string_buffer_field_position"
+class       = "android/icu/text/NumberFormat"
+method      = "format"
+signature   = "(Ljava/math/BigDecimal;Ljava/lang/StringBuffer;Ljava/text/FieldPosition;)Ljava/lang/StringBuffer;"
+#to         = "format_java_big_decimal_string_buffer_field_position" # rustified
+to          = "format_javaBigDecimal_StringBuffer_FieldPosition"
 
 [[rename]]
-class     = "android/icu/text/NumberFormat"
-method    = "format"
-signature = "(Landroid/icu/math/BigDecimal;Ljava/lang/StringBuffer;Ljava/text/FieldPosition;)Ljava/lang/StringBuffer;"
-to        = "format_big_decimal_string_buffer_field_position"
+class       = "android/icu/text/NumberFormat"
+method      = "format"
+signature   = "(Landroid/icu/math/BigDecimal;Ljava/lang/StringBuffer;Ljava/text/FieldPosition;)Ljava/lang/StringBuffer;"
+#to         = "format_big_decimal_string_buffer_field_position" # rustified
+to          = "format_BigDecimal_StringBuffer_FieldPosition"
 
 # https://developer.android.com/reference/android/icu/text/DecimalFormat
 [[rename]]
-class     = "android/icu/text/DecimalFormat"
-method    = "setRoundingIncrement"
-signature = "(Ljava/math/BigDecimal;)V"
-to        = "set_rounding_increment_java_big_decimal"
+class       = "android/icu/text/DecimalFormat"
+method      = "setRoundingIncrement"
+signature   = "(Ljava/math/BigDecimal;)V"
+#to         = "set_rounding_increment_java_big_decimal" # rustified
+to          = "setRoundingIncrement_javaBigDecimal"
 
 [[rename]]
-class     = "android/icu/text/DecimalFormat"
-method    = "setRoundingIncrement"
-signature = "(Landroid/icu/math/BigDecimal;)V"
-to        = "set_rounding_increment_big_decimal"
+class       = "android/icu/text/DecimalFormat"
+method      = "setRoundingIncrement"
+signature   = "(Landroid/icu/math/BigDecimal;)V"
+#to         = "set_rounding_increment_big_decimal" # rustified
+to          = "setRoundingIncrement_BigDecimal"
 
 [[rename]]
-class     = "android/icu/text/DecimalFormat"
-method    = "format"
-signature = "(Ljava/math/BigDecimal;Ljava/lang/StringBuffer;Ljava/text/FieldPosition;)Ljava/lang/StringBuffer;"
-to        = "format_java_big_decimal_string_buffer_field_position"
+class       = "android/icu/text/DecimalFormat"
+method      = "format"
+signature   = "(Ljava/math/BigDecimal;Ljava/lang/StringBuffer;Ljava/text/FieldPosition;)Ljava/lang/StringBuffer;"
+#to         = "format_java_big_decimal_string_buffer_field_position" # rustified
+to          = "format_javaBigDecimal_StringBuffer_FieldPosition"
 
 [[rename]]
-class     = "android/icu/text/DecimalFormat"
-method    = "format"
-signature = "(Landroid/icu/math/BigDecimal;Ljava/lang/StringBuffer;Ljava/text/FieldPosition;)Ljava/lang/StringBuffer;"
-to        = "format_big_decimal_string_buffer_field_position"
+class       = "android/icu/text/DecimalFormat"
+method      = "format"
+signature   = "(Landroid/icu/math/BigDecimal;Ljava/lang/StringBuffer;Ljava/text/FieldPosition;)Ljava/lang/StringBuffer;"
+#to          = "format_big_decimal_string_buffer_field_position"
+to          = "format_BigDecimal_StringBuffer_FieldPosition"
 
 
 
 # https://developer.android.com/reference/android/media/AudioTrack
 [[rename]]
-class     = "android/media/AudioTrack"
-method    = "addOnRoutingChangedListener"
-signature = "(Landroid/media/AudioRouting$OnRoutingChangedListener;Landroid/os/Handler;)V"
-to        = "add_on_routing_changed_audio_routing_listener"
+class       = "android/media/AudioTrack"
+method      = "addOnRoutingChangedListener"
+signature   = "(Landroid/media/AudioRouting$OnRoutingChangedListener;Landroid/os/Handler;)V"
+#to         = "add_on_routing_changed_audio_routing_listener"
+to          = "addOnRoutingChangedListener_AudioRouting_Handler"
 
 [[rename]]
-class     = "android/media/AudioTrack"
-method    = "addOnRoutingChangedListener"
-signature = "(Landroid/media/AudioTrack$OnRoutingChangedListener;Landroid/os/Handler;)V"
-to        = "add_on_routing_changed_audio_track_listener"
+class       = "android/media/AudioTrack"
+method      = "addOnRoutingChangedListener"
+signature   = "(Landroid/media/AudioTrack$OnRoutingChangedListener;Landroid/os/Handler;)V"
+#to         = "add_on_routing_changed_audio_track_listener"
+to          = "addOnRoutingChangedListener_AudioTrack_Handler"
 
 [[rename]]
-class     = "android/media/AudioTrack"
-method    = "removeOnRoutingChangedListener"
-signature = "(Landroid/media/AudioRouting$OnRoutingChangedListener;)V"
-to        = "remove_on_routing_changed_audio_routing_listener"
+class       = "android/media/AudioTrack"
+method      = "removeOnRoutingChangedListener"
+signature   = "(Landroid/media/AudioRouting$OnRoutingChangedListener;)V"
+#to         = "remove_on_routing_changed_audio_routing_listener" # rustified
+to          = "removeOnRoutingChangedListener_AudioRouting"
 
 [[rename]]
-class     = "android/media/AudioTrack"
-method    = "removeOnRoutingChangedListener"
-signature = "(Landroid/media/AudioTrack$OnRoutingChangedListener;)V"
-to        = "remove_on_routing_changed_audio_track_listener"
+class       = "android/media/AudioTrack"
+method      = "removeOnRoutingChangedListener"
+signature   = "(Landroid/media/AudioTrack$OnRoutingChangedListener;)V"
+#to         = "remove_on_routing_changed_audio_track_listener" # rustified
+to          = "removeOnRoutingChangedListener_AudioTrack"
 
 # https://developer.android.com/reference/android/media/AudioRecord
 [[rename]]
-class     = "android/media/AudioRecord"
-method    = "addOnRoutingChangedListener"
-signature = "(Landroid/media/AudioRouting$OnRoutingChangedListener;Landroid/os/Handler;)V"
-to        = "add_on_routing_changed_audio_routing_listener"
+class       = "android/media/AudioRecord"
+method      = "addOnRoutingChangedListener"
+signature   = "(Landroid/media/AudioRouting$OnRoutingChangedListener;Landroid/os/Handler;)V"
+#to         = "add_on_routing_changed_audio_routing_listener" # rustified
+to          = "addOnRoutingChangedListener_AudioRouting_Handler"
 
 [[rename]]
-class     = "android/media/AudioRecord"
-method    = "addOnRoutingChangedListener"
-signature = "(Landroid/media/AudioTrack$OnRoutingChangedListener;Landroid/os/Handler;)V"
-to        = "add_on_routing_changed_audio_track_listener"
+class       = "android/media/AudioRecord"
+method      = "addOnRoutingChangedListener"
+signature   = "(Landroid/media/AudioTrack$OnRoutingChangedListener;Landroid/os/Handler;)V"
+#to         = "add_on_routing_changed_audio_track_listener" # rustified
+to          = "addOnRoutingChangedListener_AudioTrack_Handler"
 
 [[rename]]
-class     = "android/media/AudioRecord"
-method    = "removeOnRoutingChangedListener"
-signature = "(Landroid/media/AudioRouting$OnRoutingChangedListener;)V"
-to        = "remove_on_routing_changed_audio_routing_listener"
+class       = "android/media/AudioRecord"
+method      = "removeOnRoutingChangedListener"
+signature   = "(Landroid/media/AudioRouting$OnRoutingChangedListener;)V"
+#to         = "remove_on_routing_changed_audio_routing_listener" # rustified
+to          = "removeOnRoutingChangedListener_AudioRouting"
 
 [[rename]]
-class     = "android/media/AudioRecord"
-method    = "removeOnRoutingChangedListener"
-signature = "(Landroid/media/AudioTrack$OnRoutingChangedListener;)V"
-to        = "remove_on_routing_changed_audio_track_listener"
+class       = "android/media/AudioRecord"
+method      = "removeOnRoutingChangedListener"
+signature   = "(Landroid/media/AudioTrack$OnRoutingChangedListener;)V"
+#to         = "remove_on_routing_changed_audio_track_listener" # rustified
+to          = "removeOnRoutingChangedListener_AudioTrack"
 
 
 
@@ -200,59 +230,68 @@ to        = "remove_on_routing_changed_audio_track_listener"
 class       = "android/app/ActionBar$LayoutParams"
 method      = "<init>"
 signature   = "(Landroid/view/ViewGroup$LayoutParams;)V"
-to          = "new_view_group_layout_params"
+#to         = "new_view_group_layout_params" # rustified
+to          = "new_ViewGroup_LayoutParams"
 
 # https://developer.android.com/reference/android/widget/Toolbar.LayoutParams
 [[rename]]
 class       = "android/widget/Toolbar$LayoutParams"
 method      = "<init>"
 signature   = "(Landroid/app/ActionBar$LayoutParams;)V"
-to          = "new_action_bar_layout_params"
+#to         = "new_action_bar_layout_params" # rustified
+to          = "new_ActionBar_LayoutParams"
 
 [[rename]]
 class       = "android/widget/Toolbar$LayoutParams"
 method      = "<init>"
 signature   = "(Landroid/view/ViewGroup$MarginLayoutParams;)V"
-to          = "new_view_group_margin_layout_params"
+#to         = "new_view_group_margin_layout_params" # rustified
+to          = "new_ViewGroup_MarginLayoutParams"
 
 [[rename]]
 class       = "android/widget/Toolbar$LayoutParams"
 method      = "<init>"
 signature   = "(Landroid/view/ViewGroup$LayoutParams;)V"
-to          = "new_view_group_layout_params"
+#to         = "new_view_group_layout_params" # rustified
+to          = "new_ViewGroup_LayoutParams"
 
 # https://developer.android.com/reference/android/widget/RelativeLayout.LayoutParams
 [[rename]]
 class       = "android/widget/RelativeLayout$LayoutParams"
 method      = "<init>"
 signature   = "(Landroid/view/ViewGroup$MarginLayoutParams;)V"
-to          = "new_view_group_margin_layout_params"
+#to         = "new_view_group_margin_layout_params" # rustified
+to          = "new_ViewGroup_MarginLayoutParams"
 
 [[rename]]
 class       = "android/widget/RelativeLayout$LayoutParams"
 method      = "<init>"
 signature   = "(Landroid/view/ViewGroup$LayoutParams;)V"
-to          = "new_view_group_layout_params"
+#to         = "new_view_group_layout_params" # rustified
+to          = "new_ViewGroup_LayoutParams"
 
 # https://developer.android.com/reference/android/widget/LinearLayout.LayoutParams
 [[rename]]
 class       = "android/widget/LinearLayout$LayoutParams"
 method      = "<init>"
 signature   = "(Landroid/view/ViewGroup$MarginLayoutParams;)V"
-to          = "new_view_group_margin_layout_params"
+#to         = "new_view_group_margin_layout_params" # rustified
+to          = "new_ViewGroup_MarginLayoutParams"
 
 [[rename]]
 class       = "android/widget/LinearLayout$LayoutParams"
 method      = "<init>"
 signature   = "(Landroid/view/ViewGroup$LayoutParams;)V"
-to          = "new_view_group_layout_params"
+#to         = "new_view_group_layout_params" # rustified
+to          = "new_ViewGroup_LayoutParams"
 
 # https://developer.android.com/reference/android/widget/GridLayout.LayoutParams
 [[rename]]
 class       = "android/widget/GridLayout$LayoutParams"
 method      = "<init>"
 signature   = "(Landroid/view/ViewGroup$MarginLayoutParams;)V"
-to          = "new_view_group_margin_layout_params"
+#to         = "new_view_group_margin_layout_params" # rustified
+to          = "new_ViewGroup_MarginLayoutParams"
 
 [[rename]]
 class       = "android/widget/GridLayout$LayoutParams"
@@ -265,23 +304,27 @@ to          = "new_view_group_layout_params"
 class       = "android/widget/FrameLayout$LayoutParams"
 method      = "<init>"
 signature   = "(Landroid/view/ViewGroup$MarginLayoutParams;)V"
-to          = "new_view_group_margin_layout_params"
+#to         = "new_view_group_margin_layout_params" # rustified
+to          = "new_ViewGroup_MarginLayoutParams"
 
 [[rename]]
 class       = "android/widget/FrameLayout$LayoutParams"
 method      = "<init>"
 signature   = "(Landroid/view/ViewGroup$LayoutParams;)V"
-to          = "new_view_group_layout_params"
+#to         = "new_view_group_layout_params" # rustified
+to          = "new_ViewGroup_LayoutParams"
 
 # https://developer.android.com/reference/android/widget/ActionMenuView.LayoutParams
-[[rename]] # XXX: Doesn't actually take a margin layout params, remove this if I start adding warnings for catching this stuff.
+[[rename]] # XXX: This method doesn't currently exist but for consistency/future-proofing, add it anyways.  Remove if I add warnings for unmatched renames...
 class       = "android/widget/ActionMenuView$LayoutParams"
 method      = "<init>"
 signature   = "(Landroid/view/ViewGroup$MarginLayoutParams;)V"
-to          = "new_view_group_margin_layout_params"
+#to         = "new_view_group_margin_layout_params" # rustified
+to          = "new_ViewGroup_MarginLayoutParams"
 
 [[rename]]
 class       = "android/widget/ActionMenuView$LayoutParams"
 method      = "<init>"
 signature   = "(Landroid/view/ViewGroup$LayoutParams;)V"
-to          = "new_view_group_layout_params"
+#to         = "new_view_group_layout_params"
+to          = "new_ViewGroup_LayoutParams"

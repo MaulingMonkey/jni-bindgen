@@ -18,9 +18,11 @@ impl Module {
         for (name, module) in self.modules.iter() {
             writeln!(out, "")?;
             if indent.is_empty() {
-                writeln!(out, "#[allow(non_camel_case_types)] // We map Java inner classes to Outer_Inner")?;
-                writeln!(out, "#[allow(dead_code)] // We generate structs for private Java types too, just in case.")?;
-                writeln!(out, "#[allow(deprecated)] // We're generating deprecated types/methods")?;
+                writeln!(out, "#[allow(non_camel_case_types)]   // We map Java inner classes to Outer_Inner")?;
+                writeln!(out, "#[allow(dead_code)]              // We generate structs for private Java types too, just in case.")?;
+                writeln!(out, "#[allow(deprecated)]             // We're generating deprecated types/methods")?;
+                writeln!(out, "#[allow(non_upper_case_globals)] // We might be generating Java style fields/methods")?;
+                writeln!(out, "#[allow(non_snake_case)]         // We might be generating Java style fields/methods")?;
             }
             writeln!(out, "{}pub mod {} {{", indent, name)?;
             writeln!(out, "{}    #[allow(unused_imports)] use super::__jni_bindgen;", indent)?;
@@ -32,7 +34,9 @@ impl Module {
             if indent.is_empty() {
                 if structure.rust.struct_name.contains("_") { writeln!(out, "#[allow(non_camel_case_types)] // We map Java inner classes to Outer_Inner")?; }
                 if !structure.java.is_public() { writeln!(out, "#[allow(dead_code)] // We generate structs for private Java types too, just in case.")?; }
-                writeln!(out, "#[allow(deprecated)] // We're generating deprecated types/methods")?;
+                writeln!(out, "#[allow(deprecated)]             // We're generating deprecated types/methods")?;
+                writeln!(out, "#[allow(non_upper_case_globals)] // We might be generating Java style fields/methods")?;
+                writeln!(out, "#[allow(non_snake_case)]         // We might be generating Java style fields/methods")?;
             }
 
             if context.config.codegen.shard_structs {
