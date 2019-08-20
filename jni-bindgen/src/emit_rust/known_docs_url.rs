@@ -47,13 +47,13 @@ impl KnownDocsUrl {
         })
     }
 
-    pub(crate) fn from_method(context: &Context, java_class: &str, java_method: &str, java_descriptor: method::Descriptor) -> Option<KnownDocsUrl> {
+    pub(crate) fn from_method(context: &Context, method: &Method) -> Option<KnownDocsUrl> {
         use method::*;
 
-        let pattern = context.config.doc_patterns.iter().find(|pattern| java_class.starts_with(pattern.jni_prefix.as_str()))?;
+        let pattern = context.config.doc_patterns.iter().find(|pattern| method.class.path.as_str().starts_with(pattern.jni_prefix.as_str()))?;
         let method_url_pattern = pattern.method_url_pattern.as_ref()?;
 
-        for ch in java_class.chars() {
+        for ch in method.class.path.as_str().chars() {
             match ch {
                 'a'..='z' => {},
                 'A'..='Z' => {},
@@ -63,7 +63,7 @@ impl KnownDocsUrl {
             }
         }
 
-        for ch in java_method.chars() {
+        for ch in method.java.name.as_str().chars() {
             match ch {
                 'a'..='z' => {},
                 'A'..='Z' => {},
@@ -73,13 +73,19 @@ impl KnownDocsUrl {
             }
         }
 
-        let java_class = java_class
+        let java_class = method.class.path.as_str()
             .replace("/", pattern.class_namespace_separator.as_str())
             .replace("$", pattern.class_inner_class_seperator.as_str());
 
         let mut java_args = String::new();
 
-        for arg in java_descriptor.arguments() {
+        let mut prev_was_array = false;
+        for arg in method.java.descriptor().arguments() {
+            if prev_was_array {
+                prev_was_array = false;
+                java_args.push_str("%5B%5D"); // []
+            }
+
             if !java_args.is_empty() {
                 java_args.push_str(&pattern.method_argument_seperator[..]);
             }
@@ -96,23 +102,51 @@ impl KnownDocsUrl {
                 Type::Single(BasicType::Double)  => { java_args.push_str("double");  },
                 Type::Single(BasicType::Class(class)) => {
                     let class = class.as_str()
-                        .replace("/", pattern.method_argument_seperator.as_str())
-                        .replace("$", pattern.method_inner_class_seperator.as_str());
+                        .replace("/", pattern.argument_namespace_separator  .as_str())
+                        .replace("$", pattern.argument_inner_class_seperator.as_str());
                     java_args.push_str(&class);
                 }
-                Type::Array { .. } => {
-                    return None; // XXX
+                Type::Array { levels, inner } => {
+                    match inner {
+                        BasicType::Void     => { return None; },
+                        BasicType::Boolean  => java_args.push_str("bool"),
+                        BasicType::Byte     => java_args.push_str("byte"),
+                        BasicType::Char     => java_args.push_str("char"),
+                        BasicType::Short    => java_args.push_str("short"),
+                        BasicType::Int      => java_args.push_str("int"),
+                        BasicType::Long     => java_args.push_str("long"),
+                        BasicType::Float    => java_args.push_str("float"),
+                        BasicType::Double   => java_args.push_str("double"),
+                        BasicType::Class(class) => {
+                            let class = class.as_str()
+                                .replace("/", pattern.argument_namespace_separator  .as_str())
+                                .replace("$", pattern.argument_inner_class_seperator.as_str());
+                            java_args.push_str(&class);
+                        },
+                    }
+                    for _ in 1..levels {
+                        java_args.push_str("%5B%5D"); // []
+                    }
+                    prev_was_array = true; // level 0
                 }
+            }
+        }
+
+        if prev_was_array {
+            if method.java.is_varargs() {
+                java_args.push_str("...");
+            } else {
+                java_args.push_str("%5B%5D"); // []
             }
         }
 
         // No {RETURN} support... yet?
 
         Some(KnownDocsUrl{
-            label:  java_method.to_owned(),
+            label: method.java.name.as_str().to_owned(),
             url: method_url_pattern
                 .replace("{CLASS}",     java_class.as_str())
-                .replace("{METHOD}",    java_method)
+                .replace("{METHOD}",    method.java.name.as_str())
                 .replace("{ARGUMENTS}", java_args.as_str()),
         })
     }

@@ -125,23 +125,31 @@ pub struct DocumentationPattern {
     #[serde(default = "default_empty")]
     pub jni_prefix: String,
 
-    /// What to use in the {CLASS} portion of URLs to seperate namespaces.  Defaults to "/".
+    /// What to use in the {CLASS} portion of URLs to separate namespaces.  Defaults to "/".
     #[serde(default = "default_slash")]
     pub class_namespace_separator: String,
 
-    /// What to use in the {CLASS} portion of URLs to seperate inner classes from outer classes.  Defaults to ".".
+    /// What to use in the {CLASS} portion of URLs to separate inner classes from outer classes.  Defaults to ".".
     #[serde(default = "default_period")]
     pub class_inner_class_seperator: String,
 
-    /// What to use in the {ARGUMENTS} portion of URLs to seperate namespaces.  Defaults to ".".
+    /// What to use in the {ARGUMENTS} portion of URLs to separate namespaces.  Defaults to ".".
+    #[serde(default = "default_period")]
+    pub argument_namespace_separator: String,
+
+    /// What to use in the {ARGUMENTS} portion of URLs to separate inner classes from outer classes.  Defaults to ".".
+    #[serde(default = "default_period")]
+    pub argument_inner_class_seperator: String,
+
+    /// What to use in the {ARGUMENTS} portion of URLs to separate namespaces.  Defaults to ".".
     #[serde(default = "default_period")]
     pub method_namespace_separator: String,
 
-    /// What to use in the {ARGUMENTS} portion of URLs to seperate inner classes from outer classes.  Defaults to ".".
+    /// What to use in the {ARGUMENTS} portion of URLs to separate inner classes from outer classes.  Defaults to ".".
     #[serde(default = "default_period")]
     pub method_inner_class_seperator: String,
 
-    /// What to use in the {ARGUMENTS} portion of URLs to seperate inner classes from outer classes.  Defaults to ",".
+    /// What to use in the {ARGUMENTS} portion of URLs to separate inner classes from outer classes.  Defaults to ",".
     #[serde(default = "default_comma")]
     pub method_argument_seperator: String,
 }
@@ -355,6 +363,8 @@ impl File {
         jni_prefix                    = "java/"
         class_namespace_separator     = "/"
         class_inner_class_seperator   = "."
+        argument_namespace_separator  = "."
+        argument_inner_class_seperator= "."
 
         [[documentation.pattern]]
         class_url_pattern             = "https://developer.android.com/reference/kotlin/{CLASS}.html"

@@ -306,7 +306,7 @@ impl<'a> Method<'a> {
         for reason in &emit_reject_reasons {
             writeln!(out, "{}// Not emitting: {}", indent, reason)?;
         }
-        if let Some(url) = KnownDocsUrl::from_method(context, self.class.path.as_str(), self.java.name.as_str(), self.java.descriptor()) {
+        if let Some(url) = KnownDocsUrl::from_method(context, self) {
             writeln!(out, "{}/// {}", indent, url)?;
         } else {
             writeln!(out, "{}/// {}", indent, self.java.name.as_str())?;
