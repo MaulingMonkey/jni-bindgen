@@ -56,8 +56,6 @@
 @set "PLATFORM=%~3"
 :: windows
 :: android
-:: linux (WSL)
-:: wasm
 @if not defined PLATFORM set PLATFORM=*
 
 @echo :: Re-run test.cmd with the last set of arguments used>"%~dp0retest.cmd"
@@ -100,7 +98,6 @@
 
 @if not "%ERRORS%" == "0" goto :build-one-skipped
 @if /I "%CHANNEL%"  == "beta"                echo Skipping %CHANNEL% %CONFIG% %PLATFORM%: Beta toolchain&& goto :build-one-skipped
-@if /I "%PLATFORM%" == "android"             echo Skipping %CHANNEL% %CONFIG% %PLATFORM%: Slow, NYI&& goto :build-one-skipped
 @if /I "%PLATFORM%" == "linux" if defined CI echo Skipping %CHANNEL% %CONFIG% %PLATFORM%: Appveyor doesn't have WSL installed&& goto :build-one-skipped
 
 :: Parameters -> Settings
@@ -114,6 +111,9 @@
 @if /i "%CONFIG%" == "debug"     set WEB_PACK_FLAGS=%WEB_PACK_FLAGS% --dev
 @if /i "%CONFIG%" == "release"   set WEB_PACK_FLAGS=%WEB_PACK_FLAGS% --release
 
+@if /i "%CONFIG%" == "debug"     set GRADLE_CONFIG_FRAGMENT=Debug
+@if /i "%CONFIG%" == "release"   set GRADLE_CONFIG_FRAGMENT=Release
+
 
 :: Build
 
@@ -121,9 +121,9 @@
     @call :try-cargo +%CHANNEL% build --all             %CARGO_FLAGS% || goto :build-one-error
     @call :try-cargo +%CHANNEL% test  --all             %CARGO_FLAGS% || goto :build-one-error
     @call :try-cargo +%CHANNEL% doc   --all --no-deps   %CARGO_FLAGS% || goto :build-one-error
-    @cd jni-android-sys-gen
+    @cd "%~dp0../jni-android-sys-gen"
     ..\target\%CONFIG%\jni-android-sys-gen generate
-    @cd ../jni-android-sys
+    @cd "%~dp0../jni-android-sys"
     @call :try-cargo +%CHANNEL% build            --features "all api-level-28 force-define" %CARGO_FLAGS% || goto :build-one-error
     @call :try-cargo +%CHANNEL% doc   --no-deps  --features "all api-level-28 force-define" %CARGO_FLAGS% || goto :build-one-error
     @goto :build-one-successful
@@ -132,52 +132,47 @@
 
 
 @if /i not "%PLATFORM%" == "android" goto :skip-platform-android
-    @set ANDROID_AVD_NAME=Nexus_5X_API_29_x86
+    @call :try-cargo +%CHANNEL% build --all             %CARGO_FLAGS% || goto :build-one-error
+    @call :try-cargo +%CHANNEL% test  --all             %CARGO_FLAGS% || goto :build-one-error
+    @call :try-cargo +%CHANNEL% doc   --all --no-deps   %CARGO_FLAGS% || goto :build-one-error
+    @cd "%~dp0../jni-android-sys-gen"
+    ..\target\%CONFIG%\jni-android-sys-gen generate
+    @cd "%~dp0../jni-android-sys"
+    @call :try-cargo +%CHANNEL% build            --features "all api-level-28 force-define" %CARGO_FLAGS% || goto :build-one-error
+    @call :try-cargo +%CHANNEL% doc   --no-deps  --features "all api-level-28 force-define" %CARGO_FLAGS% || goto :build-one-error
+    @cd "%~dp0../jni-android-sys/examples/android-studio/basic"
     @set JAVA_HOME=%ProgramFiles%\Android\Android Studio\jre\
-    @set PATH=%LOCALAPPDATA%\Android\Sdk\platform-tools\;%PATH%
-    @set PATH=%LOCALAPPDATA%\Android\Sdk\ndk-bundle\toolchains\llvm\prebuilt\windows-x86_64\bin;%PATH%
-    adb start-server
-    start "" /B "%LOCALAPPDATA%\Android\Sdk\emulator\emulator" -no-audio -no-window -no-snapshot -no-boot-anim @%ANDROID_AVD_NAME%
-    :: -no-snapshot:  loading one would speed things up, but this can cause problems in terminated emulators.  Saving is undesired too.
-    adb wait-for-local-device
-    @for /f "tokens=1" %%d in ('adb devices ^| findstr emulator-') do @set EMULATOR_DEVICE=%%d
-    @adb -s %EMULATOR_DEVICE% shell getprop ro.product.cpu.abi | findstr x86_64 && set "NATIVE_ARCH=x86_64" || set "NATIVE_ARCH=i686"
-    @pushd "%~dp0windows-android"
-    @set ANDROID_ERROR=0
-    call :try-cargo +%CHANNEL% build --all --tests %CARGO_FLAGS% --target=%NATIVE_ARCH%-linux-android || set ANDROID_ERROR=1
-    @popd
-    @if not "%ANDROID_ERROR%" == "0" goto :build-one-error
-    @pushd "%~dp0..\target\%NATIVE_ARCH%-linux-android\%CONFIG%"
-    @set ANDROID_TEST_NAME=
-    @for /f "" %%n in ('dir /OD /B gamepads-* ^| findstr /v \.d') do @set "ANDROID_TEST_NAME=%%n"
-    @if not defined ANDROID_TEST_NAME set ANDROID_TEST_NAME=could_not_find_android_test
-    adb -s %EMULATOR_DEVICE% push "%ANDROID_TEST_NAME%" /data/local/tmp/gamepads_unit_tests || set ANDROID_ERROR=1
-    @popd
-    adb -s %EMULATOR_DEVICE% shell chmod 755 /data/local/tmp/gamepads_unit_tests || set ANDROID_ERROR=1
-    adb -s %EMULATOR_DEVICE% shell /data/local/tmp/gamepads_unit_tests || set ANDROID_ERROR=1
-    @taskkill /FI "WINDOWTITLE eq Android Emulator - %ANDROID_AVD_NAME%:*" 2>NUL
-    ::@taskkill /F /IM "emulator.exe"
-    @if not "%ANDROID_ERROR%" == "0" goto :build-one-error
+    @call "gradlew.bat" assemble%GRADLE_CONFIG_FRAGMENT%
     @goto :build-one-successful
+
+    :: ...if I set up Java unit testing at some point again...
+    ::@set ANDROID_AVD_NAME=Nexus_5X_API_29_x86
+    ::@set PATH=%LOCALAPPDATA%\Android\Sdk\platform-tools\;%PATH%
+    ::@set PATH=%LOCALAPPDATA%\Android\Sdk\ndk-bundle\toolchains\llvm\prebuilt\windows-x86_64\bin;%PATH%
+    ::adb start-server
+    ::start "" /B "%LOCALAPPDATA%\Android\Sdk\emulator\emulator" -no-audio -no-window -no-snapshot -no-boot-anim @%ANDROID_AVD_NAME%
+    :::: -no-snapshot:  loading one would speed things up, but this can cause problems in terminated emulators.  Saving is undesired too.
+    ::adb wait-for-local-device
+    ::@for /f "tokens=1" %%d in ('adb devices ^| findstr emulator-') do @set EMULATOR_DEVICE=%%d
+    ::@adb -s %EMULATOR_DEVICE% shell getprop ro.product.cpu.abi | findstr x86_64 && set "NATIVE_ARCH=x86_64" || set "NATIVE_ARCH=i686"
+    ::@pushd "%~dp0windows-android"
+    ::@set ANDROID_ERROR=0
+    ::call :try-cargo +%CHANNEL% build --all --tests %CARGO_FLAGS% --target=%NATIVE_ARCH%-linux-android || set ANDROID_ERROR=1
+    ::@popd
+    ::@if not "%ANDROID_ERROR%" == "0" goto :build-one-error
+    ::@pushd "%~dp0..\target\%NATIVE_ARCH%-linux-android\%CONFIG%"
+    ::@set ANDROID_TEST_NAME=
+    ::@for /f "" %%n in ('dir /OD /B gamepads-* ^| findstr /v \.d') do @set "ANDROID_TEST_NAME=%%n"
+    ::@if not defined ANDROID_TEST_NAME set ANDROID_TEST_NAME=could_not_find_android_test
+    ::adb -s %EMULATOR_DEVICE% push "%ANDROID_TEST_NAME%" /data/local/tmp/gamepads_unit_tests || set ANDROID_ERROR=1
+    ::@popd
+    ::adb -s %EMULATOR_DEVICE% shell chmod 755 /data/local/tmp/gamepads_unit_tests || set ANDROID_ERROR=1
+    ::adb -s %EMULATOR_DEVICE% shell /data/local/tmp/gamepads_unit_tests || set ANDROID_ERROR=1
+    ::@taskkill /FI "WINDOWTITLE eq Android Emulator - %ANDROID_AVD_NAME%:*" 2>NUL
+    ::::@taskkill /F /IM "emulator.exe"
+    ::@if not "%ANDROID_ERROR%" == "0" goto :build-one-error
+    ::@goto :build-one-successful
 :skip-platform-android
-
-
-
-@if /i not "%PLATFORM%" == "android" goto :skip-platform-linux
-    @call :try-linux-bash cargo +%CHANNEL% test             %CARGO_FLAGS% || goto :build-one-error
-    @call :try-linux-bash cargo +%CHANNEL% build --examples %CARGO_FLAGS% || goto :build-one-error
-    @goto :build-one-successful
-:skip-platform-linux
-
-
-
-@if /i not "%PLATFORM%" == "wasm" goto :skip-wasm
-    @call :install-cargo-web                                                                                                                                || goto :build-one-error
-    @call :add-chrome-to-path                                                                                                                               || goto :build-one-error
-    @cd "%~dp0..\examples\get_gamepads_dumper"                                                                                                              || goto :build-one-error
-    @call :try wasm-pack build --target no-modules --out-dir ../../target/wasm32-unknown-unknown/debug/examples/get_gamepads_dumper/pkg %WEB_PACK_FLAGS%    || goto :build-one-error
-    @goto :build-one-successful
-:skip-wasm
 
 
 
