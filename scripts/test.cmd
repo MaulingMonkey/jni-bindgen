@@ -55,7 +55,7 @@
 
 @set "PLATFORM=%~3"
 :: windows
-:: android
+:: linux
 @if not defined PLATFORM set PLATFORM=*
 
 @echo :: Re-run test.cmd with the last set of arguments used>"%~dp0retest.cmd"
@@ -79,8 +79,6 @@
 @if not "%PLATFORM%" == "*" goto :skip-platform-wildcard
     @call :build "%CHANNEL%" "%CONFIG%" windows
     @call :build "%CHANNEL%" "%CONFIG%" linux
-    @call :build "%CHANNEL%" "%CONFIG%" wasm
-    @call :build "%CHANNEL%" "%CONFIG%" android
     @endlocal && set ERRORS=%ERRORS%&& exit /b 0
 :skip-platform-wildcard
 
@@ -99,6 +97,7 @@
 @if not "%ERRORS%" == "0" goto :build-one-skipped
 @if /I "%CHANNEL%"  == "beta"                echo Skipping %CHANNEL% %CONFIG% %PLATFORM%: Beta toolchain&& goto :build-one-skipped
 @if /I "%PLATFORM%" == "linux" if defined CI echo Skipping %CHANNEL% %CONFIG% %PLATFORM%: Appveyor doesn't have WSL installed&& goto :build-one-skipped
+@if /I "%PLATFORM%" == "linux"               echo Skipping %CHANNEL% %CONFIG% %PLATFORM%: WSL builds not currently scripted&& goto :build-one-skipped
 
 :: Parameters -> Settings
 
@@ -118,20 +117,6 @@
 :: Build
 
 @if /i not "%PLATFORM%" == "windows" goto :skip-windows
-    @call :try-cargo +%CHANNEL% build --all             %CARGO_FLAGS% || goto :build-one-error
-    @call :try-cargo +%CHANNEL% test  --all             %CARGO_FLAGS% || goto :build-one-error
-    @call :try-cargo +%CHANNEL% doc   --all --no-deps   %CARGO_FLAGS% || goto :build-one-error
-    @cd "%~dp0../jni-android-sys-gen"
-    ..\target\%CONFIG%\jni-android-sys-gen generate
-    @cd "%~dp0../jni-android-sys"
-    @call :try-cargo +%CHANNEL% build            --features "all api-level-28 force-define" %CARGO_FLAGS% || goto :build-one-error
-    @call :try-cargo +%CHANNEL% doc   --no-deps  --features "all api-level-28 force-define" %CARGO_FLAGS% || goto :build-one-error
-    @goto :build-one-successful
-:skip-windows
-
-
-
-@if /i not "%PLATFORM%" == "android" goto :skip-platform-android
     @call :try-cargo +%CHANNEL% build --all             %CARGO_FLAGS% || goto :build-one-error
     @call :try-cargo +%CHANNEL% test  --all             %CARGO_FLAGS% || goto :build-one-error
     @call :try-cargo +%CHANNEL% doc   --all --no-deps   %CARGO_FLAGS% || goto :build-one-error
@@ -172,7 +157,7 @@
     ::::@taskkill /F /IM "emulator.exe"
     ::@if not "%ANDROID_ERROR%" == "0" goto :build-one-error
     ::@goto :build-one-successful
-:skip-platform-android
+:skip-windows
 
 
 
