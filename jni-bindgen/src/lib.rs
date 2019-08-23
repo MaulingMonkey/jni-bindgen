@@ -1,7 +1,5 @@
 //! Parse .jar s and  .class es to generate Rust FFI bindings using JNI.
 
-#![allow(dead_code)] // XXX
-
 /// Configuration formats for invoking jni_bindgen
 pub mod config { // Part of the actual official API of this crate.
     #[allow(unused_imports)] use super::*;
