@@ -78,10 +78,6 @@ impl<'a> Method<'a> {
         let mut params_decl = if self.java.is_constructor() || self.java.is_static() {
             match context.config.codegen.static_env {
                 config::toml::StaticEnvStyle::Explicit => String::from("__jni_env: &'env __jni_bindgen::Env"),
-                config::toml::StaticEnvStyle::Implicit => {
-                    emit_reject_reasons.push("ERROR:  StaticEnvStyle::Implicit not yet implemented");
-                    String::new()
-                },
                 config::toml::StaticEnvStyle::__NonExhaustive => {
                     emit_reject_reasons.push("ERROR:  StaticEnvStyle::__NonExhaustive is invalid, silly goose!");
                     String::new()
@@ -338,7 +334,6 @@ impl<'a> Method<'a> {
         if self.java.is_constructor() || self.java.is_static() {
             match context.config.codegen.static_env {
                 config::toml::StaticEnvStyle::Explicit          => {},
-                config::toml::StaticEnvStyle::Implicit          => writeln!(out, "{}    let __jni_env = ...?;", indent)?, // XXX
                 config::toml::StaticEnvStyle::__NonExhaustive   => writeln!(out, "{}    let __jni_env = ...?;", indent)?, // XXX
             };
         } else {
