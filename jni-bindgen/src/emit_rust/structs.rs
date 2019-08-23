@@ -61,13 +61,14 @@ fn feature_id<'a>(id: &str) -> Result<&str, Box<dyn Error>> {
 }
 
 impl Struct {
-    pub(crate) fn feature_for(_context: &Context, class: class::Id) -> Result<String, Box<dyn Error>> {
+    pub(crate) fn feature_for(context: &Context, class: class::Id) -> Result<String, Box<dyn Error>> {
+        let rename_to = context.config.rename_classes.get(class.as_str()).map(|name| name.as_str()).ok_or(());
         let mut buf = String::new();
         for component in class.iter() {
             match component {
                 class::IdPart::Namespace(id)        => write!(&mut buf, "{}-",  feature_id(id)?)?,
                 class::IdPart::ContainingClass(id)  => write!(&mut buf, "{}_",  feature_id(id)?)?,
-                class::IdPart::LeafClass(id)        => write!(&mut buf, "{}",   feature_id(id)?)?,
+                class::IdPart::LeafClass(id)        => write!(&mut buf, "{}",   rename_to.or_else(|_| feature_id(id))?)?,
             }
         }
         Ok(buf)
@@ -85,31 +86,35 @@ impl Struct {
         Ok(buf)
     }
 
-    pub(crate) fn name_for(_context: &Context, class: class::Id) -> Result<String, Box<dyn Error>> {
+    pub(crate) fn name_for(context: &Context, class: class::Id) -> Result<String, Box<dyn Error>> {
+        let rename_to = context.config.rename_classes.get(class.as_str()).map(|name| name.as_str()).ok_or(());
         let mut buf = String::new();
         for component in class.iter() {
             match component {
                 class::IdPart::Namespace(_)         => {},
                 class::IdPart::ContainingClass(id)  => write!(&mut buf, "{}_",  rust_id(id)?)?,
-                class::IdPart::LeafClass(id)        => write!(&mut buf, "{}",   rust_id(id)?)?,
+                class::IdPart::LeafClass(id)        => write!(&mut buf, "{}",   rename_to.or_else(|_| rust_id(id))?)?,
             }
         }
         Ok(buf)
     }
 
-    pub(crate) fn fqn_for(_context: &Context, class: class::Id) -> Result<String, Box<dyn Error>> {
+    pub(crate) fn fqn_for(context: &Context, class: class::Id) -> Result<String, Box<dyn Error>> {
+        let rename_to = context.config.rename_classes.get(class.as_str()).map(|name| name.as_str()).ok_or(());
         let mut buf = String::from("crate::");
         for component in class.iter() {
             match component {
                 class::IdPart::Namespace(id)        => write!(&mut buf, "{}::", rust_id(id)?)?,
                 class::IdPart::ContainingClass(id)  => write!(&mut buf, "{}_",  rust_id(id)?)?,
-                class::IdPart::LeafClass(id)        => write!(&mut buf, "{}",   rust_id(id)?)?,
+                class::IdPart::LeafClass(id)        => write!(&mut buf, "{}",   rename_to.or_else(|_| rust_id(id))?)?,
             }
         }
         Ok(buf)
     }
 
     pub(crate) fn sharded_path_for(context: &Context, class: class::Id) -> Result<PathBuf, Box<dyn Error>> {
+        let rename_to = context.config.rename_classes.get(class.as_str()).map(|name| name.as_str()).ok_or(());
+
         let mut buf = String::new();
 
         if let Some(name) = context.config.output_path.file_stem() {
@@ -120,7 +125,7 @@ impl Struct {
             match component {
                 class::IdPart::Namespace(id)        => write!(&mut buf, "{}/",    rust_id(id)?)?,
                 class::IdPart::ContainingClass(id)  => write!(&mut buf, "{}_",    rust_id(id)?)?,
-                class::IdPart::LeafClass(id)        => write!(&mut buf, "{}.rs",  rust_id(id)?)?,
+                class::IdPart::LeafClass(id)        => write!(&mut buf, "{}.rs",  rename_to.or_else(|_| rust_id(id))?)?,
             }
         }
 
