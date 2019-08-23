@@ -30,8 +30,6 @@ impl<'a> Method<'a> {
         self.rust_name.as_ref().map(|s| s.as_str())
     }
 
-    pub fn mangling_style(&self) -> MethodManglingStyle { self.mangling_style }
-
     pub fn set_mangling_style(&mut self, style: MethodManglingStyle) {
         self.mangling_style = style;
         self.rust_name = if let Ok(name) = self.mangling_style.mangle(self.java.name.as_str(), self.java.descriptor()) {
