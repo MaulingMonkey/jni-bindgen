@@ -87,7 +87,7 @@ impl KnownDocsUrl {
             }
 
             if !java_args.is_empty() {
-                java_args.push_str(&pattern.method_argument_seperator[..]);
+                java_args.push_str(&pattern.argument_seperator[..]);
             }
 
             match arg {

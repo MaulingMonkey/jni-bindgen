@@ -17,9 +17,7 @@ pub(crate) struct DocPattern {
     pub(crate) class_inner_class_seperator:     String,
     pub(crate) argument_namespace_separator:    String,
     pub(crate) argument_inner_class_seperator:  String,
-    pub(crate) method_namespace_separator:      String,
-    pub(crate) method_inner_class_seperator:    String,
-    pub(crate) method_argument_seperator:       String,
+    pub(crate) argument_seperator:              String,
 }
 
 impl From<toml::DocumentationPattern> for DocPattern {
@@ -33,9 +31,7 @@ impl From<toml::DocumentationPattern> for DocPattern {
             class_inner_class_seperator:    file.class_inner_class_seperator,
             argument_namespace_separator:   file.argument_namespace_separator,
             argument_inner_class_seperator: file.argument_inner_class_seperator,
-            method_namespace_separator:     file.method_namespace_separator,
-            method_inner_class_seperator:   file.method_inner_class_seperator,
-            method_argument_seperator:      file.method_argument_seperator,
+            argument_seperator:             file.argument_seperator,
         }
     }
 }

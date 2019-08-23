@@ -141,17 +141,9 @@ pub struct DocumentationPattern {
     #[serde(default = "default_period")]
     pub argument_inner_class_seperator: String,
 
-    /// What to use in the {ARGUMENTS} portion of URLs to separate namespaces.  Defaults to ".".
-    #[serde(default = "default_period")]
-    pub method_namespace_separator: String,
-
-    /// What to use in the {ARGUMENTS} portion of URLs to separate inner classes from outer classes.  Defaults to ".".
-    #[serde(default = "default_period")]
-    pub method_inner_class_seperator: String,
-
     /// What to use in the {ARGUMENTS} portion of URLs to separate inner classes from outer classes.  Defaults to ",".
     #[serde(default = "default_comma")]
-    pub method_argument_seperator: String,
+    pub argument_seperator: String,
 }
 
 /// The \[documentation\] section.
@@ -223,16 +215,17 @@ pub struct Rename {
 /// verbose = true
 /// 
 /// [[documentation.pattern]]
-/// class_url_pattern       = "https://docs.oracle.com/javase/7/docs/api/index.html?java/{PATH}.html"
-/// jni_prefix              = "java/"
-/// namespace_separator     = "/"
-/// inner_class_seperator   = "."
+/// class_url_pattern               = "https://docs.oracle.com/javase/7/docs/api/index.html?java/{PATH}.html"
+/// jni_prefix                      = "java/"
+/// class_namespace_separator       = "/"
+/// class_inner_class_seperator     = "."
+/// argument_seperator              = ",%20"
 /// 
 /// [[documentation.pattern]]
-/// class_url_pattern       = "https://developer.android.com/reference/kotlin/{PATH}.html"
-/// jni_prefix              = ""
-/// namespace_separator     = "/"
-/// inner_class_seperator   = "."
+/// class_url_pattern               = "https://developer.android.com/reference/kotlin/{PATH}.html"
+/// jni_prefix                      = ""
+/// class_namespace_separator       = "/"
+/// class_inner_class_seperator     = "."
 /// 
 /// [input]
 /// files = [
@@ -359,15 +352,16 @@ impl File {
         verbose = true
 
         [[documentation.pattern]]
-        class_url_pattern             = "https://docs.oracle.com/javase/7/docs/api/index.html?java/{CLASS}.html"
-        jni_prefix                    = "java/"
-        class_namespace_separator     = "/"
-        class_inner_class_seperator   = "."
-        argument_namespace_separator  = "."
-        argument_inner_class_seperator= "."
+        class_url_pattern               = "https://docs.oracle.com/javase/7/docs/api/index.html?java/{CLASS}.html"
+        jni_prefix                      = "java/"
+        class_namespace_separator       = "/"
+        class_inner_class_seperator     = "."
+        argument_namespace_separator    = "."
+        argument_inner_class_seperator  = "."
+        argument_seperator              = ",%20"
 
         [[documentation.pattern]]
-        class_url_pattern             = "https://developer.android.com/reference/kotlin/{CLASS}.html"
+        class_url_pattern               = "https://developer.android.com/reference/kotlin/{CLASS}.html"
 
         [input]
         files = [
@@ -422,11 +416,17 @@ impl File {
     assert_eq!(file.documentation.patterns[0].jni_prefix,                   "java/");
     assert_eq!(file.documentation.patterns[0].class_namespace_separator,    "/");
     assert_eq!(file.documentation.patterns[0].class_inner_class_seperator,  ".");
+    assert_eq!(file.documentation.patterns[0].argument_namespace_separator,     ".");
+    assert_eq!(file.documentation.patterns[0].argument_inner_class_seperator,   ".");
+    assert_eq!(file.documentation.patterns[0].argument_seperator,               ",%20");
 
     assert_eq!(file.documentation.patterns[1].class_url_pattern,            "https://developer.android.com/reference/kotlin/{CLASS}.html"           );
     assert_eq!(file.documentation.patterns[1].jni_prefix,                   "");
     assert_eq!(file.documentation.patterns[1].class_namespace_separator,    "/");
     assert_eq!(file.documentation.patterns[1].class_inner_class_seperator,  ".");
+    assert_eq!(file.documentation.patterns[1].argument_namespace_separator,     ".");
+    assert_eq!(file.documentation.patterns[1].argument_inner_class_seperator,   ".");
+    assert_eq!(file.documentation.patterns[1].argument_seperator,               ",");
 
     assert_eq!(file.input.files, &[Path::new("%LOCALAPPDATA%/Android/Sdk/platforms/android-28/android.jar")]);
     assert_eq!(file.output.path, Path::new("android28.rs"));
