@@ -239,9 +239,3 @@ impl Struct {
         Ok(())
     }
 }
-
-fn emit_cstr(s: &str) -> String {
-    let mut s = format!("{:?}", s); // XXX
-    s.insert_str(s.len() - 1, "\\0");
-    s
-}
