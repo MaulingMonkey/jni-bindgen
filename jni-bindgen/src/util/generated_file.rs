@@ -1,6 +1,3 @@
-use crate::io_data_err;
-use crate::io_data_error;
-
 use tempfile::NamedTempFile;
 
 use std::fs::*;

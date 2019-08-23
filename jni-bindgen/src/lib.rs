@@ -1,5 +1,7 @@
 //! Parse .jar s and  .class es to generate Rust FFI bindings using JNI.
 
+#[macro_use] mod java;
+
 /// Configuration formats for invoking jni_bindgen
 pub mod config { // Part of the actual official API of this crate.
     #[allow(unused_imports)] use super::*;
@@ -42,8 +44,6 @@ mod identifiers {
     pub use method_mangling_style::*;
     pub use rust_identifier::*;
 }
-
-mod java;
 
 /// Core generation logic
 mod run {

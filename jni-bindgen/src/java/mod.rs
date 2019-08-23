@@ -1,12 +1,13 @@
 #![forbid(unsafe_code)]
 
-#[macro_use]    mod io;
-                mod attributes;
-pub             mod class;
-                mod constants;
-pub             mod field;
-pub             mod method;
-                mod version;
+#[macro_use] mod io;
+
+    mod attributes;
+pub mod class;
+    mod constants;
+pub mod field;
+pub mod method;
+    mod version;
 
     use attributes::Attribute;
 pub use class::Class;
