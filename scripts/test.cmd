@@ -103,6 +103,7 @@
 
 @set CARGO_FLAGS= 
 @if /i "%CONFIG%" == "release"   set CARGO_FLAGS=%CARGO_FLAGS% --release
+@if /i "%CHANNEL%" == "nightly"  set CARGO_FLAGS=%CARGO_FLAGS% --features "nightly"
 ::@if /i "%CHANNEL%" == "nightly"  set CARGO_FLAGS=%CARGO_FLAGS% -C -Ztime-passes
 ::@if /i "%CHANNEL%" == "nightly"  set "RUSTFLAGS=-Z time"
 

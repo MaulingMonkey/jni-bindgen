@@ -24,7 +24,7 @@ jni-bindgen = { version = "=0.0.8", path = "../jni-bindgen" }
 [features]
 default         = []
 force-define    = [] # By default, the JNI APIs are only compiled against android targets, but this will force them to be defined on windows, linux, OS X, etc. for documentation purpouses.
-
+nightly         = [] # Nightly-only features.
 
 
 # The android API level to use.  Note that only api-level-28 is properly tested/supported for now.
@@ -41,5 +41,5 @@ force-define    = [] # By default, the JNI APIs are only compiled against androi
 
 
 [package.metadata.docs.rs]
-# PLACEHOLDER:FEATURES:docs.rs
+features = ["all", "api-level-28", "force-define", "nightly"]
 default-target = "x86_64-unknown-linux-gnu" # Doesn't matter too much, but at least this kinda looks like Android.

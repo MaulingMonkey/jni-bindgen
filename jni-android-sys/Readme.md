@@ -90,9 +90,12 @@ dual licensed as above, without any additional terms or conditions.
 
 | feature                               | description   |
 | ------------------------------------- | ------------- |
+| `"api-level-7"`                       | Define android APIs as they were defined in API level 7 or greater
+| ...                                   | ...
 | `"api-level-28"`                      | Define android APIs as they were defined in API level 28 or greater
-| `"force-define"`                      | Define android APIs on non-android targets
 | `"android-view-KeyEvent"`             | Define the android.view.[KeyEvent](https://developer.android.com/reference/android/view/KeyEvent.html) class
 | `"android-view-KeyEvent_Callback"`    | Define the android.view.[KeyEvent.Callback](https://developer.android.com/reference/android/view/KeyEvent.Callback.html) interface
 | ...thousands of other features...     | Define other android.\*, androidx.\*, dalvik.\*, java.\*, javax.\*, and org.\* APIs.
 | `"all"`                               | Define all the available android/java APIs
+| `"force-define"`                      | Define android APIs on non-android targets (for use in custom targets, docs, etc.)
+| `"nightly"`                           | Define some stuff which may only work on nightly compilers (right now just for docs.)

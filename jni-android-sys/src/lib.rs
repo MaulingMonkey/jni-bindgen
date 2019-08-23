@@ -1,4 +1,5 @@
-//! JNI Android API Bindings.
+#![cfg_attr(feature = "nightly", feature(external_doc))]
+#![cfg_attr(feature = "nightly", doc(include = "../Readme.md"))]
 
 use cfg_if::*;
 
