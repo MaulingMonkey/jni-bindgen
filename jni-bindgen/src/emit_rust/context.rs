@@ -32,6 +32,10 @@ impl<'a> Context<'a> {
     }
 
     pub fn add_struct(&mut self, class: java::Class) -> Result<(), Box<dyn Error>> {
+        if self.config.ignore_classes.contains(class.path.as_str()) {
+            return Ok(())
+        }
+
         let s = Struct::new(self, class)?;
         let scope = if let Some(s) = s.rust.local_scope() { s } else { /* !local_scope = not part of this module, skip! */ return Ok(()); };
 
