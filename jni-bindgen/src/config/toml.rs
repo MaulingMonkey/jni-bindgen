@@ -294,8 +294,6 @@ pub struct File {
     pub renames: Vec<Rename>,
 }
 
-fn empty_vec<T>() -> Vec<T> { Vec::new() }
-
 impl File {
     /// Read from I/O, under the assumption that it's in the "jni-bindgen.toml" file format.
     pub fn read(file: &mut impl io::Read) -> io::Result<Self> {
