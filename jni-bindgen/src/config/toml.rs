@@ -88,8 +88,8 @@ pub struct DocumentationPattern {
     /// 
     /// | Given:                | Use this if you want android documentation:   |
     /// | --------------------- | --------------------------------------------- |
-    /// | jni_prefix = "java/"  | url_pattern = "https://developer.android.com/reference/java/{CLASS}.html"
-    /// | jni_prefix = ""       | url_pattern = "https://developer.android.com/reference/{CLASS}.html"
+    /// | jni_prefix = "java/"  | class_url_pattern = "https://developer.android.com/reference/java/{CLASS}.html"
+    /// | jni_prefix = ""       | class_url_pattern = "https://developer.android.com/reference/{CLASS}.html"
     pub class_url_pattern: String,
 
     /// The URL to use for documenting a given class method.
@@ -100,9 +100,25 @@ pub struct DocumentationPattern {
     /// 
     /// | Given:                | Use this if you want android documentation:   |
     /// | --------------------- | --------------------------------------------- |
-    /// | jni_prefix = "java/"  | url_pattern = "https://developer.android.com/reference/java/{CLASS}.html#{METHOD}({ARGUMENTS})"
-    /// | jni_prefix = ""       | url_pattern = "https://developer.android.com/reference/{CLASS}.html#{METHOD}({ARGUMENTS})"
+    /// | jni_prefix = "java/"  | method_url_pattern = "https://developer.android.com/reference/java/{CLASS}.html#{METHOD}({ARGUMENTS})"
+    /// | jni_prefix = ""       | method_url_pattern = "https://developer.android.com/reference/{CLASS}.html#{METHOD}({ARGUMENTS})"
     pub method_url_pattern: Option<String>,
+
+    /// The URL to use for documenting a given class constructor.
+    /// 
+    /// * `{CLASS}` will be replaced with everything *after* the JNI prefix.
+    /// * `{CLASS.OUTER}` will be replaced with just the class name, including the outer class(es)
+    /// * `{CLASS.INNER}` will be replaced with just the class name, excluding the outer class(es)
+    /// * `{METHOD}` aliases `{CLASS.INNER}`
+    /// * `{ARGUMENTS}` will be replaced with the method arguments.
+    /// 
+    /// Defaults to method_url_pattern
+    /// 
+    /// | Given:                | Use this if you want android documentation:   |
+    /// | --------------------- | --------------------------------------------- |
+    /// | jni_prefix = "java/"  | constructor_url_pattern = "https://developer.android.com/reference/java/{CLASS}.html#{CLASS.INNER}({ARGUMENTS})"
+    /// | jni_prefix = ""       | constructor_url_pattern = "https://developer.android.com/reference/{CLASS}.html#{CLASS.INNER}({ARGUMENTS})"
+    pub constructor_url_pattern: Option<String>,
 
     /// The URL to use for documenting a given class field.
     /// 
@@ -111,8 +127,8 @@ pub struct DocumentationPattern {
     /// 
     /// | Given:                | Use this if you want android documentation:   |
     /// | --------------------- | --------------------------------------------- |
-    /// | jni_prefix = "java/"  | url_pattern = "https://developer.android.com/reference/java/{CLASS}.html#{FIELD}"
-    /// | jni_prefix = ""       | url_pattern = "https://developer.android.com/reference/{CLASS}.html#{FIELD}"
+    /// | jni_prefix = "java/"  | field_url_pattern = "https://developer.android.com/reference/java/{CLASS}.html#{FIELD}"
+    /// | jni_prefix = ""       | field_url_pattern = "https://developer.android.com/reference/{CLASS}.html#{FIELD}"
     pub field_url_pattern: Option<String>,
 
     /// What java class(es) to match against.  This takes the form of a simple prefix to a JNI path with no wildcards.

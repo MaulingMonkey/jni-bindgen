@@ -50,8 +50,14 @@ impl KnownDocsUrl {
     pub(crate) fn from_method(context: &Context, method: &Method) -> Option<KnownDocsUrl> {
         use method::*;
 
+        let is_constructor = method.java.is_constructor();
+
         let pattern = context.config.doc_patterns.iter().find(|pattern| method.class.path.as_str().starts_with(pattern.jni_prefix.as_str()))?;
-        let method_url_pattern = pattern.method_url_pattern.as_ref()?;
+        let url_pattern = if is_constructor {
+            pattern.constructor_url_pattern.as_ref().or(pattern.method_url_pattern.as_ref())?
+        } else {
+            pattern.method_url_pattern.as_ref()?
+        };
 
         for ch in method.class.path.as_str().chars() {
             match ch {
@@ -63,19 +69,29 @@ impl KnownDocsUrl {
             }
         }
 
-        for ch in method.java.name.as_str().chars() {
-            match ch {
-                'a'..='z' => {},
-                'A'..='Z' => {},
-                '0'..='9' => {},
-                '_' => {},
-                _ch => return None,
-            }
-        }
-
         let java_class = method.class.path.as_str()
             .replace("/", pattern.class_namespace_separator.as_str())
             .replace("$", pattern.class_inner_class_seperator.as_str());
+
+        let java_outer_class = method.class.path.as_str().rsplitn(2, '/').next().unwrap()
+            .replace("$", pattern.class_inner_class_seperator.as_str());
+
+        let java_inner_class = method.class.path.as_str().rsplitn(2, '/').next().unwrap().rsplitn(2, '$').next().unwrap();
+
+        let label = if is_constructor {
+            java_inner_class
+        } else {
+            for ch in method.java.name.as_str().chars() {
+                match ch {
+                    'a'..='z' => {},
+                    'A'..='Z' => {},
+                    '0'..='9' => {},
+                    '_' => {},
+                    _ch => return None,
+                }
+            }
+            method.java.name.as_str()
+        };
 
         let mut java_args = String::new();
 
@@ -142,12 +158,15 @@ impl KnownDocsUrl {
 
         // No {RETURN} support... yet?
 
-        Some(KnownDocsUrl{
-            label: method.java.name.as_str().to_owned(),
-            url: method_url_pattern
-                .replace("{CLASS}",     java_class.as_str())
-                .replace("{METHOD}",    method.java.name.as_str())
-                .replace("{ARGUMENTS}", java_args.as_str()),
+        Some(KnownDocsUrl {
+            label: label.to_owned(),
+            url: url_pattern
+                .replace("{CLASS}",         java_class.as_str())
+                .replace("{CLASS.OUTER}",   java_outer_class.as_str())
+                .replace("{CLASS.INNER}",   java_inner_class)
+                .replace("{METHOD}",        label)
+                .replace("{ARGUMENTS}",     java_args.as_str())
+                ,
         })
     }
 
