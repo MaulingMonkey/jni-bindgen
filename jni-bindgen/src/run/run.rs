@@ -9,7 +9,12 @@ use std::io;
 use std::path::*;
 use std::result::Result;
 
+/// The result of calling [run].  Ignored by the standalone tool, but possibly useful for more advanced wrappers around
+/// jni-bindgen such as jni-android-sys-gen.
+/// 
+/// [run]:      fn.run.html
 pub struct RunResult {
+    /// What features this crate assumes exist, and the features that feature is expected to depend on.
     pub features: BTreeMap<String, BTreeSet<String>>,
 }
 
