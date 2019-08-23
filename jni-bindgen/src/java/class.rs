@@ -78,6 +78,7 @@ pub struct Class {
     pub deprecated: bool,
 }
 
+#[allow(dead_code)]
 impl Class {
     /// [Java SE 7 &sect; 4](https://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html):  Read a class File.
     pub fn read(read: &mut impl Read) -> io::Result<Self> {
@@ -136,7 +137,7 @@ impl IdBuf {
     pub fn new(s: String) -> Self { Self(s) }
     pub fn as_str(&self) -> &str { self.0.as_str() }
     pub fn as_id(&self) -> Id { Id(self.0.as_str()) }
-    pub fn iter(&self) -> IdIter { IdIter::new(self.0.as_str()) }
+    #[allow(dead_code)] pub fn iter(&self) -> IdIter { IdIter::new(self.0.as_str()) }
 }
 
 // XXX: This should really be `#[repr(transparent)] pub struct Id(str);`, but I've banned unsafe for this lib...

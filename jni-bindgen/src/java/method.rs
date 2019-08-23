@@ -60,6 +60,7 @@ pub struct Method {
     _incomplete:    (),
 }
 
+#[allow(dead_code)]
 impl Method {
     pub fn new(flags: Flags, name: String, descriptor: String) -> io::Result<Self> {
         method::Descriptor::new(descriptor.as_str())?;
