@@ -3,6 +3,37 @@ use super::*;
 use std::marker::*;
 use std::ops::*;
 
+/// A Java Array of some POD-like type such as bool, jbyte, jchar, jshort, jint, jlong, jfloat, or jdouble.
+/// 
+/// See also [ObjectArray] for arrays of reference types.
+/// 
+/// | JNI Type      | PrimitiveArray Implementation |
+/// | ------------- | ----------------- |
+/// | [bool]\[\]    | [BooleanArray]    |
+/// | [jbyte]\[\]   | [ByteArray]       |
+/// | [jchar]\[\]   | [CharArray]       |
+/// | [jint]\[\]    | [IntArray]        |
+/// | [jlong]\[\]   | [LongArray]       |
+/// | [jfloat]\[\]  | [FloatArray]      |
+/// | [jdouble]\[\] | [DoubleArray]     |
+/// 
+/// [bool]:         https://doc.rust-lang.org/std/primitive.bool.html
+/// [jbyte]:        https://docs.rs/jni-sys/0.3.0/jni_sys/type.jbyte.html
+/// [jchar]:        struct.jchar.html
+/// [jint]:         https://docs.rs/jni-sys/0.3.0/jni_sys/type.jint.html
+/// [jlong]:        https://docs.rs/jni-sys/0.3.0/jni_sys/type.jlong.html
+/// [jfloat]:       https://docs.rs/jni-sys/0.3.0/jni_sys/type.jfloat.html
+/// [jdouble]:      https://docs.rs/jni-sys/0.3.0/jni_sys/type.jdouble.html
+/// 
+/// [BooleanArray]: struct.BooleanArray.html
+/// [ByteArray]:    struct.ByteArray.html
+/// [CharArray]:    struct.CharArray.html
+/// [IntArray]:     struct.IntArray.html
+/// [LongArray]:    struct.LongArray.html
+/// [FloatArray]:   struct.FloatArray.html
+/// [DoubleArray]:  struct.DoubleArray.html
+/// [ObjectArray]:  struct.ObjectArray.html
+/// 
 pub trait PrimitiveArray<T> where Self : Sized + AsValidJObjectAndEnv, T : Clone + Default {
     /// Uses env.New{Type}Array to create a new java array containing "size" elements.
     fn new<'env>(env: &'env Env, size: usize) -> Local<'env, Self>;
@@ -148,6 +179,12 @@ primitive_array! { #[repr(transparent)] pub struct LongArray    = "[J\0", jlong 
 primitive_array! { #[repr(transparent)] pub struct FloatArray   = "[F\0", jfloat  { NewFloatArray   SetFloatArrayRegion   GetFloatArrayRegion   } }
 primitive_array! { #[repr(transparent)] pub struct DoubleArray  = "[D\0", jdouble { NewDoubleArray  SetDoubleArrayRegion  GetDoubleArrayRegion  } }
 
+/// A Java Array of reference types (classes, interfaces, other arrays, etc.)
+/// 
+/// See also [PrimitiveArray] for arrays of reference types.
+/// 
+/// [PrimitiveArray]:   struct.PrimitiveArray.html
+/// 
 #[repr(transparent)]
 pub struct ObjectArray<T: AsValidJObjectAndEnv>(ObjectAndEnv, PhantomData<T>);
 
