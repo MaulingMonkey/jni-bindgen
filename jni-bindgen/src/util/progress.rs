@@ -6,13 +6,6 @@ pub struct Progress {
 }
 
 impl Progress {
-    pub fn new() -> Self {
-        Self {
-            can_next_log:   Instant::now(),
-            debounce:       Duration::from_secs(1),
-        }
-    }
-
     pub fn with_duration(debounce: Duration) -> Self {
         Self {
             can_next_log:   Instant::now(),
