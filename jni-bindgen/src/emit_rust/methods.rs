@@ -327,7 +327,7 @@ impl<'a> Method<'a> {
             }
             writeln!(out, ")))]")?;
         }
-        writeln!(out, "{}{}{}fn {}<'env>({}) -> __jni_bindgen::Result<{}> {{", indent, attributes, access, method_name, params_decl, ret_decl)?;
+        writeln!(out, "{}{}{}fn {}<'env>({}) -> __jni_bindgen::std::result::Result<{}, __jni_bindgen::Local<'env, {}>> {{", indent, attributes, access, method_name, params_decl, ret_decl, context.config.codegen.throwable_type.as_str())?;
         writeln!(out, "{}    // class.path == {:?}, java.flags == {:?}, .name == {:?}, .descriptor == {:?}", indent, &self.class.path.as_str(), self.java.flags, &self.java.name, &self.java.descriptor_str())?;
         writeln!(out, "{}    unsafe {{", indent)?;
         writeln!(out, "{}        let __jni_args = [{}];", indent, params_array)?;

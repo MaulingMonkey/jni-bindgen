@@ -138,13 +138,13 @@ impl Env {
 
     // Constructor Methods
 
-    pub unsafe fn new_object_a<'env, T: AsValidJObjectAndEnv>(&'env self, class: jclass, method: jmethodID, args: *const jvalue) -> Result<Local<'env, T>> {
+    pub unsafe fn new_object_a<'env, R: AsValidJObjectAndEnv, E: ThrowableType>(&'env self, class: jclass, method: jmethodID, args: *const jvalue) -> Result<Local<'env, R>, Local<'env, E>> {
         let env = &self.0 as *const JNIEnv as *mut JNIEnv;
         let result = (**env).NewObjectA.unwrap()(env, class, method, args);
         let exception = (**env).ExceptionOccurred.unwrap()(env);
         if !exception.is_null() {
             (**env).ExceptionClear.unwrap()(env);
-            Err(exception)
+            Err(Local::from_env_object(env, exception))
         } else {
             assert!(!result.is_null());
             Ok(Local::from_env_object(env, result))
@@ -153,13 +153,13 @@ impl Env {
 
     // Instance Methods
 
-    pub unsafe fn call_object_method_a<'env, T: AsValidJObjectAndEnv>(&'env self, this: jobject, method: jmethodID, args: *const jvalue) -> Result<Option<Local<'env, T>>> {
+    pub unsafe fn call_object_method_a<'env, R: AsValidJObjectAndEnv, E: ThrowableType>(&'env self, this: jobject, method: jmethodID, args: *const jvalue) -> Result<Option<Local<'env, R>>, Local<'env, E>> {
         let env = &self.0 as *const JNIEnv as *mut JNIEnv;
         let result = (**env).CallObjectMethodA.unwrap()(env, this, method, args);
         let exception = (**env).ExceptionOccurred.unwrap()(env);
         if !exception.is_null() {
             (**env).ExceptionClear.unwrap()(env);
-            Err(exception)
+            Err(Local::from_env_object(env, exception))
         } else if result.is_null() {
             Ok(None)
         } else {
@@ -167,109 +167,109 @@ impl Env {
         }
     }
 
-    pub unsafe fn call_boolean_method_a(&self, this: jobject, method: jmethodID, args: *const jvalue) -> Result<bool> {
+    pub unsafe fn call_boolean_method_a<'env, E: ThrowableType>(&self, this: jobject, method: jmethodID, args: *const jvalue) -> Result<bool, Local<'env, E>> {
         let env = &self.0 as *const JNIEnv as *mut JNIEnv;
         let result = (**env).CallBooleanMethodA.unwrap()(env, this, method, args);
         let exception = (**env).ExceptionOccurred.unwrap()(env);
         if !exception.is_null() {
             (**env).ExceptionClear.unwrap()(env);
-            Err(exception)
+            Err(Local::from_env_object(env, exception))
         } else {
             Ok(result != JNI_FALSE)
         }
     }
 
-    pub unsafe fn call_byte_method_a(&self, this: jobject, method: jmethodID, args: *const jvalue) -> Result<jbyte> {
+    pub unsafe fn call_byte_method_a<'env, E: ThrowableType>(&self, this: jobject, method: jmethodID, args: *const jvalue) -> Result<jbyte, Local<'env, E>> {
         let env = &self.0 as *const JNIEnv as *mut JNIEnv;
         let result = (**env).CallByteMethodA.unwrap()(env, this, method, args);
         let exception = (**env).ExceptionOccurred.unwrap()(env);
         if !exception.is_null() {
             (**env).ExceptionClear.unwrap()(env);
-            Err(exception)
+            Err(Local::from_env_object(env, exception))
         } else {
             Ok(result)
         }
     }
 
-    pub unsafe fn call_char_method_a(&self, this: jobject, method: jmethodID, args: *const jvalue) -> Result<jchar> {
+    pub unsafe fn call_char_method_a<'env, E: ThrowableType>(&self, this: jobject, method: jmethodID, args: *const jvalue) -> Result<jchar, Local<'env, E>> {
         let env = &self.0 as *const JNIEnv as *mut JNIEnv;
         let result = (**env).CallCharMethodA.unwrap()(env, this, method, args);
         let exception = (**env).ExceptionOccurred.unwrap()(env);
         if !exception.is_null() {
             (**env).ExceptionClear.unwrap()(env);
-            Err(exception)
+            Err(Local::from_env_object(env, exception))
         } else {
             Ok(jchar(result))
         }
     }
 
-    pub unsafe fn call_short_method_a(&self, this: jobject, method: jmethodID, args: *const jvalue) -> Result<jshort> {
+    pub unsafe fn call_short_method_a<'env, E: ThrowableType>(&self, this: jobject, method: jmethodID, args: *const jvalue) -> Result<jshort, Local<'env, E>> {
         let env = &self.0 as *const JNIEnv as *mut JNIEnv;
         let result = (**env).CallShortMethodA.unwrap()(env, this, method, args);
         let exception = (**env).ExceptionOccurred.unwrap()(env);
         if !exception.is_null() {
             (**env).ExceptionClear.unwrap()(env);
-            Err(exception)
+            Err(Local::from_env_object(env, exception))
         } else {
             Ok(result)
         }
     }
 
-    pub unsafe fn call_int_method_a(&self, this: jobject, method: jmethodID, args: *const jvalue) -> Result<jint> {
+    pub unsafe fn call_int_method_a<'env, E: ThrowableType>(&self, this: jobject, method: jmethodID, args: *const jvalue) -> Result<jint, Local<'env, E>> {
         let env = &self.0 as *const JNIEnv as *mut JNIEnv;
         let result = (**env).CallIntMethodA.unwrap()(env, this, method, args);
         let exception = (**env).ExceptionOccurred.unwrap()(env);
         if !exception.is_null() {
             (**env).ExceptionClear.unwrap()(env);
-            Err(exception)
+            Err(Local::from_env_object(env, exception))
         } else {
             Ok(result)
         }
     }
 
-    pub unsafe fn call_long_method_a(&self, this: jobject, method: jmethodID, args: *const jvalue) -> Result<jlong> {
+    pub unsafe fn call_long_method_a<'env, E: ThrowableType>(&self, this: jobject, method: jmethodID, args: *const jvalue) -> Result<jlong, Local<'env, E>> {
         let env = &self.0 as *const JNIEnv as *mut JNIEnv;
         let result = (**env).CallLongMethodA.unwrap()(env, this, method, args);
         let exception = (**env).ExceptionOccurred.unwrap()(env);
         if !exception.is_null() {
             (**env).ExceptionClear.unwrap()(env);
-            Err(exception)
+            Err(Local::from_env_object(env, exception))
         } else {
             Ok(result)
         }
     }
 
-    pub unsafe fn call_float_method_a(&self, this: jobject, method: jmethodID, args: *const jvalue) -> Result<jfloat> {
+    pub unsafe fn call_float_method_a<'env, E: ThrowableType>(&self, this: jobject, method: jmethodID, args: *const jvalue) -> Result<jfloat, Local<'env, E>> {
         let env = &self.0 as *const JNIEnv as *mut JNIEnv;
         let result = (**env).CallFloatMethodA.unwrap()(env, this, method, args);
         let exception = (**env).ExceptionOccurred.unwrap()(env);
         if !exception.is_null() {
             (**env).ExceptionClear.unwrap()(env);
-            Err(exception)
+            Err(Local::from_env_object(env, exception))
         } else {
             Ok(result)
         }
     }
 
-    pub unsafe fn call_double_method_a(&self, this: jobject, method: jmethodID, args: *const jvalue) -> Result<jdouble> {
+    pub unsafe fn call_double_method_a<'env, E: ThrowableType>(&self, this: jobject, method: jmethodID, args: *const jvalue) -> Result<jdouble, Local<'env, E>> {
         let env = &self.0 as *const JNIEnv as *mut JNIEnv;
         let result = (**env).CallDoubleMethodA.unwrap()(env, this, method, args);
         let exception = (**env).ExceptionOccurred.unwrap()(env);
         if !exception.is_null() {
             (**env).ExceptionClear.unwrap()(env);
-            Err(exception)
+            Err(Local::from_env_object(env, exception))
         } else {
             Ok(result)
         }
     }
 
-    pub unsafe fn call_void_method_a(&self, this: jobject, method: jmethodID, args: *const jvalue) -> Result<()> {
+    pub unsafe fn call_void_method_a<'env, E: ThrowableType>(&self, this: jobject, method: jmethodID, args: *const jvalue) -> Result<(), Local<'env, E>> {
         let env = &self.0 as *const JNIEnv as *mut JNIEnv;
         let result = (**env).CallVoidMethodA.unwrap()(env, this, method, args);
         let exception = (**env).ExceptionOccurred.unwrap()(env);
         if !exception.is_null() {
             (**env).ExceptionClear.unwrap()(env);
-            Err(exception)
+            Err(Local::from_env_object(env, exception))
         } else {
             Ok(result)
         }
@@ -277,13 +277,13 @@ impl Env {
 
     // Static Methods
 
-    pub unsafe fn call_static_object_method_a<'env, T: AsValidJObjectAndEnv>(&'env self, class: jclass, method: jmethodID, args: *const jvalue) -> Result<Option<Local<'env, T>>> {
+    pub unsafe fn call_static_object_method_a<'env, R: AsValidJObjectAndEnv, E: ThrowableType>(&'env self, class: jclass, method: jmethodID, args: *const jvalue) -> Result<Option<Local<'env, R>>, Local<'env, E>> {
         let env = &self.0 as *const JNIEnv as *mut JNIEnv;
         let result = (**env).CallStaticObjectMethodA.unwrap()(env, class, method, args);
         let exception = (**env).ExceptionOccurred.unwrap()(env);
         if !exception.is_null() {
             (**env).ExceptionClear.unwrap()(env);
-            Err(exception)
+            Err(Local::from_env_object(env, exception))
         } else if result.is_null() {
             Ok(None)
         } else {
@@ -291,109 +291,109 @@ impl Env {
         }
     }
 
-    pub unsafe fn call_static_boolean_method_a(&self, class: jclass, method: jmethodID, args: *const jvalue) -> Result<bool> {
+    pub unsafe fn call_static_boolean_method_a<'env, E: ThrowableType>(&self, class: jclass, method: jmethodID, args: *const jvalue) -> Result<bool, Local<'env, E>> {
         let env = &self.0 as *const JNIEnv as *mut JNIEnv;
         let result = (**env).CallStaticBooleanMethodA.unwrap()(env, class, method, args);
         let exception = (**env).ExceptionOccurred.unwrap()(env);
         if !exception.is_null() {
             (**env).ExceptionClear.unwrap()(env);
-            Err(exception)
+            Err(Local::from_env_object(env, exception))
         } else {
             Ok(result != JNI_FALSE)
         }
     }
 
-    pub unsafe fn call_static_byte_method_a(&self, class: jclass, method: jmethodID, args: *const jvalue) -> Result<jbyte> {
+    pub unsafe fn call_static_byte_method_a<'env, E: ThrowableType>(&self, class: jclass, method: jmethodID, args: *const jvalue) -> Result<jbyte, Local<'env, E>> {
         let env = &self.0 as *const JNIEnv as *mut JNIEnv;
         let result = (**env).CallStaticByteMethodA.unwrap()(env, class, method, args);
         let exception = (**env).ExceptionOccurred.unwrap()(env);
         if !exception.is_null() {
             (**env).ExceptionClear.unwrap()(env);
-            Err(exception)
+            Err(Local::from_env_object(env, exception))
         } else {
             Ok(result)
         }
     }
 
-    pub unsafe fn call_static_char_method_a(&self, class: jclass, method: jmethodID, args: *const jvalue) -> Result<jchar> {
+    pub unsafe fn call_static_char_method_a<'env, E: ThrowableType>(&self, class: jclass, method: jmethodID, args: *const jvalue) -> Result<jchar, Local<'env, E>> {
         let env = &self.0 as *const JNIEnv as *mut JNIEnv;
         let result = (**env).CallStaticCharMethodA.unwrap()(env, class, method, args);
         let exception = (**env).ExceptionOccurred.unwrap()(env);
         if !exception.is_null() {
             (**env).ExceptionClear.unwrap()(env);
-            Err(exception)
+            Err(Local::from_env_object(env, exception))
         } else {
             Ok(jchar(result))
         }
     }
 
-    pub unsafe fn call_static_short_method_a(&self, class: jclass, method: jmethodID, args: *const jvalue) -> Result<jshort> {
+    pub unsafe fn call_static_short_method_a<'env, E: ThrowableType>(&self, class: jclass, method: jmethodID, args: *const jvalue) -> Result<jshort, Local<'env, E>> {
         let env = &self.0 as *const JNIEnv as *mut JNIEnv;
         let result = (**env).CallStaticShortMethodA.unwrap()(env, class, method, args);
         let exception = (**env).ExceptionOccurred.unwrap()(env);
         if !exception.is_null() {
             (**env).ExceptionClear.unwrap()(env);
-            Err(exception)
+            Err(Local::from_env_object(env, exception))
         } else {
             Ok(result)
         }
     }
 
-    pub unsafe fn call_static_int_method_a(&self, class: jclass, method: jmethodID, args: *const jvalue) -> Result<jint> {
+    pub unsafe fn call_static_int_method_a<'env, E: ThrowableType>(&self, class: jclass, method: jmethodID, args: *const jvalue) -> Result<jint, Local<'env, E>> {
         let env = &self.0 as *const JNIEnv as *mut JNIEnv;
         let result = (**env).CallStaticIntMethodA.unwrap()(env, class, method, args);
         let exception = (**env).ExceptionOccurred.unwrap()(env);
         if !exception.is_null() {
             (**env).ExceptionClear.unwrap()(env);
-            Err(exception)
+            Err(Local::from_env_object(env, exception))
         } else {
             Ok(result)
         }
     }
 
-    pub unsafe fn call_static_long_method_a(&self, class: jclass, method: jmethodID, args: *const jvalue) -> Result<jlong> {
+    pub unsafe fn call_static_long_method_a<'env, E: ThrowableType>(&self, class: jclass, method: jmethodID, args: *const jvalue) -> Result<jlong, Local<'env, E>> {
         let env = &self.0 as *const JNIEnv as *mut JNIEnv;
         let result = (**env).CallStaticLongMethodA.unwrap()(env, class, method, args);
         let exception = (**env).ExceptionOccurred.unwrap()(env);
         if !exception.is_null() {
             (**env).ExceptionClear.unwrap()(env);
-            Err(exception)
+            Err(Local::from_env_object(env, exception))
         } else {
             Ok(result)
         }
     }
 
-    pub unsafe fn call_static_float_method_a(&self, class: jclass, method: jmethodID, args: *const jvalue) -> Result<jfloat> {
+    pub unsafe fn call_static_float_method_a<'env, E: ThrowableType>(&self, class: jclass, method: jmethodID, args: *const jvalue) -> Result<jfloat, Local<'env, E>> {
         let env = &self.0 as *const JNIEnv as *mut JNIEnv;
         let result = (**env).CallStaticFloatMethodA.unwrap()(env, class, method, args);
         let exception = (**env).ExceptionOccurred.unwrap()(env);
         if !exception.is_null() {
             (**env).ExceptionClear.unwrap()(env);
-            Err(exception)
+            Err(Local::from_env_object(env, exception))
         } else {
             Ok(result)
         }
     }
 
-    pub unsafe fn call_static_double_method_a(&self, class: jclass, method: jmethodID, args: *const jvalue) -> Result<jdouble> {
+    pub unsafe fn call_static_double_method_a<'env, E: ThrowableType>(&self, class: jclass, method: jmethodID, args: *const jvalue) -> Result<jdouble, Local<'env, E>> {
         let env = &self.0 as *const JNIEnv as *mut JNIEnv;
         let result = (**env).CallStaticDoubleMethodA.unwrap()(env, class, method, args);
         let exception = (**env).ExceptionOccurred.unwrap()(env);
         if !exception.is_null() {
             (**env).ExceptionClear.unwrap()(env);
-            Err(exception)
+            Err(Local::from_env_object(env, exception))
         } else {
             Ok(result)
         }
     }
 
-    pub unsafe fn call_static_void_method_a(&self, class: jclass, method: jmethodID, args: *const jvalue) -> Result<()> {
+    pub unsafe fn call_static_void_method_a<'env, E: ThrowableType>(&self, class: jclass, method: jmethodID, args: *const jvalue) -> Result<(), Local<'env, E>> {
         let env = &self.0 as *const JNIEnv as *mut JNIEnv;
         let result = (**env).CallStaticVoidMethodA.unwrap()(env, class, method, args);
         let exception = (**env).ExceptionOccurred.unwrap()(env);
         if !exception.is_null() {
             (**env).ExceptionClear.unwrap()(env);
-            Err(exception)
+            Err(Local::from_env_object(env, exception))
         } else {
             Ok(result)
         }
@@ -401,7 +401,7 @@ impl Env {
 
     // Instance Fields
 
-    pub unsafe fn get_object_field<'env, T: AsValidJObjectAndEnv>(&'env self, this: jobject, field: jfieldID) -> Option<Local<'env, T>> {
+    pub unsafe fn get_object_field<'env, R: AsValidJObjectAndEnv>(&'env self, this: jobject, field: jfieldID) -> Option<Local<'env, R>> {
         let env = &self.0 as *const JNIEnv as *mut JNIEnv;
         let result = (**env).GetObjectField.unwrap()(env, this, field);
         if result.is_null() {
@@ -459,7 +459,7 @@ impl Env {
         result
     }
 
-    pub unsafe fn set_object_field<'env, 'obj, T: 'obj + AsValidJObjectAndEnv>(&'env self, this: jobject, field: jfieldID, value: impl Into<Option<&'obj T>>) {
+    pub unsafe fn set_object_field<'env, 'obj, R: 'obj + AsValidJObjectAndEnv>(&'env self, this: jobject, field: jfieldID, value: impl Into<Option<&'obj R>>) {
         let value = value.into().map(|v| AsJValue::as_jvalue(v.into()).l).unwrap_or(null_mut());
         let env = &self.0 as *const JNIEnv as *mut JNIEnv;
         (**env).SetObjectField.unwrap()(env, this, field, value);
@@ -507,7 +507,7 @@ impl Env {
 
     // Static Fields
 
-    pub unsafe fn get_static_object_field<'env, T: AsValidJObjectAndEnv>(&'env self, class: jclass, field: jfieldID) -> Option<Local<'env, T>> {
+    pub unsafe fn get_static_object_field<'env, R: AsValidJObjectAndEnv>(&'env self, class: jclass, field: jfieldID) -> Option<Local<'env, R>> {
         let env = &self.0 as *const JNIEnv as *mut JNIEnv;
         let result = (**env).GetStaticObjectField.unwrap()(env, class, field);
         if result.is_null() {
@@ -565,7 +565,7 @@ impl Env {
         result
     }
 
-    pub unsafe fn set_static_object_field<'env, 'obj, T: 'obj + AsValidJObjectAndEnv>(&'env self, class: jclass, field: jfieldID, value: impl Into<Option<&'obj T>>) {
+    pub unsafe fn set_static_object_field<'env, 'obj, R: 'obj + AsValidJObjectAndEnv>(&'env self, class: jclass, field: jfieldID, value: impl Into<Option<&'obj R>>) {
         let value = value.into().map(|v| AsJValue::as_jvalue(v.into()).l).unwrap_or(null_mut());
         let env = &self.0 as *const JNIEnv as *mut JNIEnv;
         (**env).SetStaticObjectField.unwrap()(env, class, field, value);

@@ -46,6 +46,7 @@ impl Default for CodeShardingStyle {
     fn default() -> Self { CodeShardingStyle::PerClass }
 }
 
+fn default_throwable_type() -> String { "jni_android_sys::java::lang::Throwable".to_owned() }
 fn default_true() -> bool { true }
 fn default_method_naming_style() -> MethodManglingStyle { MethodManglingStyle::Rustify }
 fn default_method_naming_style_collision() -> MethodManglingStyle { MethodManglingStyle::RustifyShortSignature }
@@ -68,6 +69,9 @@ pub struct CodeGen {
     #[serde(default = "Default::default")]
     pub field_naming_style: FieldManglingStyle,
 
+    #[serde(default = "default_throwable_type")]
+    pub throwable_type: String,
+
     #[serde(default = "default_true")]
     pub shard_structs: bool,
 
@@ -82,6 +86,7 @@ impl Default for CodeGen {
             method_naming_style:            default_method_naming_style(),
             method_naming_style_collision:  default_method_naming_style_collision(),
             field_naming_style:             Default::default(),
+            throwable_type:                 default_throwable_type(),
             shard_structs:                  true,
             feature_per_struct:             true,
         }

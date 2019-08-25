@@ -36,3 +36,9 @@ cfg_if! {if #[cfg(any(target_os = "android", feature = "force-define"))] {
         else if #[cfg(feature = "api-level-1" )] { include!("generated/api-level-1.rs" ); }
     }
 }}
+
+#[cfg(any(target_os = "android", feature = "force-define"))] mod extras {
+    use jni_glue::*;
+
+    impl ThrowableType for crate::java::lang::Throwable {}
+}

@@ -12,6 +12,7 @@ files = ["%LOCALAPPDATA%/Android/Sdk/platforms/android-28/android.jar"] # NOTE: 
 path = "src/generated/api-level-28.rs" # NOTE:  Overridden by build.rs
 
 [codegen]
+throwable_type                  = "crate::java::lang::Throwable"
 method_naming_style             = "java"
 method_naming_style_collision   = "java_short_signature" # collisions in short signatures manually resolved bellow
 

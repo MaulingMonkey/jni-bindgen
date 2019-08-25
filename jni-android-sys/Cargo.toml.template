@@ -22,7 +22,9 @@ jni-glue    = { version = "=0.0.8", path = "../jni-glue" }
 jni-bindgen = { version = "=0.0.8", path = "../jni-bindgen" }
 
 [features]
-default         = []
+default         = [
+    "java-lang-Throwable", # All the Result<>s in this crate won't compile without this.  TODO:  force / make a non-feature?
+]
 force-define    = [] # By default, the JNI APIs are only compiled against android targets, but this will force them to be defined on windows, linux, OS X, etc. for documentation purpouses.
 nightly         = [] # Nightly-only features.
 

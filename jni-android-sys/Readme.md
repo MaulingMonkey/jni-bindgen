@@ -55,8 +55,8 @@ use jni_android_sys::android::view::KeyEvent;
     // Ok(None) = Java object is null.
     // Ok(Some(...)) = Real java object!
     if let Some(key_event) = key_event {
-        let is_enter = key_event.getKeyCode() == Ok(KeyEvent::KEYCODE_ENTER);
-        let is_down  = key_event.getAction() == Ok(KeyEvent::ACTION_DOWN);
+        let is_enter = if let Ok(r) = key_event.getKeyCode() { r == KeyEvent::KEYCODE_ENTER } else { false };
+        let is_down  = if let Ok(r) = key_event.getAction()  { r == KeyEvent::ACTION_DOWN   } else { false };
         if is_enter && is_down {
             println!("ENTER pressed"); // Not that you can see this...
         }

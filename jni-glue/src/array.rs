@@ -237,7 +237,7 @@ impl<T: AsValidJObjectAndEnv> ObjectArray<T> {
     }
 
     /// XXX: Expose this via std::ops::Index
-    pub fn get<'env>(&'env self, index: usize) -> Result<Option<Local<'env, T>>> {
+    pub fn get<'env, E: ThrowableType>(&'env self, index: usize) -> Result<Option<Local<'env, T>>, Local<'env, E>> {
         assert!(index <= std::i32::MAX as usize); // jsize == jint == i32 XXX: Should maybe be treated as an exception?
         let index   = index as jsize;
         let env     = self.0.env as *mut JNIEnv;
@@ -247,7 +247,7 @@ impl<T: AsValidJObjectAndEnv> ObjectArray<T> {
             let exception = (**env).ExceptionOccurred.unwrap()(env);
             if !exception.is_null() {
                 (**env).ExceptionClear.unwrap()(env);
-                Err(exception)
+                Err(Local::from_env_object(env, exception))
             } else if result.is_null() {
                 Ok(None)
             } else {
@@ -257,7 +257,7 @@ impl<T: AsValidJObjectAndEnv> ObjectArray<T> {
     }
 
     /// XXX: I don't think there's a way to expose this via std::ops::IndexMut sadly?
-    pub fn set<'a>(&'a self, index: usize, value: impl Into<Option<&'a T>>) -> Result<()> {
+    pub fn set<'env, E: ThrowableType>(&'env self, index: usize, value: impl Into<Option<&'env T>>) -> Result<(), Local<'env, E>> {
         assert!(index <= std::i32::MAX as usize); // jsize == jint == i32 XXX: Should maybe be treated as an exception?
         let value   = value.into().map(|v| unsafe { AsJValue::as_jvalue(v.into()).l }).unwrap_or(null_mut());
         let index   = index as jsize;
@@ -268,7 +268,7 @@ impl<T: AsValidJObjectAndEnv> ObjectArray<T> {
             let exception = (**env).ExceptionOccurred.unwrap()(env);
             if !exception.is_null() {
                 (**env).ExceptionClear.unwrap()(env);
-                Err(exception)
+                Err(Local::from_env_object(env, exception))
             } else {
                 Ok(())
             }
