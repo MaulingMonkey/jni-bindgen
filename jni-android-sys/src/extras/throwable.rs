@@ -19,13 +19,15 @@ impl Debug for java::lang::Throwable {
 
         #[cfg(any(feature = "all", feature = "java-lang-String"))] {
             match self.getMessage() {
-                Ok(message) =>  writeln!(f, "    getMessage:            {:?}", message)?,
-                Err(_) =>       writeln!(f, "    getMessage:            N/A (threw an exception!)")?,
+                Ok(Some(message))   => writeln!(f, "    getMessage:            {:?}", message)?,
+                Ok(None)            => writeln!(f, "    getMessage:            N/A (returned null)")?,
+                Err(_)              => writeln!(f, "    getMessage:            N/A (threw an exception!)")?,
             }
 
             match self.getLocalizedMessage() {
-                Ok(message) =>  writeln!(f, "    getLocalizedMessage:   {:?}", message)?,
-                Err(_) =>       writeln!(f, "    getLocalizedMessage:   N/A (threw an exception!)")?,
+                Ok(Some(message))   => writeln!(f, "    getLocalizedMessage:   {:?}", message)?,
+                Ok(None)            => writeln!(f, "    getLocalizedMessage:   N/A (returned null)")?,
+                Err(_)              => writeln!(f, "    getLocalizedMessage:   N/A (threw an exception!)")?,
             }
 
             #[cfg(not(any(feature = "all", feature = "java-lang-StackTraceElement")))] {
@@ -43,9 +45,9 @@ impl Debug for java::lang::Throwable {
                                 None => writeln!(f, "        N/A (frame was null)")?,
                                 Some(frame) => {
                                     let file_line = match (frame.getFileName(), frame.getLineNumber()) {
-                                        (Ok(Some(file)), Ok(line))    => format!("{}({}):", file.to_string_lossy(), line),
-                                        (Ok(Some(file)), _)           => format!("{}:", file.to_string_lossy()),
-                                        (_, _)                  => "N/A (getFileName threw an exception or returned null)".to_owned(),
+                                        (Ok(Some(file)), Ok(line))  => format!("{}({}):", file.to_string_lossy(), line),
+                                        (Ok(Some(file)), _)         => format!("{}:", file.to_string_lossy()),
+                                        (_, _)                      => "N/A (getFileName threw an exception or returned null)".to_owned(),
                                     };
 
                                     let class_method = match (frame.getClassName(), frame.getMethodName()) {
