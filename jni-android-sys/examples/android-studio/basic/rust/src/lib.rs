@@ -14,8 +14,8 @@ use android::view::KeyEvent;
 
     if let Some(key_event) = key_event {
         // Err = Java exception was thrown.
-        let is_enter = if let Ok(r) = key_event.getKeyCode() { r == KeyEvent::KEYCODE_ENTER } else { false };
-        let is_down  = if let Ok(r) = key_event.getAction()  { r == KeyEvent::ACTION_DOWN   } else { false };
+        let is_enter = key_event.getKeyCode().unwrap() == KeyEvent::KEYCODE_ENTER;
+        let is_down  = key_event.getAction().unwrap()  == KeyEvent::ACTION_DOWN;
         if is_enter && is_down {
             println!("ENTER pressed"); // Not that you can see this...
         }

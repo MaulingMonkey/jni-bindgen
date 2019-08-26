@@ -186,23 +186,23 @@ primitive_array! { #[repr(transparent)] pub struct DoubleArray  = "[D\0", jdoubl
 /// [PrimitiveArray]:   struct.PrimitiveArray.html
 /// 
 #[repr(transparent)]
-pub struct ObjectArray<T: AsValidJObjectAndEnv>(ObjectAndEnv, PhantomData<T>);
+pub struct ObjectArray<T: AsValidJObjectAndEnv, E: ThrowableType>(ObjectAndEnv, PhantomData<(T,E)>);
 
-unsafe impl<T: AsValidJObjectAndEnv> AsValidJObjectAndEnv for ObjectArray<T> {}
+unsafe impl<T: AsValidJObjectAndEnv, E: ThrowableType> AsValidJObjectAndEnv for ObjectArray<T, E> {}
 
-unsafe impl<T: AsValidJObjectAndEnv> JniType for ObjectArray<T> {
+unsafe impl<T: AsValidJObjectAndEnv, E: ThrowableType> JniType for ObjectArray<T, E> {
     fn static_with_jni_type<R>(callback: impl FnOnce(&str) -> R) -> R {
         T::static_with_jni_type(|inner| callback(format!("[{}", inner).as_str()))
     }
 }
 
-unsafe impl<T: AsValidJObjectAndEnv> AsJValue for ObjectArray<T> {
+unsafe impl<T: AsValidJObjectAndEnv, E: ThrowableType> AsJValue for ObjectArray<T, E> {
     fn as_jvalue(&self) -> jni_sys::jvalue {
         jni_sys::jvalue { l: self.0.object }
     }
 }
 
-impl<T: AsValidJObjectAndEnv> ObjectArray<T> {
+impl<T: AsValidJObjectAndEnv, E: ThrowableType> ObjectArray<T, E> {
     pub fn new<'env>(env: &'env Env, size: usize) -> Local<'env, Self> {
         assert!(size <= std::i32::MAX as usize); // jsize == jint == i32
         let class = Self::static_with_jni_type(|t| unsafe { env.require_class(t) });
@@ -214,6 +214,14 @@ impl<T: AsValidJObjectAndEnv> ObjectArray<T> {
             let exception = (**env).ExceptionOccurred.unwrap()(env);
             assert!(exception.is_null()); // Only sane exception here is an OOM exception
             Local::from_env_object(env, object)
+        }
+    }
+
+    pub fn iter<'env>(&'env self) -> ObjectArrayIter<'env, T, E> {
+        ObjectArrayIter {
+            array:  self,
+            index:  0,
+            length: self.len(),
         }
     }
 
@@ -237,7 +245,7 @@ impl<T: AsValidJObjectAndEnv> ObjectArray<T> {
     }
 
     /// XXX: Expose this via std::ops::Index
-    pub fn get<'env, E: ThrowableType>(&'env self, index: usize) -> Result<Option<Local<'env, T>>, Local<'env, E>> {
+    pub fn get<'env>(&'env self, index: usize) -> Result<Option<Local<'env, T>>, Local<'env, E>> {
         assert!(index <= std::i32::MAX as usize); // jsize == jint == i32 XXX: Should maybe be treated as an exception?
         let index   = index as jsize;
         let env     = self.0.env as *mut JNIEnv;
@@ -257,7 +265,7 @@ impl<T: AsValidJObjectAndEnv> ObjectArray<T> {
     }
 
     /// XXX: I don't think there's a way to expose this via std::ops::IndexMut sadly?
-    pub fn set<'env, E: ThrowableType>(&'env self, index: usize, value: impl Into<Option<&'env T>>) -> Result<(), Local<'env, E>> {
+    pub fn set<'env>(&'env self, index: usize, value: impl Into<Option<&'env T>>) -> Result<(), Local<'env, E>> {
         assert!(index <= std::i32::MAX as usize); // jsize == jint == i32 XXX: Should maybe be treated as an exception?
         let value   = value.into().map(|v| unsafe { AsJValue::as_jvalue(v.into()).l }).unwrap_or(null_mut());
         let index   = index as jsize;
@@ -272,6 +280,27 @@ impl<T: AsValidJObjectAndEnv> ObjectArray<T> {
             } else {
                 Ok(())
             }
+        }
+    }
+}
+
+
+
+pub struct ObjectArrayIter<'env, T: AsValidJObjectAndEnv, E: ThrowableType> {
+    array:  &'env ObjectArray<T, E>,
+    index:  usize,
+    length: usize,
+}
+
+impl<'env, T: AsValidJObjectAndEnv, E: ThrowableType> Iterator for ObjectArrayIter<'env, T, E> {
+    type Item = Option<Local<'env, T>>;
+    fn next(&mut self) -> Option<Self::Item> {
+        let index = self.index;
+        if index < self.length {
+            self.index = index + 1;
+            Some(self.array.get(index).unwrap_or(None))
+        } else {
+            None
         }
     }
 }

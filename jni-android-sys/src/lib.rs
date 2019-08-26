@@ -38,7 +38,8 @@ cfg_if! {if #[cfg(any(target_os = "android", feature = "force-define"))] {
 }}
 
 #[cfg(any(target_os = "android", feature = "force-define"))] mod extras {
-    use jni_glue::*;
+    use super::*;
 
-    impl ThrowableType for crate::java::lang::Throwable {}
+    mod strings;
+    mod throwable;
 }

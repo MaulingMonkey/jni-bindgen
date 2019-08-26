@@ -1,5 +1,5 @@
 use super::*;
-
+use std::fmt::{self, Debug, Display, Formatter};
 
 
 /// A [Local](https://www.ibm.com/support/knowledgecenter/en/SSYKE2_8.0.0/com.ibm.java.vm.80.doc/docs/jni_refs.html),
@@ -70,5 +70,18 @@ impl<'env, Class: AsValidJObjectAndEnv> Drop for Local<'env, Class> {
     fn drop(&mut self) {
         let env = self.oae.env as *mut JNIEnv;
         unsafe { (**env).DeleteLocalRef.unwrap()(env, self.oae.object); }
+    }
+}
+
+impl<'env, Class: AsValidJObjectAndEnv + Debug> Debug for Local<'env, Class> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        (**self).fmt(f)
+    }
+}
+
+
+impl<'env, Class: AsValidJObjectAndEnv + Display> Display for Local<'env, Class> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        (**self).fmt(f)
     }
 }

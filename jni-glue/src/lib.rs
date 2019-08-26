@@ -47,6 +47,7 @@ mod gen_vm;
 mod jchar_;
 mod jni_type;
 mod object_and_env;
+mod string_chars;
 mod throwable_type;
 mod vm;
 
@@ -59,6 +60,7 @@ pub use jchar_::{jchar, *};
 pub use jni_type::JniType;
 pub use object_and_env::*;
 pub use refs::*;
+pub use string_chars::*;
 pub use throwable_type::*;
 pub use vm::*;
 

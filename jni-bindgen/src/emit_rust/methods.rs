@@ -148,6 +148,8 @@ impl<'a> Method<'a> {
                                     buffer.push_str("???");
                                 }
                             }
+                            buffer.push_str(", ");
+                            buffer.push_str(context.config.codegen.throwable_type.as_str());
                             buffer.push_str(">");
                         },
                         method::BasicType::Void => {
@@ -155,8 +157,10 @@ impl<'a> Method<'a> {
                             buffer.push_str("[()]");
                         },
                     }
-                    for _ in 0..(levels-1) {
-                        buffer.push_str(">"); // ObjectArray s
+                    for _ in 0..(levels-1) { // ObjectArray s
+                        buffer.push_str(", ");
+                        buffer.push_str(context.config.codegen.throwable_type.as_str());
+                        buffer.push_str(">");
                     }
                     buffer.push_str(">>"); // Option, Into
 
@@ -240,6 +244,8 @@ impl<'a> Method<'a> {
                                 buffer.push_str("???");
                             }
                         }
+                        buffer.push_str(", ");
+                        buffer.push_str(context.config.codegen.throwable_type.as_str());
                         buffer.push_str(">");
                     },
                     method::BasicType::Void => {
@@ -247,8 +253,10 @@ impl<'a> Method<'a> {
                         buffer.push_str("[()]");
                     },
                 }
-                for _ in 0..(levels-1) {
-                    buffer.push_str(">"); // ObjectArray s
+                for _ in 0..(levels-1) { // ObjectArray s
+                    buffer.push_str(", ");
+                    buffer.push_str(context.config.codegen.throwable_type.as_str());
+                    buffer.push_str(">");
                 }
                 buffer.push_str(">>"); // Local, Option
                 buffer

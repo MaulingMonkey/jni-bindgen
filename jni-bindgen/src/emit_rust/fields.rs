@@ -96,6 +96,8 @@ impl<'a> Field<'a> {
                                 buffer.push_str("???");
                             }
                         }
+                        buffer.push_str(", ");
+                        buffer.push_str(context.config.codegen.throwable_type.as_str());
                         buffer.push_str(">");
                     },
                     field::BasicType::Void => {
@@ -103,8 +105,10 @@ impl<'a> Field<'a> {
                         buffer.push_str("[()]");
                     },
                 }
-                for _ in 0..(levels-1) {
-                    buffer.push_str(">"); // ObjectArray s
+                for _ in 0..(levels-1) { // ObjectArray s
+                    buffer.push_str(", ");
+                    buffer.push_str(context.config.codegen.throwable_type.as_str());
+                    buffer.push_str(">");
                 }
 
                 rust_set_type_buffer = format!("impl __jni_bindgen::std::convert::Into<__jni_bindgen::std::option::Option<&'obj {}>>", &buffer);

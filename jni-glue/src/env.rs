@@ -64,6 +64,23 @@ impl Env {
         VMS.read().unwrap().get_gen_vm(vm)
     }
 
+    // String methods
+
+    pub unsafe fn get_string_length(&self, string: jstring) -> jsize {
+        let env = &self.0 as *const JNIEnv as *mut JNIEnv;
+        (**env).GetStringLength.unwrap()(env, string)
+    }
+
+    pub unsafe fn get_string_chars(&self, string: jstring) -> *const jchar {
+        let env = &self.0 as *const JNIEnv as *mut JNIEnv;
+        (**env).GetStringChars.unwrap()(env, string, null_mut()) as *const _
+    }
+
+    pub unsafe fn release_string_chars(&self, string: jstring, chars: *const jchar) {
+        let env = &self.0 as *const JNIEnv as *mut JNIEnv;
+        (**env).ReleaseStringChars.unwrap()(env, string, chars as *const _)
+    }
+
     // Query Methods
 
     pub unsafe fn require_class(&self, class: &str) -> jclass {

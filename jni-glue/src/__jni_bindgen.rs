@@ -43,7 +43,7 @@ macro_rules! __jni_bindgen {
     };
 
     ($(#[$attr:meta])* private final class $name:ident ($jni_type:expr) extends $parent:ty $(, implements $($interface:ty),+)* { $($body:tt)* } $($rest:tt)*) => {
-        $(#[$attr])* #[repr(transparent)] struct $name($crate::ObjectAndEnv);
+        $(#[$attr])* #[repr(transparent)] struct $name(pub(crate) $crate::ObjectAndEnv);
         impl $name { $($body)* }
         unsafe impl $crate::AsValidJObjectAndEnv for $name {}
         unsafe impl $crate::AsJValue for $name { fn as_jvalue(&self) -> $crate::jni_sys::jvalue { $crate::jni_sys::jvalue { l: self.0.object } } }
@@ -56,7 +56,7 @@ macro_rules! __jni_bindgen {
     };
 
     ($(#[$attr:meta])* private class $name:ident ($jni_type:expr) extends $parent:ty $(, implements $($interface:ty),+)* { $($body:tt)* } $($rest:tt)*) => {
-        $(#[$attr])* #[repr(transparent)] struct $name($crate::ObjectAndEnv);
+        $(#[$attr])* #[repr(transparent)] struct $name(pub(crate) $crate::ObjectAndEnv);
         impl $name { $($body)* }
         unsafe impl $crate::AsValidJObjectAndEnv for $name {}
         unsafe impl $crate::AsJValue for $name { fn as_jvalue(&self) -> $crate::jni_sys::jvalue { $crate::jni_sys::jvalue { l: self.0.object } } }
@@ -69,7 +69,7 @@ macro_rules! __jni_bindgen {
     };
 
     ($(#[$attr:meta])* private enum $name:ident ($jni_type:expr) extends $parent:ty $(, implements $($interface:ty),+)* { $($body:tt)* } $($rest:tt)*) => {
-        $(#[$attr])* #[repr(transparent)] struct $name($crate::ObjectAndEnv);
+        $(#[$attr])* #[repr(transparent)] struct $name(pub(crate) $crate::ObjectAndEnv);
         impl $name { $($body)* }
         unsafe impl $crate::AsValidJObjectAndEnv for $name {}
         unsafe impl $crate::AsJValue for $name { fn as_jvalue(&self) -> $crate::jni_sys::jvalue { $crate::jni_sys::jvalue { l: self.0.object } } }
@@ -82,7 +82,7 @@ macro_rules! __jni_bindgen {
     };
 
     ($(#[$attr:meta])* private interface $name:ident ($jni_type:expr) extends $parent:ty $(, implements $($interface:ty),+)* { $($body:tt)* } $($rest:tt)*) => {
-        $(#[$attr])* #[repr(transparent)] struct $name($crate::ObjectAndEnv);
+        $(#[$attr])* #[repr(transparent)] struct $name(pub(crate) $crate::ObjectAndEnv);
         impl $name { $($body)* }
         unsafe impl $crate::AsValidJObjectAndEnv for $name {}
         unsafe impl $crate::AsJValue for $name { fn as_jvalue(&self) -> $crate::jni_sys::jvalue { $crate::jni_sys::jvalue { l: self.0.object } } }
@@ -107,7 +107,7 @@ macro_rules! __jni_bindgen {
     };
 
     ($(#[$attr:meta])* public final class $name:ident ($jni_type:expr) extends $parent:ty $(, implements $($interface:ty),+)* { $($body:tt)* } $($rest:tt)*) => {
-        $(#[$attr])* #[repr(transparent)] pub struct $name($crate::ObjectAndEnv);
+        $(#[$attr])* #[repr(transparent)] pub struct $name(pub(crate) $crate::ObjectAndEnv);
         impl $name { $($body)* }
         unsafe impl $crate::AsValidJObjectAndEnv for $name {}
         unsafe impl $crate::AsJValue for $name { fn as_jvalue(&self) -> $crate::jni_sys::jvalue { $crate::jni_sys::jvalue { l: self.0.object } } }
@@ -120,7 +120,7 @@ macro_rules! __jni_bindgen {
     };
 
     ($(#[$attr:meta])* public class $name:ident ($jni_type:expr) extends $parent:ty $(, implements $($interface:ty),+)* { $($body:tt)* } $($rest:tt)*) => {
-        $(#[$attr])* #[repr(transparent)] pub struct $name($crate::ObjectAndEnv);
+        $(#[$attr])* #[repr(transparent)] pub struct $name(pub(crate) $crate::ObjectAndEnv);
         impl $name { $($body)* }
         unsafe impl $crate::AsValidJObjectAndEnv for $name {}
         unsafe impl $crate::AsJValue for $name { fn as_jvalue(&self) -> $crate::jni_sys::jvalue { $crate::jni_sys::jvalue { l: self.0.object } } }
@@ -133,7 +133,7 @@ macro_rules! __jni_bindgen {
     };
 
     ($(#[$attr:meta])* public enum $name:ident ($jni_type:expr) extends $parent:ty $(, implements $($interface:ty),+)* { $($body:tt)* } $($rest:tt)*) => {
-        $(#[$attr])* #[repr(transparent)] pub struct $name($crate::ObjectAndEnv);
+        $(#[$attr])* #[repr(transparent)] pub struct $name(pub(crate) $crate::ObjectAndEnv);
         impl $name { $($body)* }
         unsafe impl $crate::AsValidJObjectAndEnv for $name {}
         unsafe impl $crate::AsJValue for $name { fn as_jvalue(&self) -> $crate::jni_sys::jvalue { $crate::jni_sys::jvalue { l: self.0.object } } }
@@ -146,7 +146,7 @@ macro_rules! __jni_bindgen {
     };
 
     ($(#[$attr:meta])* public interface $name:ident ($jni_type:expr) extends $parent:ty $(, implements $($interface:ty),+)* { $($body:tt)* } $($rest:tt)*) => {
-        $(#[$attr])* #[repr(transparent)] pub struct $name($crate::ObjectAndEnv);
+        $(#[$attr])* #[repr(transparent)] pub struct $name(pub(crate) $crate::ObjectAndEnv);
         impl $name { $($body)* }
         unsafe impl $crate::AsValidJObjectAndEnv for $name {}
         unsafe impl $crate::AsJValue for $name { fn as_jvalue(&self) -> $crate::jni_sys::jvalue { $crate::jni_sys::jvalue { l: self.0.object } } }
