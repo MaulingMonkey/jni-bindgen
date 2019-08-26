@@ -292,10 +292,14 @@ impl<'a> Method<'a> {
             }
         }
 
-        let indent = if !emit_reject_reasons.is_empty() {
-            format!("{}        // ", indent)
-        } else {
+        let emit_reject_reasons = emit_reject_reasons; // Freeze
+        let indent = if emit_reject_reasons.is_empty() {
             format!("{}        ", indent)
+        } else {
+            if !context.config.codegen.keep_rejected_emits {
+                return Ok(());
+            }
+            format!("{}        // ", indent)
         };
         let access = if self.java.is_public() { "pub " } else { "" };
         let attributes = format!("{}",

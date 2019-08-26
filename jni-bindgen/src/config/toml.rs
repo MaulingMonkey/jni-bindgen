@@ -66,17 +66,25 @@ pub struct CodeGen {
     #[serde(default = "default_method_naming_style_collision")]
     pub method_naming_style_collision: MethodManglingStyle,
 
+    /// How fields should be named.
     #[serde(default = "Default::default")]
     pub field_naming_style: FieldManglingStyle,
 
+    /// The rust path to "Throwable" - typically something like "jni_android_sys::java::lang::Throwable"
     #[serde(default = "default_throwable_type")]
     pub throwable_type: String,
 
+    /// Should each struct be written to its own file?
     #[serde(default = "default_true")]
     pub shard_structs: bool,
 
+    /// Should each struct get it's own #[cfg(feature = "...")] value?
     #[serde(default = "default_true")]
     pub feature_per_struct: bool,
+
+    /// Should not-emitted methods/fields still generate their code commented out?
+    #[serde(default = "default_true")]
+    pub keep_rejected_emits: bool,
 }
 
 impl Default for CodeGen {
@@ -89,6 +97,7 @@ impl Default for CodeGen {
             throwable_type:                 default_throwable_type(),
             shard_structs:                  true,
             feature_per_struct:             true,
+            keep_rejected_emits:            true,
         }
     }
 }

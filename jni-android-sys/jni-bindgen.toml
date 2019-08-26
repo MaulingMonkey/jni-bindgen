@@ -14,7 +14,8 @@ path = "src/generated/api-level-28.rs" # NOTE:  Overridden by build.rs
 [codegen]
 throwable_type                  = "crate::java::lang::Throwable"
 method_naming_style             = "java"
-method_naming_style_collision   = "java_short_signature" # collisions in short signatures manually resolved bellow
+method_naming_style_collision   = "java_short_signature"    # collisions in short signatures manually resolved bellow
+keep_rejected_emits             = false                     # reduces deduplication when new private fields/methods are added
 
 [codegen.field_naming_style]
 const_finals    = true

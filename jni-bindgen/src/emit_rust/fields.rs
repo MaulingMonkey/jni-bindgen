@@ -143,6 +143,9 @@ impl<'a> Field<'a> {
         let indent = if emit_reject_reasons.is_empty() {
             format!("{}        ", indent)
         } else {
+            if !context.config.codegen.keep_rejected_emits {
+                return Ok(());
+            }
             format!("{}        // ", indent)
         };
 
