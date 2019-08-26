@@ -20,7 +20,7 @@ Only tested against Android API level 28 so far.
 
 ```toml
 [dependencies]
-jni-android-sys = { version = "0.0.8", features = ["api-level-28", "android-view-KeyEvent"] }
+jni-android-sys = { version = "0.0.9", features = ["api-level-28", "android-view-KeyEvent"] }
 ```
 
 ### MainActivity.java
