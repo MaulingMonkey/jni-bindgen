@@ -1,6 +1,7 @@
 use super::*;
 use config::runtime::*;
 use java::*;
+use lazy_static::*;
 
 use std::collections::*;
 use std::error::Error;
@@ -29,7 +30,8 @@ pub fn run(config: impl Into<Config>) -> Result<RunResult, Box<dyn Error>> {
         println!("cargo:rerun-if-changed={}", file.display());
     }
 
-    let mut context = emit_rust::Context::new(&config);
+    lazy_static! { static ref FILE_SET : util::ConcurrentDedupeFileSet = util::ConcurrentDedupeFileSet::new(); }
+    let mut context = emit_rust::Context::new(&*FILE_SET, &config);
     for file in config.input_files.iter() {
         gather_file(&mut context, file)?;
     }
