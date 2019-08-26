@@ -77,10 +77,4 @@ impl<'a> Context<'a> {
         write_preamble(out)?;
         self.module.write(self, "", out)
     }
-
-    pub fn completed_file(&self, file: util::GeneratedFile) -> io::Result<()> {
-        // TODO:  Add options to check if the file changed instead of clobbering the old file.
-        file.clobber()?;
-        Ok(())
-    }
 }

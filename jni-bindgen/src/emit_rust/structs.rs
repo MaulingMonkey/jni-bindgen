@@ -13,7 +13,6 @@ pub(crate) struct StructPaths {
     pub mod_prefix:         String,
     pub struct_name:        String,
     pub feature_name:       String,
-    pub sharded_path:       PathBuf,
 }
 
 impl StructPaths {
@@ -22,7 +21,6 @@ impl StructPaths {
             mod_prefix:     Struct::mod_for(context, class)? + "::",
             struct_name:    Struct::name_for(context, class)?,
             feature_name:   Struct::feature_for(context, class)?,
-            sharded_path:   Struct::sharded_path_for(context, class)?,
         })
     }
 

@@ -23,12 +23,8 @@ pub struct RunResult {
 pub fn run(config: impl Into<Config>) -> Result<RunResult, Box<dyn Error>> {
     let config : Config = config.into();
     if config.logging_verbose {
-        println!("output: {}", config.output_path.display());
     }
-
-    for file in config.input_files.iter() {
-        println!("cargo:rerun-if-changed={}", file.display());
-    }
+    println!("output: {}", config.output_path.display());
 
     lazy_static! { static ref FILE_SET : util::ConcurrentDedupeFileSet = util::ConcurrentDedupeFileSet::new(); }
     let mut context = emit_rust::Context::new(&*FILE_SET, &config);
@@ -37,9 +33,10 @@ pub fn run(config: impl Into<Config>) -> Result<RunResult, Box<dyn Error>> {
     }
 
     {
-        let mut out = util::GeneratedFile::new(&context, &config.output_path).unwrap();
+        let mut out = Vec::new();
+        out.reserve(4096);
         context.write(&mut out)?;
-        context.completed_file(out)?;
+        util::write_generated(&context, &config.output_path, &out[..])?;
     }
 
     Ok(RunResult{

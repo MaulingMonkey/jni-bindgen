@@ -2,8 +2,6 @@ use bugsalot::debugger;
 
 use clap::load_yaml;
 
-use jni_bindgen::config::toml::FileWithContext;
-
 use std::fs::{File};
 use std::io::{self, BufRead, BufReader, BufWriter, Write};
 
@@ -36,9 +34,24 @@ fn main() {
 
     match subcommand {
         "generate" => {
-            let mut config_file = load_config_file(directory, api_levels.clone());
-            config_file.file.output.path = PathBuf::from(format!("src/generated/api-level-{}.rs", max_api_level));
-            let result = jni_bindgen::run(config_file).unwrap();
+            let mut config_file = jni_bindgen::config::toml::File::from_directory(directory).unwrap();
+
+            let mut result = None;
+            for api_level in api_levels.clone() {
+                let sdk_android_jar = if std::env::var_os("ANDROID_HOME").is_some() {
+                    format!("%ANDROID_HOME%/platforms/android-{}/android.jar", api_level)
+                } else if cfg!(windows) {
+                    format!("%LOCALAPPDATA%/Android/Sdk/platforms/android-{}/android.jar", api_level)
+                } else {
+                    panic!("ANDROID_HOME not defined and not automatically inferrable on this platform");
+                };
+
+                config_file.file.input.files.clear();
+                config_file.file.input.files.push(PathBuf::from(sdk_android_jar));
+                config_file.file.output.path = PathBuf::from(format!("src/generated/api-level-{}.rs", api_level));
+                result = jni_bindgen::run(config_file.clone()).ok();
+            }
+            let result = result.unwrap();
 
             if let Err(e) = generate_toml(directory, api_levels.clone(), &result) {
                 eprintln!("ERROR:  Failed to regenerate Cargo.toml:\n    {:?}", e);
@@ -56,29 +69,6 @@ fn main() {
             exit(1);
         },
     }
-}
-
-fn load_config_file(directory: &Path, api_levels: RangeInclusive<i32>) -> FileWithContext {
-    // Upversion android sdk if installed one is missing?  Or try to install with:
-    //  set ANDROID_HOME=%LOCALAPPDATA%\Android\Sdk\
-    //  set JAVA_HOME=%ProgramFiles%\Android\Android Studio\jre\
-    //  set PATH=%ANDROID_HOME%\tools\bin\;%PATH%
-    //  sdkmanager --install "platforms;android-NN"
-    // ?
-
-    // XXX: Only generating max-api-level currently
-    let sdk_android_jar = if std::env::var_os("ANDROID_HOME").is_some() {
-        format!("%ANDROID_HOME%/platforms/android-{}/android.jar", api_levels.end())
-    } else if cfg!(windows) {
-        format!("%LOCALAPPDATA%/Android/Sdk/platforms/android-{}/android.jar", api_levels.end())
-    } else {
-        panic!("ANDROID_HOME not defined and not automatically inferrable on this platform");
-    };
-
-    let mut config_file = jni_bindgen::config::toml::File::from_directory(directory).unwrap();
-    config_file.file.input.files.clear();
-    config_file.file.input.files.push(PathBuf::from(sdk_android_jar));
-    config_file
 }
 
 fn generate_toml(directory: &Path, api_levels: RangeInclusive<i32>, result: &jni_bindgen::RunResult) -> io::Result<()> {
