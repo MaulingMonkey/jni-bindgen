@@ -98,4 +98,5 @@ dual licensed as above, without any additional terms or conditions.
 | ...thousands of other features...     | Define other android.\*, androidx.\*, dalvik.\*, java.\*, javax.\*, and org.\* APIs.
 | `"all"`                               | Define all the available android/java APIs
 | `"force-define"`                      | Define android APIs on non-android targets (for use in custom targets, docs, etc.)
+| `"force-define-x86_64-unknown-linux-gnu"` | Define android APIs on `x86_64-unknown-linux-gnu` specifically (for use in docs.rs)
 | `"nightly"`                           | Define some stuff which may only work on nightly compilers (right now just for docs.)

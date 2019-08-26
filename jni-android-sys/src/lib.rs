@@ -3,7 +3,7 @@
 
 use cfg_if::*;
 
-cfg_if! {if #[cfg(any(target_os = "android", feature = "force-define"))] {
+cfg_if! {if #[cfg(any(target_os = "android", feature = "force-define", all(feature = "force-define-x86_64-unknown-linux-gnu", target_arch = "x86_64", target_vendor = "unknown", target_os = "linux", target_env = "gnu")))] {
     cfg_if! {
         if      #[cfg(feature = "api-level-29")] { include!("generated/api-level-29.rs"); }
         else if #[cfg(feature = "api-level-28")] { include!("generated/api-level-28.rs"); }
@@ -37,7 +37,7 @@ cfg_if! {if #[cfg(any(target_os = "android", feature = "force-define"))] {
     }
 }}
 
-#[cfg(any(target_os = "android", feature = "force-define"))] mod extras {
+#[cfg(any(target_os = "android", feature = "force-define", all(feature = "force-define-x86_64-unknown-linux-gnu", target_arch = "x86_64", target_vendor = "unknown", target_os = "linux", target_env = "gnu")))] mod extras {
     use super::*;
 
     mod strings;

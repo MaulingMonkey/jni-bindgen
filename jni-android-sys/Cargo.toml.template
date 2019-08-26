@@ -28,6 +28,7 @@ default         = [
     "java-lang-StackTraceElement",  # For stack traces by default
 ]
 force-define    = [] # By default, the JNI APIs are only compiled against android targets, but this will force them to be defined on windows, linux, OS X, etc. for documentation purpouses.
+force-define-x86_64-unknown-linux-gnu = []
 nightly         = [] # Nightly-only features.
 
 
@@ -45,5 +46,5 @@ nightly         = [] # Nightly-only features.
 
 
 [package.metadata.docs.rs]
-features = ["all", "api-level-28", "force-define", "nightly"]
+features = ["all", "api-level-28", "force-define-x86_64-unknown-linux-gnu", "nightly"]
 default-target = "x86_64-unknown-linux-gnu" # Doesn't matter too much, but at least this kinda looks like Android.
