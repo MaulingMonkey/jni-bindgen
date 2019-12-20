@@ -1,13 +1,13 @@
 {
     "version": "2.0.0",
     "inputs": [
-        { "id": "channel",   "description": "Select a rust toolchain channel",   "type": "pickString", "options": ["*", "stable", "beta", "nightly"] },
+        { "id": "channel",   "description": "Select a rust toolchain channel",   "type": "pickString", "options": ["*", "msrv", "stable", "beta", "nightly"] },
         { "id": "config",    "description": "Select a build configuration",      "type": "pickString", "options": ["*", "debug", "release"] },
-        { "id": "platform",  "description": "Select a platform",                 "type": "pickString", "options": ["*", "windows", "android", "linux", "wasm"] },
+        { "id": "platform",  "description": "Select a platform",                 "type": "pickString", "options": ["*", "windows", "android", "linux"] },
 
-        { "id": "1channel",  "description": "Select a rust toolchain channel",   "type": "pickString", "options": ["stable", "beta", "nightly"] },
+        { "id": "1channel",  "description": "Select a rust toolchain channel",   "type": "pickString", "options": ["msrv", "stable", "beta", "nightly"] },
         { "id": "1config",   "description": "Select a build configuration",      "type": "pickString", "options": ["debug", "release"] },
-        { "id": "1platform", "description": "Select a platform",                 "type": "pickString", "options": ["windows", "android", "linux", "wasm"] },
+        { "id": "1platform", "description": "Select a platform",                 "type": "pickString", "options": ["windows", "android", "linux"] },
     ],
     "presentation": { "clear": true },
     "problemMatcher": ["$rustc"],

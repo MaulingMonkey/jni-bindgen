@@ -19,7 +19,7 @@
 @rmdir /Q ..\target\%JBG_CONFIG%\java\source  2>NUL
 
 :: Test
-@IF NOT "%ERRORS%" == "0" goto :skip-test
+@IF NOT "%JBG_ERRORS%" == "0" goto :skip-test
 @set PATH=..\target\%JBG_CONFIG%\;%PATH%
 @call :build java %JBG_JAVA_FLAGS% -jar ..\target\%JBG_CONFIG%\java\jars\example-jni-java.jar
 :skip-test
@@ -31,5 +31,5 @@
 
 :build
 %*
-@if ERRORLEVEL 1 set /A ERRORS = ERRORS + 1
+@if ERRORLEVEL 1 set /A JBG_ERRORS = JBG_ERRORS + 1
 @exit /b %ERRORLEVEL%
