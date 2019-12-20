@@ -10,7 +10,7 @@ use std::ptr::null_mut;
         let astr = CStr::from_ptr(get_string_utf_chars(env, a, null_mut())).to_str().unwrap();
         let bstr = CStr::from_ptr(get_string_utf_chars(env, b, null_mut())).to_str().unwrap();
         let r = format!("{}{}\0", astr, bstr);
-        new_string_utf(env, r.as_ptr().cast())
+        new_string_utf(env, r.as_ptr() as *const _)
     }
 }
 
