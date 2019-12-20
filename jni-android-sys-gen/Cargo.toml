@@ -9,7 +9,7 @@ repository = "https://github.com/MaulingMonkey/jni-bindgen"
 license = "MIT OR Apache-2.0"
 
 [dependencies]
-bugsalot    = { version = "0.1.4" }
+bugsalot    = { version = "0.2.0" }
 jni-glue    = { version = "=0.0.9", path = "../jni-glue" }
 jni-bindgen = { version = "=0.0.9", path = "../jni-bindgen" }
 clap        = { version = "2.33.0", features = ["yaml"] }
