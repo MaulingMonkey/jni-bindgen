@@ -183,7 +183,7 @@ impl Struct {
         }
         if let Ok(required_feature) = Struct::feature_for(context, self.java.path.as_id()) {
             writeln!(out, "{}    ///", indent)?;
-            writeln!(out, "{}    /// Required feature: {}", indent, required_feature)?;
+            writeln!(out, "{}    /// Required feature: {:?}", indent, required_feature)?;
         }
         write!(out, "{}    {}{} {} {} ({:?}) extends {}", indent, attributes, visibility, keyword, &self.rust.struct_name, self.java.path.as_str(), super_path)?;
         let mut implements = false;

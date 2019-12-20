@@ -178,7 +178,7 @@ impl<'a> Field<'a> {
                 }
                 if let Some(required_feature) = required_feature.as_ref() {
                     writeln!(out, "{}///", indent)?;
-                    writeln!(out, "{}/// Required feature: {}", indent, required_feature)?;
+                    writeln!(out, "{}/// Required feature: {:?}", indent, required_feature)?;
                     writeln!(out, "{}#[cfg(any(feature = \"all\", feature = {:?}))]", indent, required_feature)?;
                 }
                 match descriptor {
@@ -196,7 +196,7 @@ impl<'a> Field<'a> {
                 }
                 if let Some(required_feature) = required_feature.as_ref() {
                     writeln!(out, "{}///", indent)?;
-                    writeln!(out, "{}/// Required feature: {}", indent, required_feature)?;
+                    writeln!(out, "{}/// Required feature: {:?}", indent, required_feature)?;
                     writeln!(out, "{}#[cfg(any(feature = \"all\", feature = {:?}))]", indent, required_feature)?;
                 }
                 writeln!(out, "{}{}pub fn {}<'env>({}) -> {} {{", indent, &attributes, get, env_param, rust_get_type)?;
@@ -221,7 +221,7 @@ impl<'a> Field<'a> {
                     }
                     if let Some(required_feature) = required_feature.as_ref() {
                         writeln!(out, "{}///", indent)?;
-                        writeln!(out, "{}/// Required feature: {}", indent, required_feature)?;
+                        writeln!(out, "{}/// Required feature: {:?}", indent, required_feature)?;
                         writeln!(out, "{}#[cfg(any(feature = \"all\", feature = {:?}))]", indent, required_feature)?;
                     }
                     writeln!(out, "{}{}pub fn {}<{}>({}, value: {}) {{", indent, &attributes, set, lifetimes, env_param, rust_set_type)?;
