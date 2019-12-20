@@ -1,5 +1,6 @@
 [workspace]
 members = [
+    "example-jni-java",
     "jni-bindgen",
     "jni-glue",
     "jni-android-sys-gen",

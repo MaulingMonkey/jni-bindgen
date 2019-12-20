@@ -1,22 +1,15 @@
 {
     "version": "2.0.0",
     "inputs": [
-        {
-            "id": "channel", "description": "Select a rust toolchain channel",
-            "type": "pickString", "default": "*", "options": ["*", "stable", "beta", "nightly"],
-        },
-        {
-            "id": "config", "description": "Select a build configuration",
-            "type": "pickString", "default": "*", "options": ["*", "debug", "release"],
-        },
-        {
-            "id": "platform", "description": "Select a platform",
-            "type": "pickString", "default": "*", "options": ["*", "windows", "android", "linux", "wasm"],
-        },
+        { "id": "channel",   "description": "Select a rust toolchain channel",   "type": "pickString", "options": ["*", "stable", "beta", "nightly"] },
+        { "id": "config",    "description": "Select a build configuration",      "type": "pickString", "options": ["*", "debug", "release"] },
+        { "id": "platform",  "description": "Select a platform",                 "type": "pickString", "options": ["*", "windows", "android", "linux", "wasm"] },
+
+        { "id": "1channel",  "description": "Select a rust toolchain channel",   "type": "pickString", "options": ["stable", "beta", "nightly"] },
+        { "id": "1config",   "description": "Select a build configuration",      "type": "pickString", "options": ["debug", "release"] },
+        { "id": "1platform", "description": "Select a platform",                 "type": "pickString", "options": ["windows", "android", "linux", "wasm"] },
     ],
-    "presentation": {
-        "clear": true,
-    },
+    "presentation": { "clear": true },
     "problemMatcher": ["$rustc"],
     "type": "shell",
     "options": {
@@ -29,6 +22,7 @@
         { "group": "build", "label": "Build/Test All Platforms",    "command": "scripts\\test.cmd stable debug *" },
         { "group": "build", "label": "Build/Test Custom",           "command": "scripts\\test.cmd ${input:channel} ${input:config} ${input:platform}" },
         { "group": "build", "label": "Build/Test Custom (Repeat)",  "command": "scripts\\retest.cmd" },
+        { "group": "build", "label": "Build/Test example-jni-java", "command": "example-jni-java\\test.cmd", "options": { "env": { "CONFIG": "${input:1config}" } } },
         { "group": "build", "label": "Clean",                       "command": "cargo clean", "windows": { "command": "scripts\\clean.cmd" } },
 
         // Tasks for multiple platforms that depend on ambient rust configuration.
