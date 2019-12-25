@@ -17,7 +17,7 @@ matrix:
 
 script:
   # Modern Java has trouble with sdkmanager: https://stackoverflow.com/questions/46402772/failed-to-install-android-sdk-java-lang-noclassdeffounderror-javax-xml-bind-a
-  - export JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64/jre/
+  - export JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64/
   - pushd scripts
   - chmod 755 ./install.sh
   - chmod 755 ./test.sh

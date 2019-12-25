@@ -1,8 +1,8 @@
-@if not exist "%ProgramFiles%\Android\Android Studio\jre\" goto :error-no-android-jre
-@if not exist "%LOCALAPPDATA%\Android\Sdk\tools\bin\"      goto :error-no-android-sdk
+@if not exist "%ProgramFiles%\Android\jdk\microsoft_dist_openjdk_1.8.0.25" goto :error-no-android-jdk
+@if not exist "%LOCALAPPDATA%\Android\Sdk\tools\bin\"  goto :error-no-android-sdk
 
 @setlocal
-@set JAVA_HOME=%ProgramFiles%\Android\Android Studio\jre\
+@set JAVA_HOME=%ProgramFiles%\Android\jdk\microsoft_dist_openjdk_1.8.0.25
 @set PATH=%LOCALAPPDATA%\Android\Sdk\tools\bin\;%PATH%
 
 @call sdkmanager --install ^
@@ -33,7 +33,7 @@
 @endlocal
 @exit /b %ERRORLEVEL%
 
-:error-no-android-jre
+:error-no-android-jdk
 :error-no-android-sdk
 @echo Make sure you've installed Android Studio before running this script!
 @echo     https://developer.android.com/studio/install

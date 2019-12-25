@@ -16,8 +16,8 @@
 ::   JBG_PLATFORM
 ::   JBG_CHANNEL
 
-@IF NOT DEFINED JAVA_HOME    IF DEFINED ProgramW6432    IF EXIST "%ProgramW6432%\Android\Android Studio\jre\"    set JAVA_HOME=%ProgramW6432%\Android\Android Studio\jre
-@IF NOT DEFINED JAVA_HOME    IF DEFINED ProgramFiles    IF EXIST "%ProgramFiles%\Android\Android Studio\jre\"    set JAVA_HOME=%ProgramFiles%\Android\Android Studio\jre
+@IF NOT DEFINED JAVA_HOME    IF DEFINED ProgramW6432    IF EXIST "%ProgramW6432%\Android\jdk\microsoft_dist_openjdk_1.8.0.25\"    set JAVA_HOME=%ProgramW6432%\Android\jdk\microsoft_dist_openjdk_1.8.0.25
+@IF NOT DEFINED JAVA_HOME    IF DEFINED ProgramFiles    IF EXIST "%ProgramFiles%\Android\jdk\microsoft_dist_openjdk_1.8.0.25\"    set JAVA_HOME=%ProgramFiles%\Android\jdk\microsoft_dist_openjdk_1.8.0.25
 @IF NOT DEFINED JAVA_HOME    echo Expected %%JAVA_HOME%%, couldn't auto-configure&& exit /b 1
 @where javac >NUL 2>NUL || set PATH=%JAVA_HOME%\bin;%PATH%
 @set RUST_BACKTRACE=1
