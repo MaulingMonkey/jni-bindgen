@@ -8,9 +8,14 @@ authors = ["MaulingMonkey <git@maulingmonkey.com>"]
 edition = "2018"
 
 [lib]
-path = "rust/lib.rs"
 crate-type = ["cdylib"]
 
 [dependencies]
 jni-sys         = "0.3"
 jni-glue        = { version = "0.0.9", path = "../jni-glue"      }
+
+[build-dependencies]
+jerk-build      = "0.1.6"
+
+[dev-dependencies]
+jerk-test       = "0.1.6"

@@ -113,10 +113,9 @@
 @goto :build-one-skipped
 
 :build-windows
-    @call :try-cargo build --all-targets    %JBG_CARGO_BUILD_FLAGS% || goto :build-one-error
-    @call :try-cargo test  --all-targets    %JBG_CARGO_BUILD_FLAGS% || goto :build-one-error
+    @call :try-cargo build --all            %JBG_CARGO_BUILD_FLAGS% || goto :build-one-error
+    @call :try-cargo test  --all            %JBG_CARGO_BUILD_FLAGS% || goto :build-one-error
     @call :try-cargo doc   --no-deps        %JBG_CARGO_BUILD_FLAGS% || goto :build-one-error
-    @call example-jni-java\test.cmd                                 || goto :build-one-error
 @goto :build-one-successful
 
 

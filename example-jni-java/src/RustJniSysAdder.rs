@@ -21,3 +21,11 @@ use std::ptr::null_mut;
 #[no_mangle] pub extern "stdcall" fn Java_com_maulingmonkey_jni_1bindgen_example_1jni_1java_RustJniSysAdder_add__II(_env: *mut JNIEnv, _this: jobject, a: jint, b: jint) -> jint {
     a + b
 }
+
+#[test] fn test() -> Result<(), jerk_test::JavaTestError> {
+    jerk_test::run_test(
+        "com.maulingmonkey.jni_bindgen.example_jni_java",
+        "RustJniSysAdder",
+        "test"
+    )
+}
