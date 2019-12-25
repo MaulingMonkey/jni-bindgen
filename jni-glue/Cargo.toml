@@ -9,7 +9,7 @@ repository = "https://github.com/MaulingMonkey/jni-bindgen"
 keywords = ["jvm", "jni", "bindgen", "android"]
 categories = ["external-ffi-bindings"]
 license = "MIT OR Apache-2.0"
-include = ["/src/**/*.rs", "/Cargo.toml", "/LICENSE-MIT", "/LICENSE-APACHE"]
+include = ["/**/*.rs", "/Cargo.toml", "/LICENSE-MIT", "/LICENSE-APACHE"]
 
 
 [dependencies]
