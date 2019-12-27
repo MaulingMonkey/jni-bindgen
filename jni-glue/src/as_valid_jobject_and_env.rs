@@ -9,4 +9,9 @@ use super::*;
 ///     2.2) Do not allow value access.
 ///     2.3) Do not allow &mut T access.
 ///     2.4) Only allow &T access, which cannot be moved from.
-pub unsafe trait AsValidJObjectAndEnv : AsJValue + JniType {} // TODO: Rename to ReferenceType ?
+pub unsafe trait AsValidJObjectAndEnv : AsJValue + JniType { // TODO: Rename to ReferenceType ?
+    fn as_oae(&self) -> &ObjectAndEnv {
+        let oae = self as *const Self as *const ObjectAndEnv;
+        unsafe { &*oae }
+    }
+}

@@ -1,7 +1,7 @@
 package com.maulingmonkey.jni_bindgen.example_jni_java;
 
 public class RustJniGlueAdder implements Adder {
-    @Override public native String add(String a, String b);
+    @Override public        String add(String a, String b) { return a+b; } // XXX
     @Override public native float add(float a, float b);
     @Override public native int add(int a, int b);
 

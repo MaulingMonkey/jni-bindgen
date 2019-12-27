@@ -13,8 +13,10 @@ include = ["/**/*.rs", "/Cargo.toml", "/LICENSE-MIT", "/LICENSE-APACHE"]
 
 
 [dependencies]
-jni-sys = "0.3.0"
-lazy_static = "1"
+bugsalot        = "0.2.1"
+jni-glue-macros = { version = "0.0.9", path = "../jni-glue-macros" }
+jni-sys         = "0.3.0"
+lazy_static     = "1"
 
 [features]
 default = []

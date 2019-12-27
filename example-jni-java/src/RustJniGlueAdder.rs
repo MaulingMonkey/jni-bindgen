@@ -1,21 +1,32 @@
-use jni_sys::{JNIEnv, jobject, jstring, jint, jfloat};
+jni_glue::java! {
+    import com.maulingmonkey.jni_bindgen.example_jni_java.RustJniGlueAdder;
+    import com.maulingmonkey.jni_bindgen.example_jni_java.RustJniGlueAdder$Inner;
+    import java.lang.String;
 
-#[no_mangle] pub extern "stdcall" fn Java_com_maulingmonkey_jni_1bindgen_example_1jni_1java_RustJniGlueAdder_add__Ljava_lang_String_2Ljava_lang_String_2(_env: *mut JNIEnv, _this: jobject, a: jstring, _b: jstring) -> jstring {
-    a // FIXME
-}
+    unsafe impl class RustJniGlueAdder {
+        float add(&env, this, float a, float b) {
+            let r = a + b;
+            Ok(r)
+        }
 
-#[no_mangle] pub extern "stdcall" fn Java_com_maulingmonkey_jni_1bindgen_example_1jni_1java_RustJniGlueAdder_add__FF(_env: *mut JNIEnv, _this: jobject, a: jfloat, b: jfloat) -> jfloat {
-    a + b
-}
+        int add(&env, this, int a, int b) {
+            let r = a + b;
+            Ok(r)
+        }
 
-#[no_mangle] pub extern "stdcall" fn Java_com_maulingmonkey_jni_1bindgen_example_1jni_1java_RustJniGlueAdder_add__II(_env: *mut JNIEnv, _this: jobject, a: jint, b: jint) -> jint {
-    a + b
+        // jni_sys doesn't yet exist, and I haven't finished implementing object conversion logic
+        //String add(&env, this, String a, String b) {
+        //    let r = format!("{}{}", a, b);
+        //    println!("{} + {} = {}", a, b, r);
+        //    Ok(r)
+        //}
+    }
 }
 
 #[test] fn test() -> Result<(), jerk_test::JavaTestError> {
     jerk_test::run_test(
         "com.maulingmonkey.jni_bindgen.example_jni_java",
-        "RustJniSysAdder",
+        "RustJniGlueAdder",
         "test"
     )
 }

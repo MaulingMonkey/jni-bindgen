@@ -3,5 +3,6 @@ members = [
     "example-jni-java",
     "jni-bindgen",
     "jni-glue",
+    "jni-glue-macros",
     "jni-android-sys-gen",
 ]

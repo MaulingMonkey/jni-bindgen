@@ -1,5 +1,8 @@
 use super::*;
+use std::any::Any;
+use std::default::Default;
 use std::os::raw::c_char;
+use std::panic::PanicInfo;
 
 /// FFI:  Use **&Env** instead of \*const JNIEnv.  This represents a per-thread Java exection environment.
 /// 
@@ -62,6 +65,61 @@ impl Env {
         assert_eq!(err, JNI_OK);
         assert_ne!(vm, null_mut());
         VMS.read().unwrap().get_gen_vm(vm)
+    }
+
+    // Exception methods
+
+    pub unsafe fn throw_raw(&self, throwable: jthrowable) -> Result<(), jint> {
+        let env = &self.0 as *const JNIEnv as *mut JNIEnv;
+        match (**env).Throw.unwrap()(env, throwable) {
+            jni_sys::JNI_OK => Ok(()),
+            other => Err(other),
+        }
+    }
+
+    pub unsafe fn throw_new(&self, class: jclass, message: &str) -> Result<(), jint> {
+        debug_assert!(message.ends_with('\0'));
+        let env = &self.0 as *const JNIEnv as *mut JNIEnv;
+        match (**env).ThrowNew.unwrap()(env, class, message.as_ptr() as *const c_char) {
+            jni_sys::JNI_OK => Ok(()),
+            other => Err(other),
+        }
+    }
+
+    pub unsafe fn unwrap_jni_glue_result<R: Default>(&self, result: Result<Result<R, Throw>, Box<dyn Any + Send>>) -> R {
+        match result {
+            // Standard return
+            Ok(Ok(result)) => {
+                result
+            },
+
+            // Returned an exception to throw
+            Ok(Err(throw)) => {
+                let oae = throw.as_oae();
+                if oae.env == self.as_jni_env() {
+                    let _ = self.throw_raw(oae.object as jthrowable);
+                } else {
+                    let msg = "Attempted to throw an Err(Throw) back to Java, but it belonged to another Env\0";
+                    bugsalot::bug!("{}", &msg[..msg.len()-1]);
+                    let error = self.require_class("java/lang/Error");
+                    let _ = self.throw_new(error, msg);
+                }
+                Default::default() // 0 int/float or null jobject - should be ignored by Java due to the exception
+            },
+
+            // Rust paniced
+            Err(panic) => {
+                let error = self.require_class("java/lang/Error"); // XXX: We may wish to create a RustPanic[Error] at some point?
+                let _ = if let Some(panic_info) = panic.downcast_ref::<PanicInfo>() {
+                    self.throw_new(error, &format!("Rust paniced: {}\0", panic_info))
+                } else if let Some(panic_message) = panic.downcast_ref::<String>() {
+                    self.throw_new(error, &format!("Rust paniced: {}\0", panic_message))
+                } else {
+                    self.throw_new(error, &format!("Rust paniced: Unknown panic type, not PanicInfo nor String\0"))
+                };
+                Default::default() // 0 int/float or null jobject - should be ignored by Java due to the exception
+            },
+        }
     }
 
     // String methods

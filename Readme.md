@@ -31,6 +31,7 @@ hand-written bindings is an exercise in boredom, soundness bugs, and pain.
 | [jni-android-sys-gen](https://github.com/MaulingMonkey/jni-bindgen/tree/master/jni-android-sys-gen)   | N/A                                                                                                           | N/A                                                                                       | Generates jni-android-sys
 | [jni-bindgen](https://github.com/MaulingMonkey/jni-bindgen/tree/master/jni-bindgen)                   | [![Crates.io](https://img.shields.io/crates/v/jni-bindgen.svg)](https://crates.io/crates/jni-bindgen)         | [![Docs](https://docs.rs/jni-bindgen/badge.svg)](https://docs.rs/jni-bindgen/)            | Generator of Java API bindings
 | [jni-glue](https://github.com/MaulingMonkey/jni-bindgen/tree/master/jni-glue)                         | [![Crates.io](https://img.shields.io/crates/v/jni-glue.svg)](https://crates.io/crates/jni-glue)               | [![Docs](https://docs.rs/jni-glue/badge.svg)](https://docs.rs/jni-glue/)                  | Utility functions for Java API bindings
+| [jni-glue-macros](https://github.com/MaulingMonkey/jni-bindgen/tree/master/jni-glue-macros)           | Not yet                                                                                                       | Not yet                                                                                   | Proc macros for implementing Java APIs from Rust
 
 ## External Crates / Plugins
 
