@@ -19,7 +19,7 @@
     "tasks": [
         // Scripts
         { "group": "build", "label": "Build/Test Everything",       "command": "scripts\\test.cmd" },
-        { "group": "build", "label": "Build/Test All Platforms",    "command": "scripts\\test.cmd stable debug *" },
+        { "group": "build", "label": "Build/Test All Platforms",    "command": "scripts\\test.cmd stable release *" },
         { "group": "build", "label": "Build/Test Custom",           "command": "scripts\\test.cmd ${input:channel} ${input:config} ${input:platform}" },
         { "group": "build", "label": "Build/Test Custom (Repeat)",  "command": "scripts\\retest.cmd" },
         { "group": "build", "label": "Clean",                       "command": "cargo clean", "windows": { "command": "scripts\\clean.cmd" } },
