@@ -3,9 +3,20 @@
 use super::*;
 use proc_macro2::*;
 
-pub(crate) fn expect_ident2(tt: impl Into<Option<TokenTree>>) -> Result<Ident, Option<TokenTree>> {
+pub(crate) fn expect_ident(tt: impl Into<Option<TokenTree>>) -> Result<Ident, Option<TokenTree>> {
     match tt.into() {
         Some(TokenTree::Ident(ident)) => Ok(ident),
+        other => Err(other),
+    }
+}
+
+pub(crate) fn expect_ident_if(tt: impl Into<Option<TokenTree>>, condition: impl FnOnce(&Ident) -> bool) -> Result<Ident, Option<TokenTree>> {
+    match tt.into() {
+        Some(TokenTree::Ident(ident)) => if condition(&ident) {
+            Ok(ident)
+        } else {
+            Err(Some(TokenTree::Ident(ident)))
+        },
         other => Err(other),
     }
 }
@@ -17,7 +28,7 @@ pub(crate) fn expect_keyword(tt: impl Into<Option<TokenTree>>, keyword: &str) ->
     }
 }
 
-pub(crate) fn expect_punct_2(tt: impl Into<Option<TokenTree>>, expected: &str) -> Result<(), Option<TokenTree>> {
+pub(crate) fn expect_punct(tt: impl Into<Option<TokenTree>>, expected: &str) -> Result<(), Option<TokenTree>> {
     match tt.into() {
         Some(TokenTree::Punct(ref punct)) if expected.find(punct.as_char()).is_some() => Ok(()),
         other => Err(other),

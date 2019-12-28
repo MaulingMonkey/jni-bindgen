@@ -3,14 +3,12 @@ extern crate proc_macro;
 mod argument_and_return;
 mod context;
 mod escape;
-mod parsing1;
-mod parsing2;
+mod expect;
 mod skip_condition;
 
 use argument_and_return::{Argument, Return};
 use context::Context;
-use parsing1::*;
-use parsing2::*;
+use expect::*;
 use skip_condition::*;
 
 // TODO: More usage / examples for doc comments here

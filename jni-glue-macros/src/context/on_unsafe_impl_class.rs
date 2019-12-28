@@ -48,7 +48,10 @@ impl Context {
         let input = &mut input;
         while input.clone().next().is_some() {
             let annotations = self.parse_method_annotations(input);
-            let return_type = Return::new(self.consume_resolved_java_identifier(input));
+            let return_type = Return::new(match self.consume_resolved_java_identifier(input) {
+                Ok(r) => r,
+                Err(()) => { skip(None, input, "}"); continue },
+            });
 
             // Parse method name
             let method_name = match input.next() {
@@ -77,7 +80,7 @@ impl Context {
                     continue;
                 },
             };
-            let arguments_list = self.parse_method_arguments_list(arguments_list, annotations.is_static).unwrap_or(vec![]);
+            let arguments_list = self.parse_method_arguments_list(arguments_list, &annotations).unwrap_or(vec![]);
 
             // Parse method body
             let function_impl = input.next();
@@ -146,11 +149,16 @@ impl Context {
         }
     }
 
-    fn consume_resolved_java_identifier(&self, input: &mut impl TokenIter) -> String {
-        let id = consume_java_identifier(input);
-        if let Some(id) = self.imports.get(&id) { id.clone() } else { id }
+    fn consume_resolved_java_identifier(&mut self, input: &mut impl TokenIter) -> Result<String, ()> {
+        let (prefix, name) = expect_java_ns_class(input).map_err(|bad| self.error_at(&bad, "Expected:  some.java.ClassName"))?;
+        let id = format!("{}{}", prefix, name);
+        Ok(if let Some(id) = self.imports.get(&id) { id.clone() } else { id })
     }
 
+    /// | consumes                              | `MethodAnnotations`       |
+    /// | ------------------------------------- | ------------------------- |
+    /// | `public static native @Annotation`    | `{ is_static: true }`     |
+    /// | nothing                               | `{ is_static: false }`    |
     fn parse_method_annotations(&mut self, input: &mut impl TokenIter) -> MethodAnnotations {
         let mut annotations = MethodAnnotations::default();
         
@@ -186,45 +194,83 @@ impl Context {
         annotations
     }
 
-    fn parse_method_arguments_list(&mut self, input: Group, is_static: bool) -> Result<Vec<Argument>,()> {
+    /// | consumes                      | result                                                                |
+    /// | ----------------------------- | --------------------------------------------------------------------- |
+    /// | `&env, this, float a, int b`  | `Ok(vec![ Argument::new("a", "float"), Argument::new("b", "int") ])`  |
+    /// | `...,`                        | `Err(())`                                                             |
+    fn parse_method_arguments_list(&mut self, input: Group, ma: &MethodAnnotations) -> Result<Vec<Argument>,()> {
         debug_assert_eq!(input.delimiter(), Delimiter::Parenthesis);
         let mut input = input.stream().into_iter();
-        let input = &mut input;
 
-        // Expect   `&env`    or    `&'env env`
-        match expect_punct_2(input.next(), "&") {
-            Ok(_amp) => {},
-            Err(bad) => return Err(self.error_at(&bad, "Expected:  &env")),
-        };
-        let _env_lifetime = match input.next() {
+        let _env_lifetime   = self.parse_env_arg(&mut input);               // &'_env_lifetime env,
+        let _this_or_class  = self.parse_this_or_class_arg(&mut input, ma); // this
+        let regular_args    = self.parse_comma_arguments(&mut input);       // , float a, int b
+
+        regular_args
+    }
+
+    /// | consumes          | result                        |
+    /// | ----------------- | ----------------------------- |
+    /// | `&'lifetime env,` | `Ok(Some(Ident("lifetime")))` |
+    /// | `&env,`           | `Ok(None)`                    |
+    /// | `...,`            | `Err(())`                     |
+    fn parse_env_arg(&mut self, input: &mut impl TokenIter) -> Result<Option<Ident>, ()> {
+        expect_punct(input.next(), "&").map_err(|bad| self.error_at(&bad, "Expected:  &env"))?;
+
+        let env_lifetime = match input.next() {
             Some(TokenTree::Punct(ref p)) if p.as_char() == '\'' => { // &'env env
-                let env_lifetime = match expect_ident2(input.next()) {
-                    Ok(lt) => lt,
-                    Err(bad) => return Err(self.error_at(&bad, "Expected:  env lifetime for  `&'... env`")),
-                };
+                let env_lifetime = expect_ident(input.next()).map_err(|bad| self.error_at(&bad, "Expected:  env lifetime for  `&'... env`"))?;
                 expect_keyword(input.next(), "env").map_err(|bad| self.error_at(&bad, &format!("Expected:  `env`  keyword of  `&'{} env`", env_lifetime)))?;
                 Some(env_lifetime)
             },
             Some(TokenTree::Ident(ref ident)) if ident == "env" => None, // &env
             bad => return Err(self.error_at(&bad, "Expected:  &env or &'env env")),
         };
-        match expect_punct_2(input.next(), ",") {
-            Ok(_comma) => {},
-            Err(bad) => return Err(self.error_at(&bad, "Expected:  ',' after &env")),
-        };
 
-        // Expect    this    or    class
-        let expected_kw = if is_static { "class" } else { "this" };
-        expect_ident_str(input.next(), expected_kw, |ident| if ident == expected_kw { Ok(()) } else { Err(()) });
+        match expect_punct(input.next(), ",") {
+            Ok(_comma)  => Ok(env_lifetime),
+            Err(bad)    => Err(self.error_at(&bad, "Expected:  ',' after &env")),
+        }
+    }
 
-        // 0 or more arguments
+    /// | consumes      | if                | result                |
+    /// | ------------- | ----------------- | --------------------- |
+    /// | `class`       | `ma.is_static`    | `Ok(Ident("class"))`  |
+    /// | `this`        | `!ma.is_static`   | `Ok(Ident("this"))`   |
+    /// | `...,`        |                   | `Err(())`             |
+    fn parse_this_or_class_arg(&mut self, input: &mut impl TokenIter, ma: &MethodAnnotations) -> Result<Ident, ()> {
+        let expected_kw = if ma.is_static { "class" } else { "this" };
+        expect_ident_if(input.next(), |id| id == expected_kw).map_err(|bad| self.error_at(&bad, &format!("Expected:  {}", expected_kw)))
+    }
+
+    /// | consumes              | result |
+    /// | --------------------- | ------ |
+    /// | nothing               | `Ok(vec![])`
+    /// | `,`                   | `Ok(vec![])`
+    /// | `, float a`           | `Ok(vec![Argument::new("a", "float")])`
+    /// | `, float a,`          | `Ok(vec![Argument::new("a", "float")])`
+    /// | `, float a, int b`    | `Ok(vec![Argument::new("a", "float"), Argument::new("b", "int")])`
+    /// | `syntax error`        | `Err(())`
+    fn parse_comma_arguments(&mut self, input: &mut impl TokenIter) -> Result<Vec<Argument>,()> {
         let mut args = Vec::new();
         while !input.clone().next().is_none() {
-            expect_punct(input.next(), ",");
-            if input.clone().next().is_none() { break };
+            expect_punct(input.next(), ",").map_err(|bad| self.error_at(&bad, "Expected:  ',' or ')'"))?;
+            if input.clone().next().is_none() { break }; // Was that a trailing comma?
 
-            let java_type = self.consume_resolved_java_identifier(input);
-            let name = expect_ident(input.next(), "argument_name", |i| Ok(i.clone()));
+            let java_type = match self.consume_resolved_java_identifier(input) {
+                Ok(id) => id,
+                Err(()) => { skip(None, input, ","); continue },
+            };
+
+            let name = match expect_ident(input.next()) {
+                Ok(id) => id,
+                Err(bad) => {
+                    self.error_at(&bad, "Expected:  argument_name");
+                    skip(bad.as_ref(), input, ",");
+                    continue;
+                },
+            };
+
             args.push(Argument::new(name, java_type));
         }
 
