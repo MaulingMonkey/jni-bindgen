@@ -1,4 +1,4 @@
-name: jni-android-sys-gen
+name: jni-bindgen
 version: "0.0.0"
 author: MaulingMonkey <git@maulingmonkey.com>
 about: Autogenerate jni-android-sys, glue code for access Android JVM APIs from Rust
