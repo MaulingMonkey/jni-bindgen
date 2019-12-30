@@ -352,6 +352,7 @@ impl File {
 
     /// Search the current directory - or failing that, it's ancestors - until we find "jni-bindgen.toml" or reach the
     /// root of the filesystem and cannot continue.
+    #[allow(dead_code)]
     pub fn from_current_directory() -> io::Result<FileWithContext> {
         Self::from_directory(std::env::current_dir()?.as_path())
     }

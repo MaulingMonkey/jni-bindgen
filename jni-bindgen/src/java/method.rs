@@ -157,6 +157,7 @@ impl<'a> Descriptor<'a> {
         Ok(Descriptor { string: desc, end_paren })
     }
 
+    #[allow(dead_code)]
     pub fn as_str(&self) -> &'a str { self.string }
     pub fn return_type(&self) -> Type<'a> { Type::from_str(&self.string[(1+self.end_paren)..]).unwrap() } // Already validated in Descriptor::new
     pub fn arguments(&self) -> ArgumentsIter { ArgumentsIter(&self.string[1..self.end_paren]) }

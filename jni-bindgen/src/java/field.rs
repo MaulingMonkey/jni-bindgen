@@ -84,6 +84,7 @@ pub struct Field {
     _incomplete:    (),
 }
 
+#[allow(dead_code)]
 impl Field {
     pub fn new(flags: Flags, name: String, descriptor: String) -> io::Result<Self> {
         Descriptor::from_str(descriptor.as_str())?;
