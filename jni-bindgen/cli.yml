@@ -17,16 +17,10 @@ args:
         long: verbose
         help: Log in more detail
 
-    - min-api-level:
-        long: min-api-level
-        help: The minimum Android API level to generate/verify
-        value_name: API_LEVEL
-        takes_value: true
-
-    - max-api-level:
-        long: max-api-level
-        help: The maximum Android API level to generate/verify
-        value_name: API_LEVEL
+    - android-api-levels:
+        long: android-api-levels
+        help: The Android API level(s) to generate/verify
+        value_name: API_LEVELS
         takes_value: true
 
 subcommands:

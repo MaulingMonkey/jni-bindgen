@@ -1,5 +1,11 @@
 #[macro_use] mod java;
 
+mod android {
+    mod api_level_range;
+
+    pub use api_level_range::*;
+}
+
 /// Configuration formats for invoking jni_bindgen
 mod config { // Part of the actual official API of this crate.
     #[allow(unused_imports)] use super::*;
@@ -86,34 +92,30 @@ mod entry {
 
     use std::fs::{File};
     use std::io::{self, BufRead, BufReader, BufWriter, Write};
-    
-    use std::ops::*;
     use std::path::*;
     use std::process::exit;
 
     pub fn main() {
         std::panic::set_hook(Box::new(|panic|{ bugsalot::bug!("{:?}", panic); }));
-        // jni_bindgen::run(jni_bindgen::config::toml::File::from_current_directory().unwrap()).unwrap(); // Old legacy behavior
 
         let yaml = load_yaml!("../cli.yml");
         let matches = clap::App::from_yaml(yaml).get_matches();
 
         let _help               = matches.is_present("help");
-        let directory : &Path   = Path::new(matches.value_of("directory").unwrap_or("../jni-android-sys"));
+        let directory : &Path   = Path::new(matches.value_of("directory").unwrap_or("."));
         let _verbose            = matches.is_present("verbose");
-        let min_api_level : i32 = matches.value_of("min-api-level").unwrap_or( "7").parse().expect("--min-api-level must specify an integer version");
-        let max_api_level : i32 = matches.value_of("max-api-level").unwrap_or("28").parse().expect("--max-api-level must specify an integer version");
+        let android_api_levels  = matches.value_of("android-api-levels").map(|api| api.parse::<android::ApiLevelRange>().expect("--android-api-levels must take the form of a single version like '8', or a range like '8-27'"));
 
-        if min_api_level < 7 {
-            eprintln!("\
-                WARNING:  Untested api level {} (<7).\n\
-                If you've found where I can grab such an early version of the Android SDK/APIs,\n\
-                please comment on / reopen https://github.com/MaulingMonkey/jni-bindgen/issues/10 !",
-                min_api_level
-            );
+        if let Some(api_levels) = android_api_levels.as_ref() {
+            if api_levels.start() < 7 {
+                eprintln!("\
+                    WARNING:  Untested api level {} (<7).\n\
+                    If you've found where I can grab such an early version of the Android SDK/APIs,\n\
+                    please comment on / reopen https://github.com/MaulingMonkey/jni-bindgen/issues/10 !",
+                    api_levels.start()
+                );
+            }
         }
-
-        let api_levels = min_api_level..=max_api_level;
 
         let subcommand = matches.subcommand_name().unwrap_or("generate");
 
@@ -121,24 +123,28 @@ mod entry {
             "generate" => {
                 let mut config_file = config::toml::File::from_directory(directory).unwrap();
 
-                let mut result = None;
-                for api_level in api_levels.clone() {
-                    let sdk_android_jar = if std::env::var_os("ANDROID_HOME").is_some() {
-                        format!("%ANDROID_HOME%/platforms/android-{}/android.jar", api_level)
-                    } else if cfg!(windows) {
-                        format!("%LOCALAPPDATA%/Android/Sdk/platforms/android-{}/android.jar", api_level)
-                    } else {
-                        panic!("ANDROID_HOME not defined and not automatically inferrable on this platform");
-                    };
+                let result = if let Some(api_levels) = android_api_levels.as_ref() {
+                    let mut result = None;
+                    for api_level in api_levels.iter() {
+                        let sdk_android_jar = if std::env::var_os("ANDROID_HOME").is_some() {
+                            format!("%ANDROID_HOME%/platforms/android-{}/android.jar", api_level)
+                        } else if cfg!(windows) {
+                            format!("%LOCALAPPDATA%/Android/Sdk/platforms/android-{}/android.jar", api_level)
+                        } else {
+                            panic!("ANDROID_HOME not defined and not automatically inferrable on this platform");
+                        };
 
-                    config_file.file.input.files.clear();
-                    config_file.file.input.files.push(PathBuf::from(sdk_android_jar));
-                    config_file.file.output.path = PathBuf::from(format!("src/generated/api-level-{}.rs", api_level));
-                    result = run(config_file.clone()).ok();
-                }
-                let result = result.unwrap();
+                        config_file.file.input.files.clear();
+                        config_file.file.input.files.push(PathBuf::from(sdk_android_jar));
+                        config_file.file.output.path = PathBuf::from(format!("src/generated/api-level-{}.rs", api_level));
+                        result = run(config_file.clone()).ok();
+                    }
+                    result.unwrap()
+                } else {
+                    run(config_file).unwrap()
+                };
 
-                if let Err(e) = generate_toml(directory, api_levels.clone(), &result) {
+                if let Err(e) = generate_toml(directory, android_api_levels.as_ref(), &result) {
                     eprintln!("ERROR:  Failed to regenerate Cargo.toml:\n    {:?}", e);
                     exit(1);
                 }
@@ -156,7 +162,7 @@ mod entry {
         }
     }
 
-    fn generate_toml(directory: &Path, api_levels: RangeInclusive<i32>, result: &RunResult) -> io::Result<()> {
+    fn generate_toml(directory: &Path, api_levels: Option<&android::ApiLevelRange>, result: &RunResult) -> io::Result<()> {
         // XXX: Check that Cargo.toml is marked as generated
 
         let template    = BufReader::new(File::open(directory.join("Cargo.toml.template"))?);
@@ -170,15 +176,19 @@ mod entry {
             let line = line.trim_end_matches(|ch| ch == '\n' || ch == '\r');
             match line {
                 "# PLACEHOLDER:FEATURES:api-level-NN" => {
-                    writeln!(out, "{}:BEGIN", line)?;
-                    for api_level in api_levels.clone() {
-                        write!(out, "api-level-{} = [", api_level)?;
-                        if api_level > *api_levels.start() {
-                            write!(out, "\"api-level-{}\"", api_level-1)?;
+                    if let Some(api_levels) = api_levels {
+                        writeln!(out, "{}:BEGIN", line)?;
+                        for api_level in api_levels.iter() {
+                            write!(out, "api-level-{} = [", api_level)?;
+                            if api_level > api_levels.start() {
+                                write!(out, "\"api-level-{}\"", api_level-1)?;
+                            }
+                            writeln!(out, "]")?;
                         }
-                        writeln!(out, "]")?;
+                        writeln!(out, "{}:END", line)?;
+                    } else {
+                        writeln!(out, "{}:N/A", line)?;
                     }
-                    writeln!(out, "{}:END", line)?;
                 },
                 "# PLACEHOLDER:FEATURES:sharded-api" => {
                     writeln!(out, "{}:BEGIN", line)?;
@@ -200,7 +210,11 @@ mod entry {
                 },
                 "# PLACEHOLDER:FEATURES:docs.rs" => {
                     writeln!(out, "{}:BEGIN", line)?;
-                    writeln!(out, "features = [\"all\", \"api-level-{}\", \"force-define\"]", api_levels.end())?;
+                    if let Some(api_levels) = api_levels {
+                        writeln!(out, "features = [\"all\", \"api-level-{}\", \"force-define\"]", api_levels.end())?;
+                    } else {
+                        writeln!(out, "features = [\"all\", \"force-define\"]")?;
+                    }
                     writeln!(out, "{}:END", line)?;
                 }
                 line => {
