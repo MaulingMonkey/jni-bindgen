@@ -43,7 +43,9 @@ impl KnownDocsUrl {
 
         Some(KnownDocsUrl{
             label:  no_namespace.to_owned().replace("$","."),
-            url:    pattern.class_url_pattern.replace("{CLASS}", java_class.as_str()),
+            url:    pattern.class_url_pattern
+                .replace("{CLASS}",         java_class.as_str())
+                .replace("{CLASS.LOWER}",   java_class.to_ascii_lowercase().as_str()),
         })
     }
 
@@ -162,6 +164,7 @@ impl KnownDocsUrl {
             label: label.to_owned(),
             url: url_pattern
                 .replace("{CLASS}",         java_class.as_str())
+                .replace("{CLASS.LOWER}",   java_class.to_ascii_lowercase().as_str())
                 .replace("{CLASS.OUTER}",   java_outer_class.as_str())
                 .replace("{CLASS.INNER}",   java_inner_class)
                 .replace("{METHOD}",        label)
@@ -204,6 +207,7 @@ impl KnownDocsUrl {
             label: java_field.to_owned(),
             url: field_url_pattern
                 .replace("{CLASS}",     java_class.as_str())
+                .replace("{CLASS.LOWER}",java_class.to_ascii_lowercase().as_str())
                 .replace("{FIELD}",     java_field),
         })
     }
