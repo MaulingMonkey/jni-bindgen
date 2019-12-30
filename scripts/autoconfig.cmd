@@ -70,22 +70,22 @@
     @echo Expected %%JBG_CHANNEL%% to be "msrv", "stable", "beta", or "nightly", instead it was "%JBG_CHANNEL%"
     @exit /b 1
 :set-toolchain-msrv
-    @set RUSTUP_TOOLCHAIN=1.36.0
+    @set RUSTUP_TOOLCHAIN=stage2-x86_64-pc-windows-msvc
     @set JNI_ANDROID_SYS_RUSTFLAGS= 
     @set JNI_ANDROID_SYS_FEATURES= 
     @exit /b 0
 :set-toolchain-stable
-    @set RUSTUP_TOOLCHAIN=stable
+    @set RUSTUP_TOOLCHAIN=stage2-x86_64-pc-windows-msvc
     @set JNI_ANDROID_SYS_RUSTFLAGS= 
     @set JNI_ANDROID_SYS_FEATURES= 
     @exit /b 0
 :set-toolchain-beta
-    @set RUSTUP_TOOLCHAIN=beta
+    @set RUSTUP_TOOLCHAIN=stage2-x86_64-pc-windows-msvc
     @set JNI_ANDROID_SYS_RUSTFLAGS= 
     @set JNI_ANDROID_SYS_FEATURES= 
     @exit /b 0
 :set-toolchain-nightly
-    @set RUSTUP_TOOLCHAIN=nightly
+    @set RUSTUP_TOOLCHAIN=stage2-x86_64-pc-windows-msvc
     @set JNI_ANDROID_SYS_RUSTFLAGS=-Ztime-passes
     @set "JNI_ANDROID_SYS_FEATURES= nightly"
     @exit /b 0

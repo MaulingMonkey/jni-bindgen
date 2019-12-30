@@ -7,15 +7,13 @@ publish = false
 authors = ["MaulingMonkey <git@maulingmonkey.com>"]
 edition = "2018"
 
-[lib]
-crate-type = ["cdylib"]
-
 [dependencies]
 jni-sys         = "0.3"
 jni-glue        = { version = "0.0.9", path = "../jni-glue"      }
+jerk-test       = { version = "0.1.0", path = "../../jerk/jerk-test" }
 
 [build-dependencies]
-jerk-build      = "0.1.6"
+jerk-build      = { version = "0.1.0", path = "../../jerk/jerk-build" }
 
 [dev-dependencies]
-jerk-test       = "0.1.6"
+jerk-test       = { version = "0.1.0", path = "../../jerk/jerk-test" }

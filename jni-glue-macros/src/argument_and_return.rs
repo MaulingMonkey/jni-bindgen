@@ -75,9 +75,30 @@ impl JavaTypedThing {
                 jni.push_str(&java_fqn_class_name_to_c_identifier(fqn_java_type.as_str()));
                 jni.push_str("_2"); // ;
 
+                // Okay, for now, let's blindly generate an non-absolute path.  The user can decide how they want to
+                // resolve, say, `java::lang::String`, via:
+                // 
+                //      use jni_android_sys::java;
+                // 
+                // Or:
+                // 
+                //      use jni_java_sys::java;
+                // 
+                // Or even:
+                // 
+                //      mod java {
+                //          pub mod lang {
+                //              use jni_java_sys::java::lang::*;
+                //              use jni_android_sys::java::lang::{SomethingSpecific};
+                //              pub struct String { ... }
+                //          }
+                //      }
                 let mut class = TokenStream::new();
-                //class.extend(quote!(::jni_android_sys::));
-                class.extend(quote!(JavaArgumentsNotYetImplemented)); // TODO: Implement
+                for (i, component) in fqn_java_type.split('.').enumerate() {
+                    if i != 0 { class.extend(quote!{::}); }
+                    let component = Ident::new(component.replace("$", "_").as_str(), Span::call_site());
+                    class.extend(quote!{#component});
+                }
 
                 let outer = quote!{        ::jni_glue::Argument   <      #class>  };
                 let inner = quote!{ Option<::jni_glue::ArgumentRef<'env, #class>> };

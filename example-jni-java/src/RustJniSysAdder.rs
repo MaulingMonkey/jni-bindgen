@@ -22,10 +22,12 @@ use std::ptr::null_mut;
     a + b
 }
 
-#[test] fn test() -> Result<(), jerk_test::JavaTestError> {
+pub fn do_test() -> Result<(), jerk_test::JavaTestError> {
     jerk_test::run_test(
         "com.maulingmonkey.jni_bindgen.example_jni_java",
         "RustJniSysAdder",
         "test"
     )
 }
+
+#[test] fn test() -> Result<(), jerk_test::JavaTestError> { do_test() }
