@@ -33,7 +33,7 @@
 
         // Tasks for multiple platforms that depend on ambient rust configuration.
         { "group": "build", "label": "cargo check",             "command": "cargo check" },
-        { "group": "build", "label": "cargo doc",               "command": "cargo doc" },
+        { "group": "build", "label": "cargo doc --no-deps",     "command": "cargo doc --no-deps" },
 
         // Target specific windows builds.
         { "group": "build", "label": "cargo test --all --target=x86_64-pc-windows-msvc",             "windows": { "command": "cargo +stable-pc-windows-msvc test --all --target=x86_64-pc-windows-msvc          " } },
