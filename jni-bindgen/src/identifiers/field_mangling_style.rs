@@ -32,7 +32,7 @@ impl Default for FieldManglingStyle {
 impl FieldManglingStyle {
     pub fn mangle<'a>(&self, field: &'a Field, renamed_to: Option<&str>) -> Result<FieldMangling<'a>, IdentifierManglingError> {
         let field_name = renamed_to.unwrap_or(field.name.as_str());
-        if let (Some(value), true) = (field.constant.as_ref(), self.const_finals) {
+        if let (Some(value), true, true) = (field.constant.as_ref(), field.is_constant(), self.const_finals) {
             let name = if renamed_to.is_some() {
                 Ok(field_name.to_owned()) // Don't remangle renames
             } else if self.rustify_names {
