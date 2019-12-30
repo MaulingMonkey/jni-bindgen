@@ -132,6 +132,7 @@ impl Class {
 
 #[derive(Clone, Debug, Default, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct IdBuf(String);
+impl From<IdBuf> for String { fn from(value: IdBuf) -> Self { value.0 } }
 
 impl IdBuf {
     pub fn new(s: String) -> Self { Self(s) }

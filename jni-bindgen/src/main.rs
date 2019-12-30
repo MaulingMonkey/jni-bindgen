@@ -1,3 +1,4 @@
+#[macro_use] mod macros;
 #[macro_use] mod java;
 
 mod android {
@@ -5,6 +6,8 @@ mod android {
 
     pub use api_level_range::*;
 }
+
+mod ast;
 
 /// Configuration formats for invoking jni_bindgen
 mod config { // Part of the actual official API of this crate.
@@ -49,6 +52,8 @@ mod identifiers {
     pub use rust_identifier::*;
 }
 
+mod mappers;
+
 /// Core generation logic
 mod run {
     #[allow(unused_imports)] use super::*;
@@ -59,17 +64,21 @@ mod run {
     pub use run::RunResult;
 }
 
+mod rust;
+
 mod util {
     #[allow(unused_imports)] use super::*;
 
     mod dedupe_file_set;
     mod difference;
     mod generated_file;
+    mod io_context;
     mod progress;
 
     pub use dedupe_file_set::{ConcurrentDedupeFileSet, DedupeFileSet};
     pub use difference::Difference;
     pub use generated_file::write_generated;
+    pub use io_context::IoContext;
     pub use progress::Progress;
 }
 
