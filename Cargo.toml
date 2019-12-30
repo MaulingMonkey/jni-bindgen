@@ -3,3 +3,13 @@ members = [
     "jni-bindgen",
     "jni-glue",
 ]
+
+exclude = [
+    "jni-android-sys",
+    "jni-jdk-sys",
+]
+
+
+
+[profile.release]
+debug = true

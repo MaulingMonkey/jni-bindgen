@@ -1,0 +1,116 @@
+[[documentation.pattern]]
+class_url_pattern           = "https://devdocs.io/openjdk/{CLASS.LOWER}"
+method_url_pattern          = "https://devdocs.io/openjdk/{CLASS.LOWER}#{METHOD}-{ARGUMENTS}-"
+constructor_url_pattern     = "https://devdocs.io/openjdk/{CLASS.LOWER}#{CLASS.INNER}-{ARGUMENTS}-"
+field_url_pattern           = "https://devdocs.io/openjdk/{CLASS.LOWER}#{FIELD}"
+argument_seperator          = "-"
+
+[input]
+files = [
+    "%ProgramFiles%/Java/jdk1.8.0_231/jre/lib/rt.jar",  # Main runtime
+    "%ProgramFiles%/Java/jdk1.8.0_231/jre/lib/jce.jar", # Crypto main runtime relies upon
+]
+
+[output]
+path = "src/generated/jdk1.8.0_231.rs"
+
+[codegen]
+throwable_type                  = "crate::java::lang::Throwable"
+method_naming_style             = "java"
+method_naming_style_collision   = "java_short_signature"    # collisions in short signatures manually resolved bellow
+keep_rejected_emits             = false                     # reduces deduplication when new private fields/methods are added
+
+[codegen.field_naming_style]
+const_finals    = true
+rustify_names   = false
+getter_pattern  = "get_{NAME}"
+setter_pattern  = "set_{NAME}"
+
+[logging]
+# verbose = true
+
+
+
+# https://devdocs.io/openjdk/java/io/randomaccessfile
+[[ignore]]
+# writeByte already exists, does the same thing, has the same signature, and should be used instead.
+class = "java/io/RandomAccessFile"
+method = "write"
+signature = "(I)V"
+
+# https://devdocs.io/openjdk/java/io/objectoutputstream
+[[ignore]]
+# writeByte already exists, does the same thing, has the same signature, and should be used instead.
+class = "java/io/ObjectOutputStream"
+method = "write"
+signature = "(I)V"
+
+# https://devdocs.io/openjdk/java/io/dataoutputstream
+[[ignore]]
+# writeByte already exists, does the same thing, has the same signature, and should be used instead.
+class = "java/io/DataOutputStream"
+method = "write"
+signature = "(I)V"
+
+# https://devdocs.io/openjdk/java/io/dataoutput
+[[ignore]]
+# writeByte already exists, does the same thing, has the same signature, and should be used instead.
+class = "java/io/DataOutput"
+method = "write"
+signature = "(I)V"
+
+
+
+# https://devdocs.io/openjdk/java/net/urlconnection
+[[rename]]
+class       = "java/net/URLConnection"
+method      = "getHeaderField"
+signature   = "(I)Ljava/lang/String;"
+to          = "getHeaderFieldByIndex"
+
+[[rename]]
+class       = "java/net/URLConnection"
+method      = "getHeaderField"
+signature   = "(Ljava/lang/String;)Ljava/lang/String;"
+to          = "getHeaderFieldByName"
+
+
+
+# https://devdocs.io/openjdk/java/nio/bytebuffer
+[[rename]]
+class       = "java/nio/ByteBuffer"
+method      = "get"
+signature   = "(I)B"
+to          = "getAt"
+
+
+# Ambiguous impl class
+[[ignore]]
+class     = "com/sun/org/apache/xerces/internal/dom/events/EventImpl"
+field     = "stopPropagation" # Z
+[[ignore]]
+class     = "com/sun/org/apache/xerces/internal/dom/events/EventImpl"
+method    = "stopPropagation" # ()V
+
+# Ambiguous impl class
+[[ignore]]
+class     = "com/sun/org/apache/xerces/internal/dom/events/EventImpl"
+field     = "preventDefault" # Z
+[[ignore]]
+class     = "com/sun/org/apache/xerces/internal/dom/events/EventImpl"
+method    = "preventDefault" # ()V
+
+[[ignore]]
+class     = "com/sun/xml/internal/fastinfoset/util/CharArray"
+# field     = "length"  # I
+method    = "length"  # ()I
+
+[[ignore]]
+class     = "com/sun/xml/internal/stream/Entity$ScannedEntity"
+# field     = "isExternal"  # Z
+method    = "isExternal"  # ()Z
+
+[[ignore]]
+class     = "sun/nio/ch/SelectionKeyImpl"
+field     = "selector"    # Lsun/nio/ch/SelectorImpl;
+# method    = "selector"    # ()Ljava/nio/channels/Selector;
