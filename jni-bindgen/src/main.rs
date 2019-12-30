@@ -1,91 +1,19 @@
-#[macro_use] mod java;
-
-mod android {
-    mod api_level_range;
-
-    pub use api_level_range::*;
-}
-
-/// Configuration formats for invoking jni_bindgen
-mod config { // Part of the actual official API of this crate.
-    #[allow(unused_imports)] use super::*;
-
-    pub mod runtime;
-    pub mod toml;
-}
-
-/// Rust generation logic
-mod emit_rust {
-    #[allow(unused_imports)] use super::*;
-
-    mod context;
-    mod fields;
-    mod known_docs_url;
-    mod methods;
-    mod modules;
-    mod preamble;
-    mod structs;
-
-    pub use context::Context;
-    use fields::*;
-    use known_docs_url::*;
-    use methods::*;
-    use modules::*;
-    use preamble::*;
-    use structs::*;
-}
-
-/// JNI and Rust identifier parsing and categorizing utilities
-mod identifiers {
-    #[allow(unused_imports)] use super::*;
-    use std::iter::*;
-
-    mod field_mangling_style;
-    mod method_mangling_style;
-    mod rust_identifier;
-
-    pub use field_mangling_style::*;
-    pub use method_mangling_style::*;
-    pub use rust_identifier::*;
-}
-
-/// Core generation logic
-mod run {
-    #[allow(unused_imports)] use super::*;
-
-    mod run;
-
-    pub use run::run;
-    pub use run::RunResult;
-}
-
-mod util {
-    #[allow(unused_imports)] use super::*;
-
-    mod dedupe_file_set;
-    mod difference;
-    mod generated_file;
-    mod progress;
-
-    pub use dedupe_file_set::{ConcurrentDedupeFileSet, DedupeFileSet};
-    pub use difference::Difference;
-    pub use generated_file::write_generated;
-    pub use progress::Progress;
-}
-
-
-use identifiers::*;
-use run::run;
-use run::RunResult;
-
-
+#[path = "java/_java.rs"] #[macro_use]  mod java;
+#[path = "android/_android.rs"]         mod android;
+#[path = "config/_config.rs"]           mod config;
+#[path = "emit_rust/_emit_rust.rs"]     mod emit_rust;
+#[path = "identifiers/_identifiers.rs"] mod identifiers;
+#[path = "run/_run.rs"]                 mod run;
+#[path = "util/_util.rs"]               mod util;
 
 fn main() {
     entry::main();
 }
 
 mod entry {
+    use crate::run::{run, RunResult};
     use crate::*;
+
     use bugsalot::debugger;
 
     use clap::load_yaml;

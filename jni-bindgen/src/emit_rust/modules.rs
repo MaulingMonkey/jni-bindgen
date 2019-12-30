@@ -1,4 +1,4 @@
-use super::*;
+use crate::emit_rust::*;
 
 use std::collections::*;
 use std::io::{self, Write};

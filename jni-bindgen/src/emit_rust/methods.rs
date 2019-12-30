@@ -1,4 +1,5 @@
-use super::*;
+use crate::emit_rust::*;
+use crate::identifiers::*;
 
 use java::method;
 

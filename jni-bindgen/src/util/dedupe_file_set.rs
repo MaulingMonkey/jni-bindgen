@@ -1,6 +1,5 @@
-use super::*;
-
-use emit_rust::Context;
+use crate::emit_rust::Context;
+use crate::util;
 
 use std::io;
 use std::collections::HashMap;

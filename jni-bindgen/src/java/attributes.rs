@@ -1,4 +1,4 @@
-use super::*;
+use crate::java::*;
 use crate::java::io::*;
 
 use std::io::{self, Read};

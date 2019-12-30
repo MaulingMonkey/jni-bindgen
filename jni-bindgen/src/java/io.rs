@@ -1,4 +1,4 @@
-use super::*;
+use crate::java::*;
 use std::io::*;
 
 pub fn read_u1(r: &mut impl Read) -> Result<u8> {

@@ -1,6 +1,6 @@
 //! Runtime configuration formats.  By design, this is mostly opaque - create these from tomls instead.
 
-use super::*;
+use crate::config::*;
 
 use std::collections::*;
 use std::ffi::*;

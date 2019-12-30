@@ -1,5 +1,4 @@
-use super::*;
-use util::Difference;
+use crate::util::{Difference, *};
 
 use std::fs::{self, *};
 use std::io::{self, BufRead, BufReader, Cursor, ErrorKind};

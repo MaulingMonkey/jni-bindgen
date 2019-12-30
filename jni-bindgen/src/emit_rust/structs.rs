@@ -1,6 +1,6 @@
-use super::*;
-
-use java::class;
+use crate::emit_rust::*;
+use crate::identifiers::*;
+use crate::java::class;
 
 use std::collections::*;
 use std::error::Error;

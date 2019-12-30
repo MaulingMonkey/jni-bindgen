@@ -3,7 +3,7 @@
 // https://en.wikipedia.org/wiki/Java_class_file
 // https://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html
 
-use super::*;
+use crate::java::*;
 use crate::java::io::*;
 
 use bitflags::bitflags;

@@ -1,7 +1,7 @@
 //! jni-bindgen.toml configuration file structures and parsing APIs.
 
-use super::MethodManglingStyle;
-use super::FieldManglingStyle;
+use crate::identifiers::MethodManglingStyle;
+use crate::identifiers::FieldManglingStyle;
 
 use serde_derive::*;
 

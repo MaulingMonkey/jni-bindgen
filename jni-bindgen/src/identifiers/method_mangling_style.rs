@@ -1,4 +1,4 @@
-use super::*;
+use crate::identifiers::*;
 use crate::java::class::IdPart;
 use crate::java::method;
 

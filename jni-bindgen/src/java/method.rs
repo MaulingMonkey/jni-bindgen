@@ -1,6 +1,6 @@
 //! [Java SE 7 &sect; 4.6](https://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html#jvms-4.6):  Parsing APIs and structures for class methods.
 
-use super::*;
+use crate::java::*;
 use crate::java::io::*;
 pub use field::BasicType;
 pub use field::Descriptor as Type;
