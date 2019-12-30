@@ -25,6 +25,7 @@ cargo {
     module = "../rust"
     targets = ["arm", "x86"]
     libname = "basic"
+    prebuiltToolchains = false
 }
 
 preBuild.dependsOn "cargoBuild"
