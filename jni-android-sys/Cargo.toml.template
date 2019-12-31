@@ -19,14 +19,20 @@ cfg-if      = "0.1.9"
 jni-glue    = { version = "=0.0.9", path = "../jni-glue" }
 
 [features]
-default         = [
-    "java-lang-Throwable",          # All the Result<>s in this crate won't compile without this.  TODO:  force / make a non-feature?
-    "java-lang-String",             # For stack traces by default
-    "java-lang-StackTraceElement",  # For stack traces by default
-]
+default         = ["minimal"]
 force-define    = [] # By default, the JNI APIs are only compiled against android targets, but this will force them to be defined on windows, linux, OS X, etc. for documentation purpouses.
 force-define-x86_64-unknown-linux-gnu = []
 nightly         = [] # Nightly-only features.
+protected       = []
+private         = []
+
+minimal = [
+    "java-lang-Throwable",          # All the Result<>s in this crate won't compile without this.  TODO:  force / make a non-feature?
+    "java-lang-String",             # For stack traces by default
+    "java-lang-StackTraceElement",  # For stack traces by default
+    "protected",                    # Culling classes not yet done well
+    "private",                      # Culling classes not yet done well
+]
 
 
 # The android API level to use.  Note that only api-level-28 is properly tested/supported for now.

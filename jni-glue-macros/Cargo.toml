@@ -1,0 +1,27 @@
+[package]
+name = "jni-glue-macros"
+version = "0.0.9"
+authors = ["MaulingMonkey <git@maulingmonkey.com>"]
+edition = "2018"
+description = "Proc macros to implement Java classes from Rust"
+documentation = "https://docs.rs/jni-glue-macros/"
+repository = "https://github.com/MaulingMonkey/jni-bindgen"
+keywords = ["jvm", "jni", "bindgen", "android"]
+categories = ["external-ffi-bindings"]
+license = "MIT OR Apache-2.0"
+include = ["/**/*.rs", "/Cargo.toml", "/LICENSE-MIT", "/LICENSE-APACHE"]
+
+[lib]
+proc-macro = true
+
+[dependencies]
+bugsalot            = "0.2.1"
+quote               = "1"
+proc-macro2         = "1"
+syn                 = { version = "1", features = ["extra-traits"] }
+lazy_static         = "1"
+
+[features]
+default = []
+test    = []
+other   = []

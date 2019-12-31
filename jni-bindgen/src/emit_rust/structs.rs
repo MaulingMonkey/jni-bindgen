@@ -166,12 +166,6 @@ impl Struct {
             if self.java.deprecated { "#[deprecated] " } else { "" }
         );
 
-        let super_path = if let Some(super_path) = self.java.super_path.as_ref() {
-            context.java_to_rust_path(super_path.as_id()).unwrap()
-        } else {
-            "()".to_owned() // This might only happen for java.lang.Object
-        };
-
         if let Ok(required_feature) = Struct::feature_for(context, self.java.path.as_id()) {
             writeln!(out, "{}#[cfg(any(feature = \"all\", feature = {:?}))]", indent, required_feature)?;
         }
@@ -185,7 +179,10 @@ impl Struct {
             writeln!(out, "{}    ///", indent)?;
             writeln!(out, "{}    /// Required feature: {:?}", indent, required_feature)?;
         }
-        write!(out, "{}    {}{} {} {} ({:?}) extends {}", indent, attributes, visibility, keyword, &self.rust.struct_name, self.java.path.as_str(), super_path)?;
+        write!(out, "{}    {}{} {} {} {:?}", indent, attributes, visibility, keyword, &self.rust.struct_name, self.java.path.as_str())?;
+        if let Some(super_path) = self.java.super_path.as_ref() {
+            write!(out, " extends {} {:?}", context.java_to_rust_path(super_path.as_id()).unwrap(), super_path.as_str())?;
+        }
         let mut implements = false;
         for interface in &self.java.interfaces {
             write!(out, ", ")?;
@@ -193,7 +190,7 @@ impl Struct {
                 write!(out, "implements ")?;
                 implements = true;
             }
-            write!(out, "{}", &context.java_to_rust_path(interface.as_id()).unwrap())?;
+            write!(out, "{} {:?}", &context.java_to_rust_path(interface.as_id()).unwrap(), interface.as_str())?;
         }
         writeln!(out, " {{")?;
 

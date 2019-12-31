@@ -30,6 +30,7 @@ hand-written bindings is an exercise in boredom, soundness bugs, and pain.
 | [jni-android-sys](https://github.com/MaulingMonkey/jni-bindgen/tree/master/jni-android-sys)           | [![Crates.io](https://img.shields.io/crates/v/jni-android-sys.svg)](https://crates.io/crates/jni-android-sys) | [![Docs](https://docs.rs/jni-android-sys/badge.svg)](https://docs.rs/jni-android-sys/)    | Bindings to Android Java APIs
 | [jni-bindgen](https://github.com/MaulingMonkey/jni-bindgen/tree/master/jni-bindgen)                   | [![Crates.io](https://img.shields.io/crates/v/jni-bindgen.svg)](https://crates.io/crates/jni-bindgen)         | N/A                                                                                       | Generator of Java API bindings
 | [jni-glue](https://github.com/MaulingMonkey/jni-bindgen/tree/master/jni-glue)                         | [![Crates.io](https://img.shields.io/crates/v/jni-glue.svg)](https://crates.io/crates/jni-glue)               | [![Docs](https://docs.rs/jni-glue/badge.svg)](https://docs.rs/jni-glue/)                  | Utility functions for Java API bindings
+| [jni-glue-macros](https://github.com/MaulingMonkey/jni-bindgen/tree/master/jni-glue-macros)           | [![Crates.io](https://img.shields.io/crates/v/jni-glue-macros.svg)](https://crates.io/crates/jni-glue-macros) | [![Docs](https://docs.rs/jni-glue-macros/badge.svg)](https://docs.rs/jni-glue-macros/)    | Proc-macros for Java API bindings
 
 ## External Crates / Plugins
 
