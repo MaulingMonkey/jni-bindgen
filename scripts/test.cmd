@@ -122,7 +122,7 @@
     @call :try-cargo +%CHANNEL% test  --all             %CARGO_FLAGS% || goto :build-one-error
     @call :try-cargo +%CHANNEL% doc   --all --no-deps   %CARGO_FLAGS% || goto :build-one-error
     @cd "%~dp0../jni-android-sys"
-    ..\target\%CONFIG%\jni-bindgen generate --android-api-level=7-28
+    ..\target\%CONFIG%\jni-bindgen --android-api-levels=7-28 generate
     @call :try-cargo +%CHANNEL% build            --features "all api-level-28 force-define" %CARGO_FLAGS% || goto :build-one-error
     @call :try-cargo +%CHANNEL% doc   --no-deps  --features "all api-level-28 force-define" %CARGO_FLAGS% || goto :build-one-error
     @cd "%~dp0../jni-android-sys/examples/android-studio/basic"

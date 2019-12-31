@@ -17,7 +17,7 @@ print_run rustup target add aarch64-linux-android armv7-linux-androideabi i686-l
 print_run cargo build --all --release
 print_run cargo test  --all --release
 pushd jni-android-sys
-print_run ../target/release/jni-bindgen generate  --android-api-level=7-28
+print_run ../target/release/jni-bindgen --android-api-levels=7-28 generate
 print_run cargo build --features "all api-level-28 force-define"
 popd
 pushd jni-android-sys/examples/android-studio/basic
