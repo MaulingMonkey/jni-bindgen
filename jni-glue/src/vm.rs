@@ -23,7 +23,10 @@ impl VM {
     pub fn as_java_vm(&self) -> *const JavaVM { &self.0 }
     pub unsafe fn from_jni_local(vm: &JavaVM) -> &VM { &*(vm as *const JavaVM as *const VM) }
 
-    pub fn with_env(&self, callback: impl FnOnce(&Env)) {
+    pub fn with_env<F, R>(&self, callback: F) -> R
+    where
+        F: FnOnce(&Env) -> R,
+    {
         let mut java_vm = self.0;
         let mut env = null_mut();
         match unsafe { (*java_vm).GetEnv.unwrap()(&mut java_vm, &mut env, JNI_VERSION_1_2) } {
