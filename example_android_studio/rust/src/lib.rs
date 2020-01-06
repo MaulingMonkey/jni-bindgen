@@ -5,7 +5,7 @@ use jni_sys::{jboolean, jobject, JNI_TRUE};
 use jni_glue::{Argument, Env};
 use android::view::KeyEvent;
 
-#[no_mangle] pub extern "system" fn Java_com_maulingmonkey_jni_android_sys_examples_basic_MainActivity_dispatchKeyEvent(
+#[no_mangle] pub extern "system" fn Java_com_maulingmonkey_jni_1bindgen_example_1android_1studio_MainActivity_dispatchKeyEvent(
     env:        &Env,
     _this:      jobject,
     key_event:  Argument<KeyEvent>,

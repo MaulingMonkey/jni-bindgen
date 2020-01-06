@@ -5,14 +5,14 @@
 Uses [jni-bindgen](https://github.com/MaulingMonkey/jni-bindgen) to export Android's Java APIs to Rust.
 Only tested against Android API level 28 so far.
 
-## Example: Basic Android Studio Example
+## Example: example_android_studio Android Studio Example
 
-| [examples\android-studio\basic\\](examples\android-studio\basic)      | What |
+| [..\example_android_studio\\](..\example_android_studio)              | What |
 | --------------------------------------------------------------------- | ---- |
-| [app\src\main\java\\...\MainActivity.java](examples\android-studio\basic\app\src\main\java\com\maulingmonkey\jni_android_sys\examples\basic\MainActivity.java) | Java Source
-| [rust\src\lib.rs](examples\android-studio\basic\rust\src\lib.rs)      | Rust Source
-| [app\build.gradle](examples\android-studio\basic\app\build.gradle)    | App Build Config
-| [build.gradle](examples\android-studio\basic\build.gradle)            | Root Build Config
+| [app\src\main\java\MainActivity.java](..\example_android_studio\app\src\main\java\MainActivity.java) | Java Source
+| [rust\src\lib.rs](..\example_android_studio\rust\src\lib.rs)          | Rust Source
+| [app\build.gradle](..\example_android_studio\app\build.gradle)        | App Build Config
+| [build.gradle](..\example_android_studio\build.gradle)                | Root Build Config
 
 ## Example: Inline
 

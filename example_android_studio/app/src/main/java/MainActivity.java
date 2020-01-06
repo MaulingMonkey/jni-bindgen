@@ -1,4 +1,4 @@
-package com.maulingmonkey.jni_android_sys.examples.basic;
+package com.maulingmonkey.jni_bindgen.example_android_studio;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -7,7 +7,7 @@ import android.view.KeyEvent;
 
 public class MainActivity extends AppCompatActivity {
     static {
-        System.loadLibrary("basic");
+        System.loadLibrary("example_android_studio");
     }
 
     @Override

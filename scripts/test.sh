@@ -20,7 +20,7 @@ pushd jni-android-sys
 print_run ../target/release/jni-bindgen --android-api-levels=7-28 generate
 print_run cargo build --features "all api-level-28 force-define"
 popd
-pushd jni-android-sys/examples/android-studio/basic
+pushd example_android_studio
 chmod +x ./gradlew
 print_run ./gradlew assembleDebug --console=plain
 popd

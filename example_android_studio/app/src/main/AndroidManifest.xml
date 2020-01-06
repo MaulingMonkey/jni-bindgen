@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.maulingmonkey.jni_android_sys.examples.basic">
+    package="com.maulingmonkey.jni_bindgen.example_android_studio">
 
     <application
         android:allowBackup="true"

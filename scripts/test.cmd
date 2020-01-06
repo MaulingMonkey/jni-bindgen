@@ -125,7 +125,7 @@
     ..\target\%CONFIG%\jni-bindgen --android-api-levels=7-28 generate
     @call :try-cargo +%CHANNEL% build            --features "all api-level-28 force-define" %CARGO_FLAGS% || goto :build-one-error
     @call :try-cargo +%CHANNEL% doc   --no-deps  --features "all api-level-28 force-define" %CARGO_FLAGS% || goto :build-one-error
-    @cd "%~dp0../jni-android-sys/examples/android-studio/basic"
+    @cd "%~dp0../example_android_studio"
     @set JAVA_HOME=%ProgramFiles%\Android\Android Studio\jre\
     @call "gradlew.bat" assemble%GRADLE_CONFIG_FRAGMENT%
     @goto :build-one-successful

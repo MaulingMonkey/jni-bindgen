@@ -1,5 +1,9 @@
 :: XXX: VS Code's RLS might end up locking target/rls, so manually cleanup as much as we can, trying rls a few times.
 @call :try-rmdir target\rls
+@call :try-rmdir example_android_studio\build
+@call :try-rmdir example_android_studio\rust\target
+@call :try-rmdir jni-android-sys\target
+@call :try-rmdir target\rls
 @call :try-rmdir pkg
 @call :try-rmdir target\debug
 @call :try-rmdir target\doc
