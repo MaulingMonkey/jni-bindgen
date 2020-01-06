@@ -1,4 +1,5 @@
-#[path = "java/_java.rs"] #[macro_use]  mod java;
+#[macro_use] extern crate jni_bindgen_reflection as java;
+
 #[path = "android/_android.rs"]         mod android;
 #[path = "config/_config.rs"]           mod config;
 #[path = "emit_rust/_emit_rust.rs"]     mod emit_rust;

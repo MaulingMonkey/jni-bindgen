@@ -1,7 +1,7 @@
 //! [Java SE 7 &sect; 4.5](https://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html#jvms-4.5):  Parsing APIs and structures for class fields.
 
-use crate::java::*;
-use crate::java::io::*;
+use crate::*;
+use crate::io::*;
 
 use bitflags::bitflags;
 

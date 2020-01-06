@@ -1,0 +1,17 @@
+[package]
+name = "jni-bindgen-reflection"
+version = "0.0.9"
+authors = ["MaulingMonkey <git@maulingmonkey.com>"]
+edition = "2018"
+description = "Static reflection APIs for analyzing jars"
+documentation = "https://docs.rs/jni-bindgen-reflection/"
+repository = "https://github.com/MaulingMonkey/jni-bindgen"
+keywords = ["jvm", "jni", "bindgen", "android"]
+categories = ["development-tools::ffi"]
+license = "MIT OR Apache-2.0"
+include = ["/**/*.rs", "/Cargo.toml", "/LICENSE-MIT", "/LICENSE-APACHE"]
+
+
+[dependencies]
+bitflags                = "1.1.0"
+bugsalot                = "0.2.0"

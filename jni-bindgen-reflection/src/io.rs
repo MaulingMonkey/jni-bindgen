@@ -1,4 +1,4 @@
-use crate::java::*;
+use crate::*;
 use std::io::*;
 
 pub fn read_u1(r: &mut impl Read) -> Result<u8> {
@@ -42,6 +42,7 @@ pub fn read_ignore(read: &mut impl Read, bytes: usize) -> io::Result<()> {
 // I/O errors here "probably" indicate bugs in class parsing - break at the callsite for ease of debugging.
 // The other alternative is you're parsing bad/corrupt classes, so good luck with that.
 
+#[macro_export]
 macro_rules! io_data_error {
     ($($arg:tt)*) => {{
         use bugsalot::*;
@@ -51,20 +52,20 @@ macro_rules! io_data_error {
     }};
 }
 
-
+#[macro_export]
 macro_rules! io_data_err {
-    ($($arg:tt)*) => { Err(io_data_error!($($arg)*)) };
+    ($($arg:tt)*) => { Err($crate::io_data_error!($($arg)*)) };
 }
 
 macro_rules! io_assert {
     ($condition:expr) => {
         if !$condition {
-            return io_data_err!("Assertion failed: {}", stringify!($condition));
+            return $crate::io_data_err!("Assertion failed: {}", stringify!($condition));
         }
     };
     ($condition:expr, $($arg:tt)*) => {
         if !$condition {
-            return io_data_err!($($arg)*);
+            return $crate::io_data_err!($($arg)*);
         }
     };
 }

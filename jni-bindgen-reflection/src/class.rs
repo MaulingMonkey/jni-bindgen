@@ -3,8 +3,8 @@
 // https://en.wikipedia.org/wiki/Java_class_file
 // https://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html
 
-use crate::java::*;
-use crate::java::io::*;
+use crate::*;
+use crate::io::*;
 
 use bitflags::bitflags;
 

@@ -13,15 +13,16 @@ include = ["/**/*.rs", "/Cargo.toml", "/LICENSE-MIT", "/LICENSE-APACHE"]
 
 
 [dependencies]
-jni-glue        = { version = "=0.0.9", path = "../jni-glue" }
-clap            = { version = "2.33.0", features = ["yaml"] }
-bitflags        = "1.1.0"
-bugsalot        = "0.2.0"
-lazy_static     = "1.3.0"
-serde           = "1.0.98"
-serde_derive    = "1.0.98"
-toml            = "0.5.1"
-zip             = "0.5.2"
+jni-bindgen-reflection  = { path = "../jni-bindgen-reflection", version = "0.0.9" }
+jni-glue                = { version = "=0.0.9", path = "../jni-glue" }
+clap                    = { version = "2.33.0", features = ["yaml"] }
+bitflags                = "1.1.0"
+bugsalot                = "0.2.0"
+lazy_static             = "1.3.0"
+serde                   = "1.0.98"
+serde_derive            = "1.0.98"
+toml                    = "0.5.1"
+zip                     = "0.5.2"
 
 [dev-dependencies]
-jni-sys         = "0.3.0"
+jni-sys                 = "0.3.0"

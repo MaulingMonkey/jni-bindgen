@@ -1,5 +1,5 @@
-use crate::java::*;
-use crate::java::io::*;
+use crate::*;
+use crate::io::*;
 
 use std::io::{self, Read};
 

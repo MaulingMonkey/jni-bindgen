@@ -1,5 +1,6 @@
 [workspace]
 members = [
     "jni-bindgen",
+    "jni-bindgen-reflection",
     "jni-glue",
 ]
