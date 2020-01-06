@@ -45,6 +45,20 @@ impl<Class: AsValidJObjectAndEnv> Global<Class> {
     }
 }
 
+impl<'env, Class: AsValidJObjectAndEnv> From<Local<'env, Class>> for Global<Class> {
+    fn from(local: Local<'env, Class>) -> Global<Class> {
+        let env = unsafe { Env::from_ptr(local.oae.env) };
+        let jnienv = env.as_jni_env();
+        let gen_vm = env.get_gen_vm();
+        let global = unsafe { (**jnienv).NewGlobalRef.unwrap()(jnienv, local.oae.object) };
+        Global {
+            global,
+            gen_vm,
+            pd: PhantomData,
+        }
+    }
+}
+
 impl<Class: AsValidJObjectAndEnv> Drop for Global<Class> {
     fn drop(&mut self) {
         VMS.read().unwrap().use_vm(self.gen_vm, |vm|{
