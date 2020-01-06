@@ -1,5 +1,5 @@
 use super::{*, jchar};
-use std::{char, slice, iter};
+use std::{char, slice, iter, cell::Cell, ptr::null, mem::transmute};
 
 
 
@@ -8,7 +8,7 @@ use std::{char, slice, iter};
 pub struct StringChars<'env> {
     env:    &'env Env,
     string: jstring,
-    chars:  *const jchar,
+    chars:  Cell<*const jchar>,
     length: jsize, // in characters
 }
 
@@ -17,7 +17,7 @@ impl<'env> StringChars<'env> {
     pub unsafe fn from_env_jstring(env: &'env Env, string: jstring) -> Self {
         debug_assert!(!string.is_null());
 
-        let chars  = env.get_string_chars(string);
+        let chars = Cell::new(null());
         let length = env.get_string_length(string);
         Self {
             env,
@@ -27,16 +27,35 @@ impl<'env> StringChars<'env> {
         }
     }
 
+    /// Construct a StringChars from an Env + AsRef<str>
+    pub fn from_env_str<S: AsRef<str>>(env: &'env Env, string: S) -> Self {
+        let chars = string.as_ref().encode_utf16().collect::<Vec<_>>();
+        let string = unsafe { env.new_string(
+            chars.as_ptr() as *const jchar,
+            chars.len() as jsize,
+        ) };
+        unsafe { Self::from_env_jstring(env, string) }
+    }
+
+    /// Get an Env + jstring from StringChars
+    pub unsafe fn as_env_jstring(&self) -> (&'env Env, jstring) {
+        (self.env, self.string)
+    }
+
     /// Get an array of [jchar]s.  Generally UTF16, but not guaranteed to be valid UTF16.
     /// 
     /// [jchar]:                    struct.jchar.html
     pub fn chars(&self) -> &[jchar] {
-        unsafe { slice::from_raw_parts(self.chars, self.length as usize) }
+        if self.chars.get().is_null() {
+            // Get string chars
+            self.chars.set(unsafe { self.env.get_string_chars(self.string) });
+        }
+        unsafe { slice::from_raw_parts(self.chars.get(), self.length as usize) }
     }
 
     /// Get an array of [u16]s.  Generally UTF16, but not guaranteed to be valid UTF16.
     pub fn as_u16_slice(&self) -> &[u16] {
-        unsafe { slice::from_raw_parts(self.chars as *const u16, self.length as usize) }
+        unsafe { transmute::<&[jchar], &[u16]>(self.chars()) }
     }
 
     /// std::char::[decode_utf16]\(...\)s these string characters.
@@ -54,12 +73,7 @@ impl<'env> StringChars<'env> {
     /// [String]:                   https://doc.rust-lang.org/std/string/struct.String.html
     /// [REPLACEMENT_CHARACTER]:    https://doc.rust-lang.org/std/char/constant.REPLACEMENT_CHARACTER.html
     pub fn to_string(&self) -> Result<String, char::DecodeUtf16Error> {
-        let mut s = String::new();
-        s.reserve(self.length as usize); // Might not be enough
-        for ch in self.decode() {
-            s.push(ch?);
-        }
-        Ok(s)
+        self.decode().collect()
     }
 
     /// Returns a new [String] with any invalid UTF16 characters replaced with [REPLACEMENT_CHARACTER]s (`'\u{FFFD}'`.)
@@ -73,6 +87,9 @@ impl<'env> StringChars<'env> {
 
 impl<'env> Drop for StringChars<'env> {
     fn drop(&mut self) {
-        unsafe { self.env.release_string_chars(self.string, self.chars) };
+        let chars = self.chars.get();
+        if !chars.is_null() {
+            unsafe { self.env.release_string_chars(self.string, chars) };
+        }
     }
 }

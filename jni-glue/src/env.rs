@@ -66,6 +66,11 @@ impl Env {
 
     // String methods
 
+    pub unsafe fn new_string(&self, chars: *const jchar, len: jsize) -> jstring {
+        let env = &self.0 as *const JNIEnv as *mut JNIEnv;
+        (**env).NewString.unwrap()(env, chars as *const _, len)
+    }
+
     pub unsafe fn get_string_length(&self, string: jstring) -> jsize {
         let env = &self.0 as *const JNIEnv as *mut JNIEnv;
         (**env).GetStringLength.unwrap()(env, string)
