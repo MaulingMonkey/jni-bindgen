@@ -27,11 +27,11 @@ impl VM {
     where
         F: FnOnce(&Env) -> R,
     {
-        let mut java_vm = self.0;
+        let java_vm = self.as_java_vm() as *mut JavaVM;
         let mut env = null_mut();
-        match unsafe { (*java_vm).GetEnv.unwrap()(&mut java_vm, &mut env, JNI_VERSION_1_2) } {
+        match unsafe { (**java_vm).GetEnv.unwrap()(java_vm, &mut env, JNI_VERSION_1_2) } {
             JNI_OK => callback(unsafe { Env::from_jni_void_ref(&env) }),
-            JNI_EDETACHED => match unsafe { (*java_vm).AttachCurrentThread.unwrap()(&mut java_vm, &mut env, null_mut()) } {
+            JNI_EDETACHED => match unsafe { (**java_vm).AttachCurrentThread.unwrap()(java_vm, &mut env, null_mut()) } {
                 JNI_OK => callback(unsafe { Env::from_jni_void_ref(&env) }),
                 unexpected => panic!("AttachCurrentThread returned unknown error: {}", unexpected),
             },
