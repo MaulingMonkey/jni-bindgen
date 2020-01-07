@@ -10,14 +10,16 @@ use std::char::DecodeUtf16Error;
 
 
 impl java::lang::String {
-    fn from_string_chars<'env>(string_chars: &StringChars<'env>) -> Local<'env, Self> {
-        let (env, string) = unsafe { string_chars.as_env_jstring() };
-        unsafe { Local::from_env_object(env.as_jni_env() as *const _, string) }
-    }
-
     /// Create new local string from an Env + AsRef<str>
     pub fn from_env_str<'env, S: AsRef<str>>(env: &'env Env, string: S) -> Local<'env, Self> {
-        Self::from_string_chars(&StringChars::from_env_str(env, string))
+        let chars = string.as_ref().encode_utf16().collect::<Vec<_>>();
+
+        let string = unsafe { env.new_string(
+            chars.as_ptr() as *const jchar,
+            chars.len() as jni_sys::jsize,
+        ) };
+
+        unsafe { Local::from_env_object(env.as_jni_env() as *const _, string) }
     }
 
     fn string_chars(&self) -> StringChars {
