@@ -1,5 +1,5 @@
 use crate::*;
-use crate::io::*;
+use crate::io::be::*;
 
 use std::io::{self, Read};
 

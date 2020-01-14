@@ -1,6 +1,6 @@
 //! [Java SE 7 &sect; 4.4](https://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html#jvms-4.4):  Parsing APIs and structures for the constants pool.
 
-use crate::io::*;
+use crate::io::be::*;
 
 use bugsalot::*;
 

@@ -4,7 +4,7 @@
 // https://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html
 
 use crate::*;
-use crate::io::*;
+use crate::io::be::*;
 
 use bitflags::bitflags;
 
@@ -49,7 +49,7 @@ impl Flags {
 #[repr(C)]
 #[derive(Clone, Copy, Debug, Default)]
 struct Header {
-    pub magic:          [u8; 4],
+    pub magic:          u32,
     pub minor_version:  u16,
     pub major_version:  version::Major,
 }
@@ -57,8 +57,8 @@ struct Header {
 impl Header {
     pub(crate) fn read(reader: &mut impl Read) -> io::Result<Header> {
         let mut h = Header::default();
-        reader.read_exact(&mut h.magic)?;
-        if h.magic != [0xCA, 0xFE, 0xBA, 0xBE] { return io_data_err!("Invalid header magic, not a class file"); }
+        h.magic         = read_u4(reader)?;
+        if h.magic != 0xCAFEBABE { return io_data_err!("Invalid header magic, not a class file"); }
         h.minor_version = read_u2(reader)?;
         h.major_version = version::Major(read_u2(reader)?);
         Ok(h)
