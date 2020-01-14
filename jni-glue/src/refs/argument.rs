@@ -37,9 +37,25 @@ impl<Class: AsValidJObjectAndEnv> Argument<Class> {
             })
         }
     }
+
+    /// **unsafe**:  This assumes the argument belongs to the given Env/VM, which is technically unsound.  However, the
+    /// intended use case of immediately converting any Argument s into ArgumentRef s at the start of a JNI callback,
+    /// where Java directly invoked your function with an Env + arguments, is sound.
+    pub unsafe fn into_global(self, env: &Env) -> Option<Global<Class>> {
+        if self.object.is_null() {
+            None
+        } else {
+            let jnienv = env.as_jni_env();
+            let gen_vm = env.get_gen_vm();
+            let global = (**jnienv).NewGlobalRef.unwrap()(jnienv, self.object);
+            Some(Global {
+                global,
+                gen_vm,
+                pd: PhantomData,
+            })
+        }
+    }
 }
-
-
 
 /// A [Local](https://www.ibm.com/support/knowledgecenter/en/SSYKE2_8.0.0/com.ibm.java.vm.80.doc/docs/jni_refs.html),
 /// non-null, reference to a Java object (+ &Env).
