@@ -205,8 +205,12 @@ impl<'a> Field<'a> {
                 if !self.java.is_static() {
                     writeln!(out, "{}        let env = __jni_bindgen::Env::from_ptr(self.0.env);", indent)?;
                 }
-                writeln!(out, "{}        let (class, field) = env.require_class_{}field({}, {}, {});", indent, if self.java.is_static() { "static_" } else { "" }, emit_cstr(self.class.path.as_str()), emit_cstr(self.java.name.as_str()), emit_cstr(self.java.descriptor_str()) )?;
-                writeln!(out, "{}        env.get_{}{}_field(class, field)", indent, if self.java.is_static() { "static_" } else { "" }, field_fragment)?;
+                writeln!(out, "{}        let (__jni_class, __jni_field) = env.require_class_{}field({}, {}, {});", indent, if self.java.is_static() { "static_" } else { "" }, emit_cstr(self.class.path.as_str()), emit_cstr(self.java.name.as_str()), emit_cstr(self.java.descriptor_str()) )?;
+                if self.java.is_static() {
+                    writeln!(out, "{}        env.get_static_{}_field(__jni_class, __jni_field)", indent, field_fragment)?;
+                } else {
+                    writeln!(out, "{}        env.get_{}_field(self.0.object, __jni_field)", indent, field_fragment)?;
+                }
                 writeln!(out, "{}    }}", indent)?;
                 writeln!(out, "{}}}", indent)?;
 
@@ -230,8 +234,12 @@ impl<'a> Field<'a> {
                     if !self.java.is_static() {
                         writeln!(out, "{}        let env = __jni_bindgen::Env::from_ptr(self.0.env);", indent)?;
                     }
-                    writeln!(out, "{}        let (class, field) = env.require_class_{}field({}, {}, {});", indent, if self.java.is_static() { "static_" } else { "" }, emit_cstr(self.class.path.as_str()), emit_cstr(self.java.name.as_str()), emit_cstr(self.java.descriptor_str()) )?;
-                    writeln!(out, "{}        env.set_{}{}_field(class, field, value)", indent, if self.java.is_static() { "static_" } else { "" }, field_fragment)?;
+                    writeln!(out, "{}        let (__jni_class, __jni_field) = env.require_class_{}field({}, {}, {});", indent, if self.java.is_static() { "static_" } else { "" }, emit_cstr(self.class.path.as_str()), emit_cstr(self.java.name.as_str()), emit_cstr(self.java.descriptor_str()) )?;
+                    if self.java.is_static() {
+                        writeln!(out, "{}        env.set_static_{}_field(__jni_class, __jni_field, value)", indent, field_fragment)?;
+                    } else {
+                        writeln!(out, "{}        env.set_{}_field(self.0.object, __jni_field, value)", indent, field_fragment)?;
+                    }
                     writeln!(out, "{}    }}", indent)?;
                     writeln!(out, "{}}}", indent)?;
                 }
