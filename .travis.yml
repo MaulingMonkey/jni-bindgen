@@ -34,3 +34,4 @@ addons:
 cache:
   directories:
     - $TRAVIS_HOME/android-sdk-tmp/
+    - $TRAVIS_HOME/.gradle/wrapper/
