@@ -1,6 +1,6 @@
 [package]
 name = "jni-bindgen-reflection"
-version = "0.0.9"
+version = "0.0.10"
 authors = ["MaulingMonkey <git@maulingmonkey.com>"]
 edition = "2018"
 description = "Static reflection APIs for analyzing jars"
