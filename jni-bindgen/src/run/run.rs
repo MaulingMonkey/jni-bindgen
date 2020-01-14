@@ -56,13 +56,12 @@ fn gather_file(context: &mut emit_rust::Context, path: &Path) -> Result<(), Box<
 
     match ext.to_string_lossy().to_ascii_lowercase().as_str() {
         "class" => {
-            let mut file = File::open(path)?;
+            let mut file = io::BufReader::new(File::open(path)?);
             let class = Class::read(&mut file)?;
             context.add_struct(class)?;
         },
         "jar" => {
-            let mut jar = File::open(path)?;
-            let mut jar = zip::ZipArchive::new(&mut jar)?;
+            let mut jar = zip::ZipArchive::new(io::BufReader::new(File::open(path)?))?;
             let n = jar.len();
 
             for i in 0..n {
