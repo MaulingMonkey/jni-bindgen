@@ -47,7 +47,7 @@ pub enum Constant {
     Long(i64),
     Float(f32),
     Double(f64),
-    String(String),
+    String(Option<String>),
 }
 
 impl Display for Constant {
@@ -66,7 +66,8 @@ impl Display for Constant {
             Constant::Double(value) if value.is_nan()                       => write!(fmt, "__jni_bindgen::std::f64::NAN"),
             Constant::Double(value)                                         => write!(fmt, "{}f64", value),
 
-            Constant::String(value) => Debug::fmt(value, fmt)
+            Constant::String(Some(value))   => Debug::fmt(value, fmt),
+            Constant::String(None)          => write!(fmt, "panic!(\"Java string constant contains invalid 'Modified UTF8'\")"),
         }
     }
 }

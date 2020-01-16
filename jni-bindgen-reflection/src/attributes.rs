@@ -92,7 +92,7 @@ impl Attribute {
                     Constant::Float(value)              => Ok(Attribute::ConstantValue(field::Constant::Float(*value))),
                     Constant::Double(value)             => Ok(Attribute::ConstantValue(field::Constant::Double(*value))),
                     Constant::Integer(value)            => Ok(Attribute::ConstantValue(field::Constant::Integer(*value))),
-                    Constant::String { string_index }   => Ok(Attribute::ConstantValue(field::Constant::String(constants.get_utf8(*string_index)?.to_owned()))),
+                    Constant::String { string_index }   => Ok(Attribute::ConstantValue(field::Constant::String(constants.get_utf8_possibly_invalid(*string_index)?.map(|s| s.to_owned())))),
                     c                                   => io_data_err!("Expected Constant::{{Long, Float, Double, Integer, String}}, got {:?}", c),
                 }
             },

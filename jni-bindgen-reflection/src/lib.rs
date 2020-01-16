@@ -4,13 +4,15 @@
 
     mod attributes;
 pub mod class;
-    mod constants;
+mod constants;
 pub mod field;
 pub mod method;
+    mod src;
     mod version;
 
     use attributes::Attribute;
 pub use class::Class;
-    use constants::{Constant, Constants};
+use constants::{Constant, Constants};
 pub use field::Field;
+pub use src::Source;
 pub use method::Method;
