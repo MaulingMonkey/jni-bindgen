@@ -30,8 +30,6 @@ set SKIP_BUILD=0
 @pushd "%~dp0.."
 cd "%~dp0..\jni-glue"
 cargo publish %PUBLISH_FLAGS%
-cd "%~dp0..\jreflection"
-cargo publish %PUBLISH_FLAGS%
 cd "%~dp0..\jni-bindgen"
 cargo publish %PUBLISH_FLAGS%
 :: Delay publish of jni-android-sys long enough for dependencies to be available on crates.io, maybe.
