@@ -1,7 +1,6 @@
 use crate::emit_rust::*;
-use java::method;
-use java::field;
-
+use jreflection::method;
+use jreflection::field;
 use std::fmt::{self, Display, Formatter};
 
 pub(crate) struct KnownDocsUrl {
@@ -16,7 +15,7 @@ impl Display for KnownDocsUrl {
 }
 
 impl KnownDocsUrl {
-    pub(crate) fn from_class(context: &Context, java_class: java::class::Id) -> Option<KnownDocsUrl> {
+    pub(crate) fn from_class(context: &Context, java_class: jreflection::class::Id) -> Option<KnownDocsUrl> {
         let java_class = java_class.as_str();
         let pattern = context.config.doc_patterns.iter().find(|pattern| java_class.starts_with(pattern.jni_prefix.as_str()))?;
 

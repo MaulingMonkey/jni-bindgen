@@ -1,4 +1,4 @@
-use jni_bindgen_reflection::{Class, Source};
+use jreflection::{Class, Source};
 use std::path::*;
 use std::time::*;
 

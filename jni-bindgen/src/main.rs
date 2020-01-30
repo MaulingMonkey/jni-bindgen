@@ -1,4 +1,4 @@
-#[macro_use] extern crate jni_bindgen_reflection as java;
+use jreflection::{io_data_err, io_data_error};
 
 #[path = "android/_android.rs"]         mod android;
 #[path = "config/_config.rs"]           mod config;

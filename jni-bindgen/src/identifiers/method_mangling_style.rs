@@ -1,7 +1,6 @@
 use crate::identifiers::*;
-use crate::java::class::IdPart;
-use crate::java::method;
-
+use jreflection::class::IdPart;
+use jreflection::method;
 use serde_derive::*;
 
 

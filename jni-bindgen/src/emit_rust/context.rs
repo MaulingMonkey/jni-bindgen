@@ -1,6 +1,6 @@
 use crate::emit_rust::*;
 
-use java::class;
+use jreflection::class;
 
 use std::collections::*;
 use std::error::Error;
@@ -33,7 +33,7 @@ impl<'a> Context<'a> {
         Ok(format!("{}::{}", m, s))
     }
 
-    pub fn add_struct(&mut self, class: java::Class) -> Result<(), Box<dyn Error>> {
+    pub fn add_struct(&mut self, class: jreflection::Class) -> Result<(), Box<dyn Error>> {
         if self.config.ignore_classes.contains(class.path.as_str()) {
             return Ok(())
         }

@@ -1,7 +1,7 @@
 use crate::emit_rust::*;
 use crate::identifiers::*;
 
-use java::method;
+use jreflection::method;
 
 use std::collections::BTreeSet;
 use std::io;
@@ -9,14 +9,14 @@ use std::io;
 
 
 pub struct Method<'a> {
-    pub class:      &'a java::Class,
-    pub java:       &'a java::Method,
+    pub class:      &'a jreflection::Class,
+    pub java:       &'a jreflection::Method,
     rust_name:      Option<String>,
     mangling_style: MethodManglingStyle,
 }
 
 impl<'a> Method<'a> {
-    pub fn new(context: &Context, class: &'a java::Class, java: &'a java::Method) -> Self {
+    pub fn new(context: &Context, class: &'a jreflection::Class, java: &'a jreflection::Method) -> Self {
         let mut result = Self {
             class,
             java,

@@ -1,6 +1,7 @@
 use crate::emit_rust::*;
 use crate::identifiers::*;
-use crate::java::class;
+
+use jreflection::class;
 
 use std::collections::*;
 use std::error::Error;
@@ -37,7 +38,7 @@ impl StructPaths {
 #[derive(Debug, Default)]
 pub(crate) struct Struct {
     pub rust:   StructPaths,
-    pub java:   java::Class,
+    pub java:   jreflection::Class,
 }
 
 fn rust_id<'a>(id: &str) -> Result<&str, Box<dyn Error>> {
@@ -130,7 +131,7 @@ impl Struct {
         Ok(PathBuf::from(buf))
     }
 
-    pub(crate) fn new<'ctx>(context: &'ctx mut Context, java: java::Class) -> Result<Self, Box<dyn Error>> {
+    pub(crate) fn new<'ctx>(context: &'ctx mut Context, java: jreflection::Class) -> Result<Self, Box<dyn Error>> {
         let rust = StructPaths::new(context, java.path.as_id())?;
 
         return Ok(Self {

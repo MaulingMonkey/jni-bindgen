@@ -13,7 +13,7 @@ include = ["/**/*.rs", "/Cargo.toml", "/cli.yml", "/LICENSE-MIT", "/LICENSE-APAC
 
 
 [dependencies]
-jni-bindgen-reflection  = { path = "../jni-bindgen-reflection", version = "0.0.10" }
+jreflection             = { path = "../jreflection", version = "0.0.10" }
 jni-glue                = { version = "=0.0.10", path = "../jni-glue" }
 clap                    = { version = "2.33.0", features = ["yaml"] }
 bitflags                = "1.1.0"

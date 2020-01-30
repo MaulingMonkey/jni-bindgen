@@ -1,20 +1,20 @@
 use crate::emit_rust::*;
 use crate::identifiers::*;
 
-use java::class;
-use java::field;
+use jreflection::class;
+use jreflection::field;
 
 use std::io;
 
 pub struct Field<'a> {
-    pub class:      &'a java::Class,
-    pub java:       &'a java::Field,
+    pub class:      &'a jreflection::Class,
+    pub java:       &'a jreflection::Field,
     pub rust_names: Result<FieldMangling<'a>, IdentifierManglingError>,
     pub ignored:    bool,
 }
 
 impl<'a> Field<'a> {
-    pub fn new(context: &Context, class: &'a java::Class, java: &'a java::Field) -> Self {
+    pub fn new(context: &Context, class: &'a jreflection::Class, java: &'a jreflection::Field) -> Self {
         let java_class_field = format!("{}\x1f{}", class.path.as_str(), &java.name);
         let ignored = context.config.ignore_class_fields.contains(&java_class_field);
         let renamed_to = context.config.rename_class_fields.get(&java_class_field).map(|s| s.as_str());
