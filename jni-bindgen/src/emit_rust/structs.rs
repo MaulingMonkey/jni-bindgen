@@ -13,7 +13,6 @@ use std::path::PathBuf;
 pub(crate) struct StructPaths {
     pub mod_prefix:         String,
     pub struct_name:        String,
-    pub feature_name:       String,
 }
 
 impl StructPaths {
@@ -21,7 +20,6 @@ impl StructPaths {
         Ok(Self{
             mod_prefix:     Struct::mod_for(context, class)? + "::",
             struct_name:    Struct::name_for(context, class)?,
-            feature_name:   Struct::feature_for(context, class)?,
         })
     }
 

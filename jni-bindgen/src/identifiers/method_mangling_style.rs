@@ -5,14 +5,14 @@ use serde_derive::*;
 
 
 
-#[serde(rename_all = "snake_case")]
 #[derive(Clone, Copy, Debug, Deserialize, PartialEq, Eq, Hash)]
+#[serde(rename_all = "snake_case")]
 pub enum MethodManglingStyle {
     /// Leave the original method name alone as much as possible.
     /// Constructors will still be renamed from "<init>" to "new".
-    /// 
+    ///
     /// # Examples:
-    /// 
+    ///
     /// | Java      | Rust      |
     /// | --------- | --------- |
     /// | getFoo    | getFoo    |
@@ -21,9 +21,9 @@ pub enum MethodManglingStyle {
 
     /// Leave the original method name alone as much as possible... with unqualified typenames appended for disambiguation.
     /// Constructors will still be renamed from "<init>" to "new".
-    /// 
+    ///
     /// # Examples:
-    /// 
+    ///
     /// | Java      | Rust          |
     /// | --------- | ------------- |
     /// | getFoo    | getFoo_int    |
@@ -32,9 +32,9 @@ pub enum MethodManglingStyle {
 
     /// Leave the original method name alone as much as possible... with qualified typenames appended for disambiguation.
     /// Constructors will still be renamed from "<init>" to "new".
-    /// 
+    ///
     /// # Examples:
-    /// 
+    ///
     /// | Java      | Rust                  |
     /// | --------- | --------------------- |
     /// | getFoo    | getFoo_int            |
@@ -42,9 +42,9 @@ pub enum MethodManglingStyle {
     JavaLongSignature,
 
     /// Rename the method to use rust style naming conventions.
-    /// 
+    ///
     /// # Examples:
-    /// 
+    ///
     /// | Java      | Rust      |
     /// | --------- | --------- |
     /// | getFoo    | get_foo   |
@@ -52,9 +52,9 @@ pub enum MethodManglingStyle {
     Rustify,
 
     /// Rename the method to use rust style naming conventions, with unqualified typenames appended for disambiguation.
-    /// 
+    ///
     /// # Examples:
-    /// 
+    ///
     /// | Java      | Rust          |
     /// | --------- | ------------- |
     /// | getFoo    | get_foo_int   |
@@ -62,9 +62,9 @@ pub enum MethodManglingStyle {
     RustifyShortSignature,
 
     /// Rename the method to use rust style naming conventions, with qualified typenames appended for disambiguation.
-    /// 
+    ///
     /// # Examples:
-    /// 
+    ///
     /// | Java      | Rust                  |
     /// | --------- | --------------------- |
     /// | getFoo    | get_foo_int           |
