@@ -1,0 +1,46 @@
+name: Rust
+
+on:
+  push:
+    branches: [ master, wip/* ]
+  pull_request:
+    branches: [ master ]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build:
+    name: Ubuntu Latest
+    runs-on: ubuntu-latest
+    steps:
+
+    - uses: actions/checkout@v2
+
+    - name: Cache Java SDKs
+      id: cache-java-sdks
+      uses: actions/cache@v2
+      with:
+        path: |
+          ~/android-sdk-tmp/
+          ~/.gradle/wrapper/
+        key: ${{ runner.os }}-java-sdks
+
+    - name: Install APT packages
+      run: sudo apt-get install -y openjdk-8-jdk unzip
+
+    - name: Info
+      run: |
+        rustc -V
+        cargo -V
+
+    - name: Build Install Test
+      # Modern Java has trouble with sdkmanager: https://stackoverflow.com/questions/46402772/failed-to-install-android-sdk-java-lang-noclassdeffounderror-javax-xml-bind-a
+      run: |
+        export JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64/jre/
+        pushd scripts
+        chmod 755 ./install.sh
+        chmod 755 ./test.sh
+        ./install.sh
+        ./test.sh
+        popd
