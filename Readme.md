@@ -3,7 +3,7 @@
 [![GitHub](https://img.shields.io/github/stars/MaulingMonkey/jni-bindgen.svg?label=GitHub&style=social)](https://github.com/MaulingMonkey/jni-bindgen)
 [![Build Status](https://github.com/MaulingMonkey/jni-bindgen/workflows/Rust/badge.svg)](https://github.com/MaulingMonkey/jni-bindgen/actions?query=workflow%3Arust)
 [![unsafe: yes](https://img.shields.io/github/search/MaulingMonkey/jni-bindgen/unsafe%2bextension%3Ars?color=yellow&label=unsafe)](https://github.com/MaulingMonkey/jni-bindgen/search?q=unsafe+extension%3Ars)
-[![rust: 1.36.0+](https://img.shields.io/badge/rust-1.36.0%2B-green.svg)](https://gist.github.com/MaulingMonkey/c81a9f18811079f19326dac4daa5a359#minimum-supported-rust-versions-msrv)
+[![rust: stable](https://img.shields.io/badge/rust-stable-yellow.svg)](https://gist.github.com/MaulingMonkey/c81a9f18811079f19326dac4daa5a359#minimum-supported-rust-versions-msrv)
 [![Open issues](https://img.shields.io/github/issues-raw/MaulingMonkey/jni-bindgen.svg)](https://github.com/MaulingMonkey/jni-bindgen/issues)
 [![License](https://img.shields.io/crates/l/jni-bindgen.svg)](https://github.com/MaulingMonkey/jni-bindgen)
 [![dependency status](https://deps.rs/repo/github/MaulingMonkey/jni-bindgen/status.svg)](https://deps.rs/repo/github/MaulingMonkey/jni-bindgen)
