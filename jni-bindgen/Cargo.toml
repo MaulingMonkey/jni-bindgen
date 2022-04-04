@@ -22,7 +22,7 @@ lazy_static             = "1.3.0"
 serde                   = "1.0.98"
 serde_derive            = "1.0.98"
 toml                    = "0.5.1"
-zip                     = "0.5.2"
+zip                     = "0.6.2"
 
 [dev-dependencies]
 jni-sys                 = "0.3.0"
