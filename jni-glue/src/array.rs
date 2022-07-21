@@ -208,8 +208,8 @@ impl<T: AsValidJObjectAndEnv, E: ThrowableType> ObjectArray<T, E> {
         let class = Self::static_with_jni_type(|t| unsafe { env.require_class(t) });
         let size = size as jsize;
         let env = env.as_jni_env();
+        let fill = null_mut();
         unsafe {
-            let fill = null_mut();
             let object = (**env).NewObjectArray.unwrap()(env, size, class, fill);
             let exception = (**env).ExceptionOccurred.unwrap()(env);
             assert!(exception.is_null()); // Only sane exception here is an OOM exception
